@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import Muro from './pages/Muro';
 import Login from './pages/Login';
 import DetalleDenuncia from './pages/DetalleDenuncia';
+import NuevaDenuncia from './pages/NuevaDenuncia';
 
 function App() {
   const [session, setSession] = useState(undefined); // undefined = cargando
@@ -28,6 +29,7 @@ function App() {
         {/* El muro es público — cualquiera puede ver */}
         <Route path="/" element={<Muro session={session} />} />
         <Route path="/denuncia/:id" element={<DetalleDenuncia session={session} />} />
+        <Route path="/nueva" element={<NuevaDenuncia session={session} />} />
         <Route path="/login" element={session ? <Navigate to="/" replace /> : <Login />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
