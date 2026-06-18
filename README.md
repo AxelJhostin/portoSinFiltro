@@ -34,15 +34,20 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 |---|---|
 | Prototipo interactivo (`index.html`) | ✅ Completo |
 | Schema de base de datos (Supabase) | ✅ Completo |
-| Backend Node.js/Express | ✅ Scaffold completo |
-| Frontend React + Vite + Tailwind | ✅ Scaffold base completo |
+| Backend Node.js/Express (API REST) | ✅ Completo |
+| Frontend React + Vite + Tailwind | ✅ Completo |
 | Autenticación con Supabase Auth | ✅ Magic link implementado |
-| Página del Muro (lista de denuncias) | ✅ Funcional |
-| Página de detalle de denuncia | ⏳ Pendiente |
-| Formulario para nueva denuncia | ⏳ Pendiente |
-| Panel de municipio/cuadrilla | ⏳ Pendiente |
-| Subida de fotos | ⏳ Pendiente |
-| Deploy (Vercel + Railway/Render) | ⏳ Pendiente |
+| Muro (`/`) — lista paginada y filtrable | ✅ Completo |
+| Detalle de denuncia (`/denuncia/:id`) | ✅ Completo |
+| Formulario nueva denuncia (`/nueva`) | ✅ Completo |
+| Panel municipio/cuadrilla (`/panel`) | ✅ Completo |
+| Mis denuncias (`/mis-denuncias`) | ✅ Completo |
+| Página 404 | ✅ Completo |
+| Layout compartido (sin duplicación) | ✅ Completo |
+| Constantes centralizadas (`lib/constants.js`) | ✅ Completo |
+| Subida de fotos (UI lista, backend pendiente) | 🔧 Parcial |
+| Conectar Supabase real (configurar `.env`) | ⏳ Pendiente |
+| Deploy en servidor propio | ⏳ Pendiente |
 
 ---
 
@@ -94,7 +99,7 @@ El frontend **nunca** habla directamente con la base de datos para operaciones d
 portosinfiltro/
 ├── index.html                  ← Prototipo standalone (demo sin backend)
 ├── project/                    ← Archivos originales del diseño (Claude Design)
-│   ├── PortoSinFiltro.dc.html  ← Prototipo dc-runtime original
+│   ├── PortoSinFiltro.dc.html
 │   └── PortoSinFiltro-print.dc.html
 │
 ├── database/
@@ -103,38 +108,46 @@ portosinfiltro/
 │
 ├── backend/
 │   ├── .env.example            ← Variables requeridas (copiar a .env)
-│   ├── package.json
+│   ├── package.json            ← "type": "module" — usa ES imports
 │   └── src/
-│       ├── index.js            ← Entrada del servidor Express
+│       ├── index.js            ← Entrada Express: CORS, rutas, error handler
 │       ├── db/
-│       │   └── supabase.js     ← Cliente Supabase con service_role
+│       │   └── supabase.js     ← Cliente con service_role (bypassa RLS)
 │       ├── middleware/
-│       │   └── auth.js         ← requireAuth + requireRol()
+│       │   └── auth.js         ← requireAuth() + requireRol(...roles)
 │       └── routes/
-│           ├── denuncias.js    ← CRUD denuncias + apoyo toggle
-│           ├── aportes.js      ← Confirmaciones y comentarios
+│           ├── denuncias.js    ← GET lista, GET detalle, POST crear, PATCH estado, POST apoyo
+│           ├── aportes.js      ← GET y POST aportes/confirmaciones
 │           └── dashboard.js    ← Estadísticas para municipio/cuadrilla
 │
 └── frontend/
     ├── .env.example            ← Variables requeridas (copiar a .env)
     ├── index.html
-    ├── package.json
+    ├── package.json            ← "type": "module", React 18, Vite, Tailwind
     ├── vite.config.js          ← Proxy /api → localhost:4000
-    ├── tailwind.config.js      ← Paleta personalizada
+    ├── tailwind.config.js      ← Paleta personalizada (brand, surface, ink)
     ├── postcss.config.js
     └── src/
-        ├── main.jsx
-        ├── index.css           ← Clases utilitarias: .card, .btn-primary, .chip
-        ├── App.jsx             ← Router + gestión de sesión Supabase
+        ├── main.jsx            ← Punto de entrada React
+        ├── index.css           ← Clases Tailwind: .card, .btn-primary, .chip, .estado-*
+        ├── App.jsx             ← Router + sesión Supabase + carga de perfil (rol)
         ├── lib/
         │   ├── supabase.js     ← Cliente frontend (anon key)
-        │   └── api.js          ← Wrapper fetch que inyecta JWT automáticamente
+        │   ├── api.js          ← fetch wrapper — inyecta JWT automáticamente
+        │   └── constants.js    ← CATEGORIAS, ZONAS, ESTADO_*, GRAVEDAD_LABEL (fuente única)
         ├── pages/
-        │   ├── Muro.jsx        ← Lista principal de denuncias (paginada, filtrable)
-        │   └── Login.jsx       ← Magic link sin contraseña
+        │   ├── Muro.jsx        ← Lista paginada + filtros zona/categoría/orden
+        │   ├── DetalleDenuncia.jsx  ← Detalle completo + aportes + formulario
+        │   ├── NuevaDenuncia.jsx    ← Formulario con validación, gravedad, foto, anónimo
+        │   ├── Panel.jsx       ← Dashboard municipio/cuadrilla: KPIs + cambio de estado
+        │   ├── MisDenuncias.jsx     ← Denuncias propias del ciudadano
+        │   ├── Login.jsx       ← Magic link (sin contraseña)
+        │   └── NotFound.jsx    ← Página 404
         └── components/
+            ├── layout/
+            │   └── Layout.jsx  ← Header + footer compartido (prop `back` para subpáginas)
             └── ui/
-                └── DenunciaCard.jsx  ← Tarjeta con apoyo, estado, gravedad
+                └── DenunciaCard.jsx  ← Tarjeta con apoyo toggle, chip de estado, barra de gravedad
 ```
 
 ---
@@ -389,27 +402,24 @@ npx serve -p 3771 .
 
 ## Lo que falta implementar
 
-### Alta prioridad (para el proyecto)
+### Para conectar y entregar
 
-- [ ] **Página de detalle de denuncia** (`/denuncia/:id`) — ver descripción completa, historial de estados, aportes, fotos
-- [ ] **Formulario nueva denuncia** (`/nueva`) — con selector de zona, categoría, gravedad, foto y opción anónima
-- [ ] **Panel municipio/cuadrilla** — dashboard con estadísticas, tabla de denuncias asignadas, botón de cambio de estado
-- [ ] **Subida de fotos** — conectar `multer` en el backend con Supabase Storage
+- [ ] **Configurar Supabase** — crear proyecto, ejecutar `schema.sql`, copiar claves a `.env`
+- [ ] **Subida de fotos** — conectar el selector de foto (ya implementado en UI) con `multer` y Supabase Storage
+- [ ] **Filtrar Mis Denuncias por autor** — ahora muestra todas; falta pasar el `autor_id` al query del backend
 
 ### Media prioridad
 
-- [ ] **Filtros por zona y categoría** en el muro (los `<select>` en `Muro.jsx` están pendientes)
-- [ ] **Página de perfil** — ver mis denuncias, mis aportes
-- [ ] **Notificaciones** — email cuando el estado de tu denuncia cambia (Supabase Edge Functions o un cron)
-- [ ] **Moderación** — ruta para que municipio marque `oculta = true` en denuncias inapropiadas
+- [ ] **Notificaciones por email** — avisar al ciudadano cuando cambia el estado de su denuncia (Supabase Edge Functions)
+- [ ] **Moderación** — botón en el panel para marcar `oculta = true` en denuncias inapropiadas
+- [ ] **Historial de estados visible** — mostrar el log de cambios en la página de detalle
 
-### Baja prioridad / Post-entrega
+### Post-entrega / Mejoras futuras
 
-- [ ] **Mapa interactivo** — mostrar denuncias georreferenciadas (Leaflet.js + coordenadas en la tabla)
-- [ ] **Ticker en tiempo real** — Supabase Realtime para actualizar el muro sin recargar
+- [ ] **Mapa interactivo** — mostrar denuncias georreferenciadas con Leaflet.js
+- [ ] **Tiempo real** — Supabase Realtime para que el muro se actualice sin recargar
 - [ ] **PWA** — hacer la app instalable en móviles
-- [ ] **.gitignore** adecuado (agregar `node_modules`, `dist`, `.env`)
-- [ ] **Deploy** — frontend en Vercel (o servidor propio), backend con `npm start` en tu máquina o servidor
+- [ ] **Deploy** — frontend en Vercel (gratis), backend en el servidor de la universidad
 
 ---
 

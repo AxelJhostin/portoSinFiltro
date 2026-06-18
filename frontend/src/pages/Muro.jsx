@@ -3,36 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import DenunciaCard from '../components/ui/DenunciaCard';
 import Layout from '../components/layout/Layout';
+import { CATEGORIAS, ZONAS } from '../lib/constants';
 
 const ORDEN_OPTS = [
   { value: 'reciente', label: 'Más reciente' },
   { value: 'apoyos',   label: 'Más apoyado' },
   { value: 'gravedad', label: 'Más grave' },
-];
-
-const CATEGORIAS = [
-  { id: 1, nombre: 'Baches y vías' },
-  { id: 2, nombre: 'Alumbrado público' },
-  { id: 3, nombre: 'Basura y aseo' },
-  { id: 4, nombre: 'Agua y alcantarillado' },
-  { id: 5, nombre: 'Semáforos y señalética' },
-  { id: 6, nombre: 'Parques y espacios públicos' },
-  { id: 7, nombre: 'Seguridad' },
-  { id: 8, nombre: 'Ruido' },
-  { id: 9, nombre: 'Otros' },
-];
-
-const ZONAS = [
-  { id: 1,  nombre: 'Andrés de Vera' },
-  { id: 2,  nombre: 'Picoazá' },
-  { id: 3,  nombre: '4 de Noviembre' },
-  { id: 4,  nombre: 'San Pablo' },
-  { id: 5,  nombre: 'El Florón' },
-  { id: 6,  nombre: 'Colón' },
-  { id: 7,  nombre: 'La Pradera' },
-  { id: 8,  nombre: 'Ciudad Nueva' },
-  { id: 9,  nombre: 'Ciudadela Universitaria' },
-  { id: 10, nombre: 'Otra zona' },
 ];
 
 export default function Muro({ session, perfil }) {

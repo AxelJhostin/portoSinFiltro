@@ -2,24 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import Layout from '../components/layout/Layout';
-
-const ESTADO_LABEL = {
-  pendiente:  'PENDIENTE',
-  en_proceso: 'EN PROCESO',
-  resuelto:   'RESUELTO',
-};
-const ESTADO_COLOR = {
-  pendiente:  'estado-pendiente',
-  en_proceso: 'estado-en_proceso',
-  resuelto:   'estado-resuelto',
-};
-const GRAVEDAD_LABEL = { 1:'Baja', 2:'Moderada', 3:'Media', 4:'Alta', 5:'Crítica' };
-const TIPO_LABEL = {
-  confirmacion: 'Confirma el problema',
-  evidencia:    'Agrega evidencia',
-  detalle:      'Agrega detalle',
-  relacionado:  'Problema relacionado',
-};
+import { ESTADO_LABEL, ESTADO_COLOR, GRAVEDAD_LABEL, TIPO_APORTE_LABEL } from '../lib/constants';
 
 export default function DetalleDenuncia({ session, perfil }) {
   const { id } = useParams();
@@ -176,7 +159,7 @@ export default function DetalleDenuncia({ session, perfil }) {
                 <div key={a.id} className="card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-brand-amber uppercase tracking-wide">
-                      {TIPO_LABEL[a.tipo] || a.tipo}
+                      {TIPO_APORTE_LABEL[a.tipo] || a.tipo}
                     </span>
                     <span className="text-xs text-ink-faint font-mono">
                       {a.autor}{a.rol ? ` · ${a.rol}` : ''}

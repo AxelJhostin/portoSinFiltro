@@ -2,13 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import Layout from '../components/layout/Layout';
-
-const ESTADO_LABEL = { pendiente:'PENDIENTE', en_proceso:'EN PROCESO', resuelto:'RESUELTO' };
-const ESTADO_COLOR = {
-  pendiente:  'estado-pendiente',
-  en_proceso: 'estado-en_proceso',
-  resuelto:   'estado-resuelto',
-};
+import { ESTADO_LABEL, ESTADO_COLOR } from '../lib/constants';
 
 export default function MisDenuncias({ session, perfil }) {
   const navigate = useNavigate();
