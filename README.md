@@ -2,28 +2,30 @@
 
 Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí. Los ciudadanos denuncian, confirman y dan seguimiento a problemas como baches, alumbrado, basura y más. El municipio y cuadrillas gestionan el estado de cada denuncia desde un panel de control.
 
-> Proyecto universitario — diseño revisado por docentes como "chevere pero demasiado saturado". La paleta fue ajustada a tonos más institucionales sin perder el carácter editorial.
+> Proyecto universitario — Universidad Técnica de Manabí, materia de Programación Web.
 
 ---
 
 ## Tabla de contenidos
 
 - [Vista general del proyecto](#vista-general-del-proyecto)
+- [Prerrequisitos](#prerrequisitos)
+- [Quick Start — desde cero](#quick-start--desde-cero)
 - [Tecnologías](#tecnologías)
 - [Arquitectura](#arquitectura)
 - [Estructura de carpetas](#estructura-de-carpetas)
-- [Configuración inicial](#configuración-inicial)
+- [Configuración detallada](#configuración-detallada)
   - [1. Supabase](#1-supabase)
   - [2. Base de datos](#2-base-de-datos)
   - [3. Backend](#3-backend)
   - [4. Frontend](#4-frontend)
 - [Variables de entorno](#variables-de-entorno)
-- [Cómo correr el proyecto en local](#cómo-correr-el-proyecto-en-local)
 - [Roles de usuario](#roles-de-usuario)
 - [API — Endpoints disponibles](#api--endpoints-disponibles)
 - [Base de datos — Esquema](#base-de-datos--esquema)
-- [Diseño y prototipo](#diseño-y-prototipo)
+- [Bugs conocidos y limitaciones actuales](#bugs-conocidos-y-limitaciones-actuales)
 - [Lo que falta implementar](#lo-que-falta-implementar)
+- [Diseño y prototipo](#diseño-y-prototipo)
 - [Decisiones de diseño importantes](#decisiones-de-diseño-importantes)
 
 ---
@@ -36,18 +38,56 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 | Schema de base de datos (Supabase) | ✅ Completo |
 | Backend Node.js/Express (API REST) | ✅ Completo |
 | Frontend React + Vite + Tailwind | ✅ Completo |
-| Autenticación con Supabase Auth | ✅ Magic link implementado |
+| Autenticación Supabase Auth (magic link) | ✅ Completo |
 | Muro (`/`) — lista paginada y filtrable | ✅ Completo |
 | Detalle de denuncia (`/denuncia/:id`) | ✅ Completo |
 | Formulario nueva denuncia (`/nueva`) | ✅ Completo |
 | Panel municipio/cuadrilla (`/panel`) | ✅ Completo |
-| Mis denuncias (`/mis-denuncias`) | ✅ Completo |
+| Mis denuncias (`/mis-denuncias`) | ✅ Completo (ver bugs conocidos) |
 | Página 404 | ✅ Completo |
-| Layout compartido (sin duplicación) | ✅ Completo |
+| Layout compartido sin duplicación | ✅ Completo |
 | Constantes centralizadas (`lib/constants.js`) | ✅ Completo |
-| Subida de fotos (UI lista, backend pendiente) | 🔧 Parcial |
+| Subida de fotos (UI lista, storage pendiente) | 🔧 Parcial |
 | Conectar Supabase real (configurar `.env`) | ⏳ Pendiente |
-| Deploy en servidor propio | ⏳ Pendiente |
+| Deploy en servidor | ⏳ Pendiente |
+
+---
+
+## Prerrequisitos
+
+Antes de empezar, asegúrate de tener instalado:
+
+| Herramienta | Versión mínima | Verificar con |
+|---|---|---|
+| Node.js | 18.x o superior | `node --version` |
+| npm | 9.x o superior | `npm --version` |
+| Git | cualquiera reciente | `git --version` |
+
+Cuenta gratuita en [supabase.com](https://supabase.com) (se crea en 2 minutos con GitHub).
+
+---
+
+## Quick Start — desde cero
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/AxelJhostin/portoSinFiltro.git
+cd portoSinFiltro
+
+# 2. Ver el prototipo sin necesitar nada más (opcional)
+open index.html        # Mac
+# start index.html     # Windows
+
+# 3. Instalar dependencias del backend
+cd backend
+npm install
+
+# 4. Instalar dependencias del frontend
+cd ../frontend
+npm install
+```
+
+Después de instalar, necesitas configurar Supabase (ver sección siguiente) y los archivos `.env` antes de correr el proyecto.
 
 ---
 
@@ -55,22 +95,22 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 
 ### Frontend
 - **React 18** — UI declarativa con hooks
-- **Vite** — bundler ultra-rápido para desarrollo
-- **Tailwind CSS 3** — utilidades de estilo; paleta personalizada en `tailwind.config.js`
+- **Vite** — bundler rápido para desarrollo y build
+- **Tailwind CSS 3** — utilidades de estilo con paleta personalizada en `tailwind.config.js`
 - **React Router v6** — navegación SPA (client-side routing)
 - **Supabase JS** — cliente para Auth (magic link) desde el navegador
 
 ### Backend
-- **Node.js + Express 4** — API REST
-- **Supabase JS** (service role) — acceso a la base de datos con permisos de administrador
+- **Node.js + Express 4** — API REST (`"type": "module"` — usa ES imports)
+- **Supabase JS** (service role) — acceso a la BD con permisos de administrador
 - **jsonwebtoken** — verificación de tokens JWT emitidos por Supabase Auth
 - **express-validator** — validación de entradas en cada ruta
-- **multer** — preparado para subida de fotos (aún no conectado)
+- **multer** — preparado para subida de fotos (pendiente de conectar)
 - **dotenv** — variables de entorno
 
 ### Base de datos
-- **PostgreSQL en Supabase** — tablas, vistas, triggers, RLS
-- **Row Level Security (RLS)** — segunda capa de seguridad (el backend usa service_role que la bypassa, pero protege accesos directos)
+- **PostgreSQL en Supabase** — tablas, vistas, triggers y RLS
+- **Row Level Security (RLS)** — segunda capa de seguridad; el backend usa `service_role` que la bypassa, pero protege accesos directos a la BD
 
 ---
 
@@ -78,131 +118,163 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 
 ```
 Navegador (React)
-    │  Supabase Auth (magic link)
-    │  fetch /api/*  ──────────────────────────────► Express API
-    │                                                      │
-    │                                               JWT verify (middleware)
-    │                                                      │
-    │                                          Supabase service_role client
-    │                                                      │
-    └─────────────────────────────────────── PostgreSQL (Supabase)
-                                                    RLS (segunda capa)
+    │
+    │── Supabase Auth (magic link) ──► Supabase Auth Service
+    │
+    │── fetch /api/* ─────────────────► Express API (puerto 4000)
+    │                                         │
+    │                                   JWT verify (middleware/auth.js)
+    │                                         │
+    │                                   Supabase service_role client
+    │                                         │
+    └─────────────────────────────── PostgreSQL (Supabase)
+                                           │
+                                      RLS (segunda capa)
 ```
 
-El frontend **nunca** habla directamente con la base de datos para operaciones de escritura. Toda mutación pasa por el backend, que verifica el JWT antes de actuar.
+**Regla clave:** el frontend **nunca** escribe directamente en la base de datos. Toda mutación pasa por el backend, que verifica el JWT y el rol antes de actuar.
 
 ---
 
 ## Estructura de carpetas
 
 ```
-portosinfiltro/
-├── index.html                  ← Prototipo standalone (demo sin backend)
-├── project/                    ← Archivos originales del diseño (Claude Design)
-│   ├── PortoSinFiltro.dc.html
+portoSinFiltro/
+├── index.html                   ← Prototipo standalone (funciona sin backend ni BD)
+├── .gitignore                   ← Excluye node_modules/, dist/, .env, package-lock.json
+├── project/                     ← Archivos originales del diseño (Claude Design)
+│   ├── PortoSinFiltro.dc.html   ← Prototipo dc-runtime original
 │   └── PortoSinFiltro-print.dc.html
 │
 ├── database/
-│   ├── schema.sql              ← Schema completo: tablas, trigger, vista, RLS
-│   └── seed.sql                ← Datos de prueba (necesita UUIDs reales de Supabase)
+│   ├── schema.sql               ← Schema completo: tablas, trigger, vista, RLS
+│   └── seed.sql                 ← Datos de prueba (leer comentarios del archivo)
 │
 ├── backend/
-│   ├── .env.example            ← Variables requeridas (copiar a .env)
-│   ├── package.json            ← "type": "module" — usa ES imports
+│   ├── .env.example             ← Plantilla de variables (copiar a .env y rellenar)
+│   ├── package.json             ← "type": "module" — necesario para ES imports
 │   └── src/
-│       ├── index.js            ← Entrada Express: CORS, rutas, error handler
+│       ├── index.js             ← Servidor Express: CORS, rutas, error handler global
 │       ├── db/
-│       │   └── supabase.js     ← Cliente con service_role (bypassa RLS)
+│       │   └── supabase.js      ← Cliente Supabase con service_role (bypassa RLS)
 │       ├── middleware/
-│       │   └── auth.js         ← requireAuth() + requireRol(...roles)
+│       │   └── auth.js          ← requireAuth() verifica JWT · requireRol() verifica rol
 │       └── routes/
-│           ├── denuncias.js    ← GET lista, GET detalle, POST crear, PATCH estado, POST apoyo
-│           ├── aportes.js      ← GET y POST aportes/confirmaciones
-│           └── dashboard.js    ← Estadísticas para municipio/cuadrilla
+│           ├── denuncias.js     ← GET lista, GET detalle, POST crear, PATCH estado, POST apoyo
+│           ├── aportes.js       ← GET aportes de denuncia, POST nuevo aporte
+│           └── dashboard.js     ← Estadísticas para municipio/cuadrilla
 │
 └── frontend/
-    ├── .env.example            ← Variables requeridas (copiar a .env)
-    ├── index.html
-    ├── package.json            ← "type": "module", React 18, Vite, Tailwind
-    ├── vite.config.js          ← Proxy /api → localhost:4000
-    ├── tailwind.config.js      ← Paleta personalizada (brand, surface, ink)
+    ├── .env.example             ← Plantilla de variables (copiar a .env y rellenar)
+    ├── index.html               ← HTML base de Vite
+    ├── package.json             ← "type": "module", React 18, Vite, Tailwind
+    ├── vite.config.js           ← Proxy: /api/* → http://localhost:4000
+    ├── tailwind.config.js       ← Paleta personalizada: brand.*, surface.*, ink.*
     ├── postcss.config.js
     └── src/
-        ├── main.jsx            ← Punto de entrada React
-        ├── index.css           ← Clases Tailwind: .card, .btn-primary, .chip, .estado-*
-        ├── App.jsx             ← Router + sesión Supabase + carga de perfil (rol)
+        ├── main.jsx             ← Punto de entrada React
+        ├── index.css            ← Directivas Tailwind + clases utilitarias: .card, .btn-primary, .chip, .estado-*
+        ├── App.jsx              ← BrowserRouter + carga de sesión Supabase + carga de perfil (rol)
         ├── lib/
-        │   ├── supabase.js     ← Cliente frontend (anon key)
-        │   ├── api.js          ← fetch wrapper — inyecta JWT automáticamente
-        │   └── constants.js    ← CATEGORIAS, ZONAS, ESTADO_*, GRAVEDAD_LABEL (fuente única)
+        │   ├── supabase.js      ← Cliente frontend (anon key — segura para exponer)
+        │   ├── api.js           ← fetch wrapper: inyecta JWT automáticamente en cada petición
+        │   └── constants.js     ← Fuente única: CATEGORIAS, ZONAS, ESTADO_*, GRAVEDAD_LABEL, TIPO_APORTE_LABEL
         ├── pages/
-        │   ├── Muro.jsx        ← Lista paginada + filtros zona/categoría/orden
-        │   ├── DetalleDenuncia.jsx  ← Detalle completo + aportes + formulario
-        │   ├── NuevaDenuncia.jsx    ← Formulario con validación, gravedad, foto, anónimo
-        │   ├── Panel.jsx       ← Dashboard municipio/cuadrilla: KPIs + cambio de estado
-        │   ├── MisDenuncias.jsx     ← Denuncias propias del ciudadano
-        │   ├── Login.jsx       ← Magic link (sin contraseña)
-        │   └── NotFound.jsx    ← Página 404
+        │   ├── Muro.jsx         ← Lista paginada + filtros zona / categoría / orden
+        │   ├── DetalleDenuncia.jsx  ← Detalle completo + lista de aportes + formulario de aporte
+        │   ├── NuevaDenuncia.jsx    ← Formulario: categoría, zona, descripción, gravedad, foto, anónimo
+        │   ├── Panel.jsx        ← Dashboard municipio/cuadrilla: KPIs, ranking zonas, cambio de estado
+        │   ├── MisDenuncias.jsx ← Denuncias del usuario logueado (ver bugs conocidos)
+        │   ├── Login.jsx        ← Autenticación con magic link (sin contraseña)
+        │   └── NotFound.jsx     ← Página 404
         └── components/
             ├── layout/
-            │   └── Layout.jsx  ← Header + footer compartido (prop `back` para subpáginas)
+            │   └── Layout.jsx   ← Header + footer compartido · prop `back` muestra "← Volver" y oculta ticker
             └── ui/
-                └── DenunciaCard.jsx  ← Tarjeta con apoyo toggle, chip de estado, barra de gravedad
+                └── DenunciaCard.jsx  ← Tarjeta: titular, chip de estado, apoyo toggle, barra de gravedad
 ```
 
 ---
 
-## Configuración inicial
+## Configuración detallada
 
 ### 1. Supabase
 
-1. Crear un proyecto en [supabase.com](https://supabase.com) (gratis).
-2. Ir a **Project Settings → API** y anotar:
-   - **Project URL** → `SUPABASE_URL` / `VITE_SUPABASE_URL`
-   - **anon public key** → `VITE_SUPABASE_ANON_KEY` (solo para el frontend)
-   - **service_role secret key** → `SUPABASE_SERVICE_KEY` (solo para el backend, ⚠️ nunca exponer)
-   - **JWT Secret** → `SUPABASE_JWT_SECRET` (en la misma sección)
+1. Crear un proyecto en [supabase.com](https://supabase.com) — es gratis, tarda ~2 minutos.
 
-3. En **Authentication → Settings**, activar:
-   - Email provider habilitado
-   - "Enable email confirmations" → desactivar para desarrollo (para que el magic link funcione sin confirmar primero)
+2. Ir a **Project Settings → API** y copiar estos 4 valores:
+
+   | Valor en Supabase | Variable que necesita |
+   |---|---|
+   | Project URL | `SUPABASE_URL` (backend) y `VITE_SUPABASE_URL` (frontend) |
+   | `anon` `public` key | `VITE_SUPABASE_ANON_KEY` (solo frontend) |
+   | `service_role` `secret` key | `SUPABASE_SERVICE_KEY` (solo backend) ⚠️ |
+   | JWT Secret (en la misma página) | `SUPABASE_JWT_SECRET` (solo backend) |
+
+3. Ir a **Authentication → Settings**:
+   - Confirmar que el proveedor **Email** está habilitado
+   - Desactivar **"Confirm email"** mientras desarrollas (así el magic link no requiere confirmar primero)
 
 ### 2. Base de datos
 
-En **Supabase → SQL Editor**, ejecutar los archivos en este orden:
+En **Supabase → SQL Editor**, ejecutar en este orden:
 
-```sql
--- Paso 1: estructura completa
--- Copiar y pegar el contenido de database/schema.sql
+**Paso 1 — Schema** (obligatorio):
+Copiar y pegar todo el contenido de `database/schema.sql` y ejecutar.
+Crea las 8 tablas, el trigger de `updated_at`, la vista `vista_denuncias` y las políticas RLS.
 
--- Paso 2 (opcional): datos de prueba
--- Crear primero usuarios desde Supabase → Authentication → Users
--- Copiar sus UUIDs en database/seed.sql y luego ejecutarlo
-```
+**Paso 2 — Seed** (opcional, para datos de prueba):
+1. Ir a **Supabase → Authentication → Users → Add user**
+2. Crear los usuarios de prueba (ciudadano, cuadrilla, municipio)
+3. Copiar el UUID de cada usuario (aparece en la lista de usuarios)
+4. Pegar los UUIDs en `database/seed.sql` donde dice `UUID-DEL-...`
+5. Ejecutar el seed en el SQL Editor
 
 ### 3. Backend
 
 ```bash
 cd backend
+
+# Copiar la plantilla y rellenar con tus claves de Supabase
 cp .env.example .env
-# Editar .env con tus claves de Supabase
+# Editar backend/.env — ver sección Variables de entorno
+
 npm install
-npm run dev       # nodemon — recarga automática
+npm run dev      # Arranca con nodemon (recarga automática al guardar)
+# o: npm start   # Producción (sin recarga automática)
 ```
 
-El servidor corre en `http://localhost:4000`.
+El backend queda corriendo en `http://localhost:4000`.
 
 ### 4. Frontend
 
 ```bash
 cd frontend
+
+# Copiar la plantilla y rellenar
 cp .env.example .env
-# Editar .env con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
+# Editar frontend/.env — solo necesita VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
+
 npm install
-npm run dev       # Vite dev server
+npm run dev      # Vite dev server con hot-reload
 ```
 
-El frontend corre en `http://localhost:5173`. Las peticiones a `/api/*` se redirigen automáticamente al backend en el puerto 4000 (configurado en `vite.config.js`).
+El frontend queda en `http://localhost:5173`.
+Las peticiones a `/api/*` se redirigen automáticamente al backend gracias al proxy en `vite.config.js` — no es necesario cambiar nada más.
+
+### Correr todo junto
+
+Necesitas **dos terminales abiertas** simultáneamente:
+
+```bash
+# Terminal 1
+cd backend && npm run dev
+
+# Terminal 2
+cd frontend && npm run dev
+```
+
+Abrir el navegador en `http://localhost:5173`.
 
 ---
 
@@ -210,97 +282,95 @@ El frontend corre en `http://localhost:5173`. Las peticiones a `/api/*` se redir
 
 ### `backend/.env`
 
+```env
+PORT=4000
+SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # service_role key
+SUPABASE_JWT_SECRET=tu-jwt-secret-de-supabase
+FRONTEND_URL=http://localhost:5173
+```
+
 | Variable | Dónde encontrarla | Descripción |
 |---|---|---|
 | `PORT` | Libre | Puerto del servidor (default: 4000) |
-| `SUPABASE_URL` | Project Settings → API → Project URL | URL del proyecto Supabase |
-| `SUPABASE_SERVICE_KEY` | Project Settings → API → service_role | Clave secreta del backend ⚠️ |
+| `SUPABASE_URL` | Project Settings → API → Project URL | URL del proyecto |
+| `SUPABASE_SERVICE_KEY` | Project Settings → API → service_role secret | ⚠️ NUNCA exponer al frontend |
 | `SUPABASE_JWT_SECRET` | Project Settings → API → JWT Secret | Para verificar tokens del frontend |
-| `FRONTEND_URL` | Tu URL de frontend | Para configurar CORS |
+| `FRONTEND_URL` | La URL donde corre el frontend | Configura CORS |
 
-> ⚠️ La `service_role` key bypassa Row Level Security. **Nunca** la incluyas en el frontend ni la subas a GitHub. Agregar `backend/.env` al `.gitignore`.
+> ⚠️ La `service_role` key bypassa Row Level Security — tiene acceso total a la BD. **Nunca** la pongas en el frontend ni la subas a GitHub. El archivo `.env` ya está en `.gitignore`.
 
 ### `frontend/.env`
+
+```env
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # anon key
+```
 
 | Variable | Dónde encontrarla | Descripción |
 |---|---|---|
 | `VITE_SUPABASE_URL` | Project Settings → API → Project URL | Igual que en backend |
 | `VITE_SUPABASE_ANON_KEY` | Project Settings → API → anon public | Clave pública, segura para exponer |
 
-> Las variables `VITE_*` son públicas — Vite las incrusta en el bundle. Usar **solo** la anon key aquí.
-
----
-
-## Cómo correr el proyecto en local
-
-Necesitas 3 terminales:
-
-```bash
-# Terminal 1 — Backend
-cd backend && npm run dev
-
-# Terminal 2 — Frontend
-cd frontend && npm run dev
-
-# Terminal 3 — Prototipo standalone (opcional, no necesita backend)
-npx serve -p 3771 .
-# Abrir http://localhost:3771/index.html
-```
+> Las variables con prefijo `VITE_` son públicas — Vite las incrusta en el bundle de producción. Usar **solo** la anon key aquí, nunca la service_role.
 
 ---
 
 ## Roles de usuario
 
-| Rol | Puede hacer |
+| Rol | Acceso |
 |---|---|
-| **Visitante** | Ver todas las denuncias (sin login) |
-| **Ciudadano** | + Crear denuncias, dar apoyo, agregar aportes/confirmaciones |
-| **Cuadrilla** | + Cambiar estado de denuncias asignadas, agregar respuestas oficiales |
-| **Municipio** | + Acceso total: dashboard, moderar, asignar cuadrillas |
+| **Visitante** | Ver todas las denuncias sin login |
+| **Ciudadano** | + Crear denuncias, dar apoyo, agregar aportes, ver sus denuncias |
+| **Cuadrilla** | + Cambiar estado de denuncias, agregar respuestas oficiales, ver panel |
+| **Municipio** | + Todo lo anterior + acceso al dashboard completo |
 
-Los roles se asignan manualmente en la tabla `perfiles` de Supabase. El `rol` se verifica en cada endpoint protegido del backend vía `requireRol()`.
+**Cómo asignar un rol a un usuario:**
 
-Para crear un usuario con rol específico:
-1. Crear el usuario desde **Supabase → Authentication → Users → Invite user**
-2. Copiar el UUID generado
-3. Insertar en SQL Editor:
+1. Crear el usuario desde **Supabase → Authentication → Users → Add user**
+2. Ir a la lista de usuarios, hacer clic en el usuario y copiar su **UUID** (aparece como "User UID")
+3. Ir a **SQL Editor** y ejecutar:
+
 ```sql
 INSERT INTO perfiles (id, nombre, rol)
-VALUES ('UUID-DEL-USUARIO', 'Nombre Apellido', 'ciudadano');
--- rol puede ser: 'ciudadano', 'cuadrilla', 'municipio'
+VALUES ('PEGAR-UUID-AQUI', 'Nombre Apellido', 'ciudadano');
+
+-- Valores válidos para rol: 'ciudadano', 'cuadrilla', 'municipio'
 ```
+
+El rol se verifica en cada request al backend mediante el middleware `requireRol()` en `backend/src/middleware/auth.js`.
 
 ---
 
 ## API — Endpoints disponibles
 
-El backend corre en `http://localhost:4000`. Desde el frontend, usar `/api/*` (el proxy de Vite lo redirige).
+El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/api/*` (el proxy de Vite lo redirige al backend automáticamente).
 
 ### Denuncias
 
-| Método | Ruta | Auth | Descripción |
+| Método | Ruta | Auth requerida | Descripción |
 |---|---|---|---|
-| `GET` | `/denuncias` | No | Lista paginada del muro público |
+| `GET` | `/denuncias` | No | Lista paginada, pública |
 | `GET` | `/denuncias/:id` | No | Detalle de una denuncia |
-| `POST` | `/denuncias` | Ciudadano | Crear nueva denuncia |
-| `PATCH` | `/denuncias/:id/estado` | Cuadrilla/Municipio | Cambiar estado + respuesta oficial |
-| `POST` | `/denuncias/:id/apoyo` | Autenticado | Toggle de apoyo (una vez por usuario) |
+| `POST` | `/denuncias` | ciudadano | Crear nueva denuncia |
+| `PATCH` | `/denuncias/:id/estado` | cuadrilla o municipio | Cambiar estado + respuesta oficial |
+| `POST` | `/denuncias/:id/apoyo` | cualquier usuario logueado | Toggle de apoyo (1 por usuario) |
 
-**Parámetros de GET /denuncias:**
+**Parámetros opcionales de `GET /denuncias`:**
 ```
-?zona_id=1
-?categoria_id=2
-?estado=pendiente|en_proceso|resuelto
-?orden=reciente|apoyos|gravedad
-?pagina=1
+?zona_id=1             — filtrar por zona (ID numérico)
+?categoria_id=2        — filtrar por categoría (ID numérico)
+?estado=pendiente      — pendiente | en_proceso | resuelto
+?orden=reciente        — reciente | apoyos | gravedad
+?pagina=1              — paginación (20 resultados por página)
 ```
 
-**Body de POST /denuncias:**
+**Body de `POST /denuncias`:**
 ```json
 {
   "categoria_id": 1,
   "zona_id": 3,
-  "descripcion": "Descripción del problema (20-1000 caracteres)",
+  "descripcion": "Descripción del problema (mínimo 20, máximo 1000 caracteres)",
   "gravedad": 4,
   "anonima": false
 }
@@ -308,95 +378,80 @@ El backend corre en `http://localhost:4000`. Desde el frontend, usar `/api/*` (e
 
 ### Aportes / Confirmaciones
 
-| Método | Ruta | Auth | Descripción |
+| Método | Ruta | Auth requerida | Descripción |
 |---|---|---|---|
 | `GET` | `/denuncias/:id/aportes` | No | Lista de aportes de una denuncia |
-| `POST` | `/denuncias/:id/aportes` | Autenticado | Agregar confirmación, evidencia o detalle |
+| `POST` | `/denuncias/:id/aportes` | cualquier usuario logueado | Agregar aporte |
 
-**Body de POST aportes:**
+**Body de `POST /denuncias/:id/aportes`:**
 ```json
 {
   "tipo": "confirmacion",
-  "contenido": "Yo también lo vi, está en la esquina de...",
-  "anonimo": true
+  "contenido": "Texto descriptivo del aporte",
+  "anonimo": false
 }
 ```
-`tipo` puede ser: `confirmacion`, `evidencia`, `detalle`, `relacionado`
+Valores válidos para `tipo`: `confirmacion`, `evidencia`, `detalle`, `relacionado`
 
-### Dashboard (solo municipio/cuadrilla)
+### Dashboard
 
-| Método | Ruta | Auth | Descripción |
+| Método | Ruta | Auth requerida | Descripción |
 |---|---|---|---|
-| `GET` | `/dashboard` | Municipio/Cuadrilla | Estadísticas: estados, zonas, categorías, tendencia 7 días |
+| `GET` | `/dashboard` | municipio o cuadrilla | KPIs, top zonas, top categorías, tendencia 7 días |
 
 ---
 
 ## Base de datos — Esquema
 
-### Tablas principales
+### Tablas
 
 | Tabla | Descripción |
 |---|---|
-| `perfiles` | Extiende `auth.users` de Supabase. Tiene el campo `rol`. |
-| `categorias` | 9 categorías pre-cargadas (baches, alumbrado, basura, etc.) |
-| `zonas` | 10 barrios/zonas de Portoviejo |
-| `denuncias` | El núcleo: autor, categoría, zona, descripción, gravedad, estado |
+| `perfiles` | Extiende `auth.users` de Supabase. Contiene `nombre` y `rol`. |
+| `categorias` | 9 categorías pre-cargadas por el schema (baches, alumbrado, basura…) |
+| `zonas` | 10 barrios/zonas de Portoviejo, pre-cargadas por el schema |
+| `denuncias` | Núcleo del sistema: autor, categoría, zona, descripción, gravedad, estado |
 | `fotos_denuncia` | URLs de fotos subidas a Supabase Storage |
-| `aportes` | Confirmaciones y comentarios de otros ciudadanos |
-| `reacciones` | Apoyos — con UNIQUE (denuncia_id, usuario_id) para evitar duplicados |
-| `historial_estados` | Log de cada cambio de estado con respuesta oficial |
+| `aportes` | Confirmaciones y comentarios de ciudadanos sobre una denuncia |
+| `reacciones` | Apoyos — `UNIQUE(denuncia_id, usuario_id)` garantiza 1 apoyo por usuario |
+| `historial_estados` | Log inmutable de cada cambio de estado con respuesta oficial |
 
 ### Vista `vista_denuncias`
 
-Vista enriquecida que une todas las tablas y:
-- Aplica anonimato: si `anonima = true`, oculta el nombre del autor
-- Calcula `dias_sin_resolver` desde la fecha de creación
+Usada por todos los endpoints de lectura pública. Une las tablas y:
+- Aplica anonimato: si `anonima = true`, devuelve `NULL` para `autor_id` y `'Ciudadano Anónimo'` para `autor_nombre`
+- Calcula `dias_sin_resolver` (días desde `created_at`)
 - Cuenta `total_apoyos`, `total_aportes`, `total_fotos`
-- Filtra las denuncias ocultas (`oculta = false`)
-
-Usada por todos los endpoints de lectura pública.
+- Excluye denuncias con `oculta = true`
 
 ### Trigger `trg_denuncias_updated_at`
 
-Actualiza `updated_at` automáticamente en cada UPDATE a la tabla `denuncias`.
+Se dispara en cada `UPDATE` de la tabla `denuncias` y actualiza automáticamente el campo `updated_at`.
 
 ### Anonimato
 
-El sistema garantiza:
-- **Anonimato hacia afuera**: si `anonima = true`, la API nunca devuelve el `autor_id` ni el nombre real
-- **Responsabilidad hacia adentro**: el `autor_id` siempre se guarda en la base de datos para moderación interna
+- **Hacia afuera**: si `anonima = true`, la API nunca retorna el `autor_id` ni el nombre real
+- **Hacia adentro**: el `autor_id` siempre se almacena en la BD para moderación interna del municipio
 
 ---
 
-## Diseño y prototipo
+## Bugs conocidos y limitaciones actuales
 
-El archivo [`index.html`](index.html) en la raíz es un prototipo interactivo **standalone** (sin backend). Muestra:
-- Panel izquierdo: mockup de app móvil con feed, detalle de denuncia, votación de sentimiento, comentarios
-- Panel derecho: dashboard del municipio con KPIs, gráficas y ranking de zonas
+### `MisDenuncias` muestra todas las denuncias, no solo las del usuario
 
-**Para verlo sin instalar nada:**
-```bash
-npx serve -p 3771 .
-# Abrir http://localhost:3771
-```
+**Archivo:** `frontend/src/pages/MisDenuncias.jsx`
 
-### Paleta de colores (versión reducida)
+**Problema:** La página llama a `api.denuncias.list()` sin filtrar por `autor_id`, por lo que muestra todas las denuncias públicas en lugar de solo las del usuario logueado.
 
-| Token | Color | Uso |
-|---|---|---|
-| `brand.yellow` | `#D4A017` | Acciones principales, logo (antes `#FFD400`) |
-| `brand.red` | `#B83232` | Alertas, estado pendiente (antes `#E11900`) |
-| `brand.green` | `#0E7A45` | Estado resuelto |
-| `brand.amber` | `#C87D00` | Estado en proceso |
-| `surface.base` | `#F7F6F2` | Fondo general |
-| `surface.card` | `#FFFFFF` | Tarjetas |
-| `ink.DEFAULT` | `#1A1A1A` | Texto principal |
+**Causa:** El backend no tiene aún un endpoint `/mis-denuncias` ni acepta un parámetro `autor_id` en `GET /denuncias`.
 
-### Tipografía
+**Para corregirlo se necesita:**
+1. En `backend/src/routes/denuncias.js` → agregar soporte para `?autor_id=UUID` en el query de `GET /denuncias`, **solo** cuando el JWT del request coincide con ese UUID (para no exponer denuncias de otros).
+2. En `frontend/src/pages/MisDenuncias.jsx` → pasar el ID del usuario: `api.denuncias.list({ autor_id: session.user.id })`.
 
-- **Anton** — Titulares de denuncias (estilo periódico)
-- **Archivo** — Cuerpo de texto
-- **Space Mono** — Metadatos, chips, etiquetas técnicas
+### Subida de fotos — solo UI
+
+El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local pero no lo envía al backend. La lógica de subida a Supabase Storage y el endpoint en el backend están pendientes.
 
 ---
 
@@ -405,40 +460,81 @@ npx serve -p 3771 .
 ### Para conectar y entregar
 
 - [ ] **Configurar Supabase** — crear proyecto, ejecutar `schema.sql`, copiar claves a `.env`
-- [ ] **Subida de fotos** — conectar el selector de foto (ya implementado en UI) con `multer` y Supabase Storage
-- [ ] **Filtrar Mis Denuncias por autor** — ahora muestra todas; falta pasar el `autor_id` al query del backend
+- [ ] **Corregir filtro de Mis Denuncias** — ver sección "Bugs conocidos" para los pasos exactos
+- [ ] **Subida de fotos** — conectar el selector (ya en UI) con `multer` en el backend y Supabase Storage
 
 ### Media prioridad
 
-- [ ] **Notificaciones por email** — avisar al ciudadano cuando cambia el estado de su denuncia (Supabase Edge Functions)
+- [ ] **Historial de estados en el detalle** — mostrar el log de `historial_estados` en `/denuncia/:id`
 - [ ] **Moderación** — botón en el panel para marcar `oculta = true` en denuncias inapropiadas
-- [ ] **Historial de estados visible** — mostrar el log de cambios en la página de detalle
+- [ ] **Notificaciones por email** — avisar al ciudadano cuando cambia el estado de su denuncia (Supabase Edge Functions)
 
-### Post-entrega / Mejoras futuras
+### Post-entrega
 
-- [ ] **Mapa interactivo** — mostrar denuncias georreferenciadas con Leaflet.js
-- [ ] **Tiempo real** — Supabase Realtime para que el muro se actualice sin recargar
-- [ ] **PWA** — hacer la app instalable en móviles
+- [ ] **Mapa interactivo** — denuncias georreferenciadas con Leaflet.js
+- [ ] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar
+- [ ] **PWA** — app instalable en móviles
 - [ ] **Deploy** — frontend en Vercel (gratis), backend en el servidor de la universidad
+
+---
+
+## Diseño y prototipo
+
+El archivo `index.html` en la raíz es un prototipo interactivo **standalone** — funciona abriendo el archivo directamente en el navegador, sin instalar nada ni conectar un backend.
+
+Incluye:
+- Panel izquierdo: mockup de app móvil con feed de denuncias, vista de detalle, votación de sentimiento, comentarios anónimos
+- Panel derecho: dashboard del municipio con KPIs, gráficas de categorías, ranking de zonas y evolución temporal
+
+```bash
+# Opción 1 — abrir directo (Mac)
+open index.html
+
+# Opción 2 — servir con un servidor local
+npx serve -p 3771 .
+# luego abrir http://localhost:3771
+```
+
+### Paleta de colores
+
+El diseño original fue calificado como "chevere pero demasiado saturado". La paleta fue reducida:
+
+| Token Tailwind | Color | Uso | Original |
+|---|---|---|---|
+| `brand.yellow` | `#D4A017` | Acciones principales, logo | `#FFD400` |
+| `brand.red` | `#B83232` | Alertas, estado pendiente | `#E11900` |
+| `brand.green` | `#0E7A45` | Estado resuelto | igual |
+| `brand.amber` | `#C87D00` | Estado en proceso | `#E8A300` |
+| `surface.base` | `#F7F6F2` | Fondo general | `#dcdbd5` |
+| `surface.card` | `#FFFFFF` | Tarjetas | — |
+| `ink.DEFAULT` | `#1A1A1A` | Texto principal | `#0a0a0a` |
+
+### Tipografía
+
+- **Anton** — Titulares de denuncias (estilo periódico/editorial)
+- **Archivo** — Cuerpo de texto
+- **Space Mono** — Metadatos, chips, etiquetas técnicas
 
 ---
 
 ## Decisiones de diseño importantes
 
 **¿Por qué magic link y no contraseña?**
-El ciudadano promedio no quiere crear otra cuenta. El magic link reduce la fricción al mínimo — solo necesitas un correo para denunciar.
+El ciudadano promedio no quiere crear otra cuenta. El magic link reduce la fricción al mínimo — solo se necesita un correo para denunciar.
 
-**¿Por qué el backend no usa la anon key?**
-La anon key respeta RLS, lo que puede restringir inserciones o lecturas según las políticas. El backend usa la service_role para tener control total y aplica su propia lógica de autorización (roles, validaciones), siendo más predecible y explícito.
+**¿Por qué el backend usa `service_role` y no la anon key?**
+La anon key respeta RLS, lo que puede bloquear inserciones o lecturas según las políticas definidas. El backend con `service_role` tiene control total y aplica su propia lógica de autorización (verificación de JWT + rol), siendo más predecible y explícito que RLS solo.
 
-**¿Por qué no usar Supabase directamente desde el frontend?**
-Hay operaciones que requieren lógica de negocio: generar el titular de la denuncia, registrar en el historial de estados, verificar el rol antes de cambiar un estado. Estas no se pueden expresar solo con RLS — necesitan código en el servidor.
+**¿Por qué no usar Supabase directamente desde el frontend para todo?**
+Hay operaciones que requieren lógica de negocio que no se puede expresar en RLS: generar el titular de la denuncia, registrar en el historial de estados, verificar el rol antes de cambiar un estado. Esas cosas necesitan código en el servidor.
 
-**Anonimato**: el `autor_id` siempre se guarda. Si en el futuro hay un abuso, el municipio puede (con acceso directo a Supabase) identificar quién publicó. El ciudadano ve "Ciudadano Anónimo"; el administrador ve el registro real.
+**¿Por qué centralizar las constantes en `lib/constants.js`?**
+Las listas de categorías, zonas y estados se usaban en 5-6 archivos distintos. Si hay que agregar una zona nueva o cambiar un label, se edita un solo archivo y se propaga a toda la app.
+
+**Anonimato con responsabilidad**: el `autor_id` siempre se guarda en la BD. El ciudadano ve "Ciudadano Anónimo" en el muro; el municipio con acceso directo a Supabase puede identificar al autor si hay un abuso.
 
 ---
 
 ## Autor
 
-Proyecto desarrollado para la materia de Programación Web — Universidad Técnica de Manabí.  
-Portoviejo, Manabí — 2025.
+Desarrollado por Axel Hernández — Universidad Técnica de Manabí, Portoviejo, Manabí — 2025.
