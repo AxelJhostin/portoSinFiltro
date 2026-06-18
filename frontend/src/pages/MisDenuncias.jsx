@@ -11,7 +11,9 @@ export default function MisDenuncias({ session, perfil }) {
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
-    api.denuncias.list({ orden: 'reciente', pagina: 1 })
+
+    // Filtramos por el UUID del usuario logueado — el backend lo valida contra el JWT
+    api.denuncias.list({ autor_id: session.user.id, orden: 'reciente', pagina: 1 })
       .then(res => setDenuncias(res.data))
       .catch(() => {})
       .finally(() => setCargando(false));
@@ -29,7 +31,9 @@ export default function MisDenuncias({ session, perfil }) {
 
         {cargando ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="card h-20 animate-pulse bg-surface-muted" />)}
+            {[1, 2, 3].map(i => (
+              <div key={i} className="card h-20 animate-pulse bg-surface-muted" />
+            ))}
           </div>
         ) : denuncias.length === 0 ? (
           <div className="card p-10 text-center">
@@ -44,7 +48,8 @@ export default function MisDenuncias({ session, perfil }) {
               <Link
                 key={d.id}
                 to={`/denuncia/${d.id}`}
-                className="card p-4 flex items-start justify-between gap-4 hover:shadow-md transition-shadow group"
+                className="card p-4 flex items-start justify-between gap-4
+                           hover:shadow-md transition-shadow group"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -59,7 +64,8 @@ export default function MisDenuncias({ session, perfil }) {
                     {d.titular}
                   </p>
                   <p className="text-xs text-ink-soft mt-1">
-                    {d.total_apoyos} apoyos · {d.total_aportes} aportes
+                    {d.total_apoyos} apoyo{d.total_apoyos !== 1 ? 's' : ''} ·{' '}
+                    {d.total_aportes} aporte{d.total_aportes !== 1 ? 's' : ''}
                   </p>
                 </div>
                 <span className="text-ink-faint text-lg shrink-0">→</span>

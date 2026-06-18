@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, query, param, validationResult } from 'express-validator';
 import { supabase } from '../db/supabase.js';
-import { requireAuth, requireRol } from '../middleware/auth.js';
+import { requireAuth, requireRol, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -12,30 +12,43 @@ function validate(req, res, next) {
 }
 
 // GET /denuncias — Muro público (sin auth)
+// Con ?autor_id=UUID solo devuelve las denuncias de ese usuario.
+// El autor_id se valida contra el JWT: solo puedes pedir las tuyas.
 router.get('/',
+  optionalAuth,
   query('zona_id').optional().isInt(),
   query('categoria_id').optional().isInt(),
   query('estado').optional().isIn(['pendiente', 'en_proceso', 'resuelto']),
   query('orden').optional().isIn(['reciente', 'apoyos', 'gravedad']),
   query('pagina').optional().isInt({ min: 1 }),
+  query('autor_id').optional().isUUID(),
   validate,
   async (req, res) => {
-    const { zona_id, categoria_id, estado, orden = 'reciente', pagina = 1 } = req.query;
+    const { zona_id, categoria_id, estado, orden = 'reciente', pagina = 1, autor_id } = req.query;
     const limite = 20;
-    const desde = (pagina - 1) * limite;
+    const desde  = (pagina - 1) * limite;
 
     let q = supabase
       .from('vista_denuncias')
       .select('*', { count: 'exact' })
       .range(desde, desde + limite - 1);
 
-    if (zona_id) q = q.eq('zona_id', zona_id);
+    if (zona_id)     q = q.eq('zona_id', zona_id);
     if (categoria_id) q = q.eq('categoria_id', categoria_id);
-    if (estado) q = q.eq('estado', estado);
+    if (estado)      q = q.eq('estado', estado);
 
-    if (orden === 'apoyos') q = q.order('total_apoyos', { ascending: false });
+    // autor_id solo se aplica si el JWT coincide con el UUID pedido
+    // (evita que un usuario vea la lista de denuncias de otro)
+    if (autor_id) {
+      if (!req.user || req.user.id !== autor_id) {
+        return res.status(403).json({ error: 'Solo puedes consultar tus propias denuncias.' });
+      }
+      q = q.eq('autor_id', autor_id);
+    }
+
+    if (orden === 'apoyos')   q = q.order('total_apoyos', { ascending: false });
     else if (orden === 'gravedad') q = q.order('gravedad', { ascending: false });
-    else q = q.order('created_at', { ascending: false });
+    else                      q = q.order('created_at',   { ascending: false });
 
     const { data, error, count } = await q;
     if (error) return res.status(500).json({ error: error.message });

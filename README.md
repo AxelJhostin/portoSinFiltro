@@ -43,7 +43,7 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 | Detalle de denuncia (`/denuncia/:id`) | ✅ Completo |
 | Formulario nueva denuncia (`/nueva`) | ✅ Completo |
 | Panel municipio/cuadrilla (`/panel`) | ✅ Completo |
-| Mis denuncias (`/mis-denuncias`) | ✅ Completo (ver bugs conocidos) |
+| Mis denuncias (`/mis-denuncias`) | ✅ Completo |
 | Página 404 | ✅ Completo |
 | Layout compartido sin duplicación | ✅ Completo |
 | Constantes centralizadas (`lib/constants.js`) | ✅ Completo |
@@ -435,23 +435,11 @@ Se dispara en cada `UPDATE` de la tabla `denuncias` y actualiza automáticamente
 
 ---
 
-## Bugs conocidos y limitaciones actuales
-
-### `MisDenuncias` muestra todas las denuncias, no solo las del usuario
-
-**Archivo:** `frontend/src/pages/MisDenuncias.jsx`
-
-**Problema:** La página llama a `api.denuncias.list()` sin filtrar por `autor_id`, por lo que muestra todas las denuncias públicas en lugar de solo las del usuario logueado.
-
-**Causa:** El backend no tiene aún un endpoint `/mis-denuncias` ni acepta un parámetro `autor_id` en `GET /denuncias`.
-
-**Para corregirlo se necesita:**
-1. En `backend/src/routes/denuncias.js` → agregar soporte para `?autor_id=UUID` en el query de `GET /denuncias`, **solo** cuando el JWT del request coincide con ese UUID (para no exponer denuncias de otros).
-2. En `frontend/src/pages/MisDenuncias.jsx` → pasar el ID del usuario: `api.denuncias.list({ autor_id: session.user.id })`.
+## Limitaciones actuales
 
 ### Subida de fotos — solo UI
 
-El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local pero no lo envía al backend. La lógica de subida a Supabase Storage y el endpoint en el backend están pendientes.
+El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local pero no lo envía al backend. La lógica de subida a Supabase Storage y el endpoint `multer` en el backend están pendientes. El resto del formulario funciona con normalidad.
 
 ---
 
@@ -460,7 +448,6 @@ El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local per
 ### Para conectar y entregar
 
 - [ ] **Configurar Supabase** — crear proyecto, ejecutar `schema.sql`, copiar claves a `.env`
-- [ ] **Corregir filtro de Mis Denuncias** — ver sección "Bugs conocidos" para los pasos exactos
 - [ ] **Subida de fotos** — conectar el selector (ya en UI) con `multer` en el backend y Supabase Storage
 
 ### Media prioridad

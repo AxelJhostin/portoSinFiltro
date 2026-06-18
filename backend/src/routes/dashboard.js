@@ -4,77 +4,100 @@ import { requireAuth, requireRol } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /dashboard — Estadísticas para municipio/cuadrilla
+// Devuelve el total de denuncias con oculta=false y un estado dado
+async function contarEstado(estado) {
+  const { count, error } = await supabase
+    .from('denuncias')
+    .select('*', { count: 'exact', head: true })
+    .eq('estado', estado)
+    .eq('oculta', false);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+// Agrupa un array de objetos por una clave y devuelve [{nombre, total}] ordenado desc
+function agrupar(data, clave, limite) {
+  const mapa = {};
+  data.forEach(row => {
+    const val = row[clave];
+    if (val) mapa[val] = (mapa[val] || 0) + 1;
+  });
+  return Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limite)
+    .map(([nombre, total]) => ({ nombre, total }));
+}
+
 router.get('/',
   requireAuth,
   requireRol('municipio', 'cuadrilla'),
-  async (req, res) => {
-    // Total por estado
-    const { data: porEstado } = await supabase
-      .from('denuncias')
-      .select('estado')
-      .eq('oculta', false);
+  async (req, res, next) => {
+    try {
+      // Conteos por estado y datos para rankings — todo en paralelo
+      const [
+        pendiente,
+        en_proceso,
+        resuelto,
+        { data: denZonas, error: errZonas },
+        { data: denCats,  error: errCats  },
+        { data: recientes, error: errRec  },
+      ] = await Promise.all([
+        contarEstado('pendiente'),
+        contarEstado('en_proceso'),
+        contarEstado('resuelto'),
 
-    const conteo = { pendiente: 0, en_proceso: 0, resuelto: 0 };
-    porEstado?.forEach(d => { conteo[d.estado]++; });
+        // Zona de cada denuncia (para ranking)
+        supabase
+          .from('vista_denuncias')
+          .select('zona')
+          .eq('oculta', false),   // vista ya filtra oculta, pero lo dejamos explícito
 
-    // Top zonas con más denuncias
-    const { data: topZonas } = await supabase
-      .from('vista_denuncias')
-      .select('zona')
-      .order('created_at', { ascending: false });
+        // Categoría de cada denuncia (para ranking)
+        supabase
+          .from('vista_denuncias')
+          .select('categoria')
+          .eq('oculta', false),
 
-    const zonasMap = {};
-    topZonas?.forEach(d => {
-      zonasMap[d.zona] = (zonasMap[d.zona] || 0) + 1;
-    });
-    const zonas = Object.entries(zonasMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([zona, total]) => ({ zona, total }));
+        // Denuncias de los últimos 7 días (para sparkline de tendencia)
+        supabase
+          .from('denuncias')
+          .select('created_at')
+          .eq('oculta', false)
+          .gte('created_at', new Date(Date.now() - 6 * 86_400_000).toISOString()),
+      ]);
 
-    // Top categorías
-    const { data: topCats } = await supabase
-      .from('vista_denuncias')
-      .select('categoria');
+      if (errZonas) throw errZonas;
+      if (errCats)  throw errCats;
+      if (errRec)   throw errRec;
 
-    const catsMap = {};
-    topCats?.forEach(d => {
-      catsMap[d.categoria] = (catsMap[d.categoria] || 0) + 1;
-    });
-    const categorias = Object.entries(catsMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map(([categoria, total]) => ({ categoria, total }));
+      // Rankings con helper
+      const zonas      = agrupar(denZonas,  'zona',      5);
+      const categorias = agrupar(denCats,   'categoria', 6);
 
-    // Denuncias de los últimos 7 días (para sparkline)
-    const hace7 = new Date();
-    hace7.setDate(hace7.getDate() - 6);
-    const { data: recientes } = await supabase
-      .from('denuncias')
-      .select('created_at')
-      .gte('created_at', hace7.toISOString())
-      .eq('oculta', false);
+      // Tendencia: agrupar por día
+      const diasObj = {};
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 86_400_000);
+        diasObj[d.toISOString().slice(0, 10)] = 0;
+      }
+      recientes.forEach(({ created_at }) => {
+        const dia = created_at.slice(0, 10);
+        if (dia in diasObj) diasObj[dia]++;
+      });
+      const tendencia = Object.entries(diasObj).map(([fecha, total]) => ({ fecha, total }));
 
-    const porDia = {};
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(hace7);
-      d.setDate(hace7.getDate() + i);
-      porDia[d.toISOString().slice(0, 10)] = 0;
+      const estados = { pendiente, en_proceso, resuelto };
+
+      res.json({
+        estados,
+        total: pendiente + en_proceso + resuelto,
+        zonas,
+        categorias,
+        tendencia,
+      });
+    } catch (err) {
+      next(err);
     }
-    recientes?.forEach(d => {
-      const dia = d.created_at.slice(0, 10);
-      if (porDia[dia] !== undefined) porDia[dia]++;
-    });
-    const tendencia = Object.entries(porDia).map(([fecha, total]) => ({ fecha, total }));
-
-    res.json({
-      estados: conteo,
-      total: conteo.pendiente + conteo.en_proceso + conteo.resuelto,
-      zonas,
-      categorias,
-      tendencia,
-    });
   }
 );
 
