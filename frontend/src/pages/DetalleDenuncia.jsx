@@ -1,27 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import Layout from '../components/layout/Layout';
 
 const ESTADO_LABEL = {
   pendiente:  'PENDIENTE',
   en_proceso: 'EN PROCESO',
   resuelto:   'RESUELTO',
 };
-
 const ESTADO_COLOR = {
   pendiente:  'estado-pendiente',
   en_proceso: 'estado-en_proceso',
   resuelto:   'estado-resuelto',
 };
-
-const GRAVEDAD_LABEL = {
-  1: 'Baja',
-  2: 'Moderada',
-  3: 'Media',
-  4: 'Alta',
-  5: 'Crítica',
-};
-
+const GRAVEDAD_LABEL = { 1:'Baja', 2:'Moderada', 3:'Media', 4:'Alta', 5:'Crítica' };
 const TIPO_LABEL = {
   confirmacion: 'Confirma el problema',
   evidencia:    'Agrega evidencia',
@@ -29,25 +21,19 @@ const TIPO_LABEL = {
   relacionado:  'Problema relacionado',
 };
 
-export default function DetalleDenuncia({ session }) {
+export default function DetalleDenuncia({ session, perfil }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [denuncia, setDenuncia]   = useState(null);
-  const [aportes, setAportes]     = useState([]);
-  const [cargando, setCargando]   = useState(true);
-  const [apoyado, setApoyado]     = useState(false);
-  const [apoyos, setApoyos]       = useState(0);
-  const [enviando, setEnviando]   = useState(false);
-
-  // Estado del formulario de aporte
-  const [form, setForm] = useState({
-    tipo: 'confirmacion',
-    contenido: '',
-    anonimo: false,
-  });
+  const [denuncia, setDenuncia] = useState(null);
+  const [aportes, setAportes]   = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [apoyado, setApoyado]   = useState(false);
+  const [apoyos, setApoyos]     = useState(0);
+  const [enviando, setEnviando] = useState(false);
+  const [form, setForm]         = useState({ tipo: 'confirmacion', contenido: '', anonimo: false });
   const [formError, setFormError] = useState('');
-  const [formOk, setFormOk]       = useState(false);
+  const [formOk, setFormOk]     = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -81,9 +67,7 @@ export default function DetalleDenuncia({ session }) {
   async function enviarAporte(e) {
     e.preventDefault();
     if (!session) return navigate('/login');
-    if (form.contenido.trim().length < 5) {
-      return setFormError('Escribe al menos 5 caracteres.');
-    }
+    if (form.contenido.trim().length < 5) return setFormError('Escribe al menos 5 caracteres.');
     setEnviando(true);
     setFormError('');
     try {
@@ -101,37 +85,22 @@ export default function DetalleDenuncia({ session }) {
 
   if (cargando) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-ink-faint font-mono text-sm">
-        Cargando denuncia…
-      </div>
+      <Layout session={session} perfil={perfil} back>
+        <div className="flex items-center justify-center py-32 text-ink-faint font-mono text-sm">
+          Cargando denuncia…
+        </div>
+      </Layout>
     );
   }
 
   if (!denuncia) return null;
 
   return (
-    <div className="min-h-screen bg-surface-base flex flex-col">
-      {/* Header */}
-      <header className="bg-ink text-white">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-400 hover:text-white transition-colors text-sm"
-          >
-            ← Volver
-          </button>
-          <span className="text-gray-600">|</span>
-          <h1 className="font-headline text-xl tracking-wide">
-            <span className="text-brand-yellow">PORTO</span>SINFILTRO
-          </h1>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto w-full px-4 py-6 space-y-6">
+    <Layout session={session} perfil={perfil} back>
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
         {/* Tarjeta principal */}
         <article className="card p-6">
-          {/* Zona + estado */}
           <div className="flex items-center justify-between mb-3">
             <span className="font-mono text-xs text-ink-faint uppercase tracking-wide">
               {denuncia.zona} · {denuncia.categoria}
@@ -141,39 +110,24 @@ export default function DetalleDenuncia({ session }) {
             </span>
           </div>
 
-          {/* Titular */}
-          <h2 className="font-headline text-2xl leading-tight mb-4">
-            {denuncia.titular}
-          </h2>
+          <h2 className="font-headline text-2xl leading-tight mb-4">{denuncia.titular}</h2>
+          <p className="text-ink leading-relaxed mb-4">{denuncia.descripcion}</p>
 
-          {/* Descripción completa */}
-          <p className="text-ink leading-relaxed mb-4">
-            {denuncia.descripcion}
-          </p>
-
-          {/* Metadatos */}
+          {/* Métricas */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-center">
-            <div className="bg-surface-base rounded-card p-3">
-              <p className="font-headline text-2xl">{denuncia.dias_sin_resolver}</p>
-              <p className="text-xs text-ink-faint">días sin solución</p>
-            </div>
-            <div className="bg-surface-base rounded-card p-3">
-              <p className="font-headline text-2xl">{apoyos}</p>
-              <p className="text-xs text-ink-faint">apoyos</p>
-            </div>
-            <div className="bg-surface-base rounded-card p-3">
-              <p className="font-headline text-2xl">{denuncia.total_aportes}</p>
-              <p className="text-xs text-ink-faint">aportes</p>
-            </div>
-            <div className="bg-surface-base rounded-card p-3">
-              <p className="font-headline text-2xl text-brand-red">
-                {GRAVEDAD_LABEL[denuncia.gravedad]}
-              </p>
-              <p className="text-xs text-ink-faint">gravedad</p>
-            </div>
+            {[
+              { value: denuncia.dias_sin_resolver, label: 'días sin solución' },
+              { value: apoyos,                    label: 'apoyos' },
+              { value: denuncia.total_aportes,    label: 'aportes' },
+              { value: GRAVEDAD_LABEL[denuncia.gravedad], label: 'gravedad', color: 'text-brand-red' },
+            ].map(m => (
+              <div key={m.label} className="bg-surface-base rounded-card p-3">
+                <p className={`font-headline text-2xl ${m.color ?? ''}`}>{m.value}</p>
+                <p className="text-xs text-ink-faint">{m.label}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Barra de gravedad */}
           <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden mb-4">
             <div
               className="h-full bg-brand-red rounded-full"
@@ -181,17 +135,13 @@ export default function DetalleDenuncia({ session }) {
             />
           </div>
 
-          {/* Autor y fecha */}
           <div className="flex items-center justify-between text-xs text-ink-faint font-mono">
-            <span>
-              {denuncia.anonima ? 'Ciudadano Anónimo' : denuncia.autor_nombre}
-            </span>
+            <span>{denuncia.anonima ? 'Ciudadano Anónimo' : denuncia.autor_nombre}</span>
             <span>{new Date(denuncia.created_at).toLocaleDateString('es-EC', {
               day: 'numeric', month: 'long', year: 'numeric'
             })}</span>
           </div>
 
-          {/* Botón de apoyo */}
           <div className="mt-4 pt-4 border-t border-surface-muted">
             <button
               onClick={toggleApoyo}
@@ -207,7 +157,7 @@ export default function DetalleDenuncia({ session }) {
           </div>
         </article>
 
-        {/* Aportes / Confirmaciones */}
+        {/* Aportes */}
         <section>
           <h3 className="font-headline text-lg mb-3">
             Aportes ciudadanos
@@ -229,7 +179,7 @@ export default function DetalleDenuncia({ session }) {
                       {TIPO_LABEL[a.tipo] || a.tipo}
                     </span>
                     <span className="text-xs text-ink-faint font-mono">
-                      {a.autor} {a.rol ? `· ${a.rol}` : ''}
+                      {a.autor}{a.rol ? ` · ${a.rol}` : ''}
                     </span>
                   </div>
                   {a.contenido && (
@@ -246,7 +196,7 @@ export default function DetalleDenuncia({ session }) {
           )}
         </section>
 
-        {/* Formulario para agregar aporte */}
+        {/* Formulario de aporte */}
         <section className="card p-5">
           <h3 className="font-headline text-lg mb-4">¿Conoces este problema?</h3>
 
@@ -255,16 +205,12 @@ export default function DetalleDenuncia({ session }) {
               <p className="text-sm text-ink-soft mb-3">
                 Inicia sesión para confirmar, agregar evidencia o detalles.
               </p>
-              <button
-                onClick={() => navigate('/login')}
-                className="btn-primary"
-              >
+              <button onClick={() => navigate('/login')} className="btn-primary">
                 Ingresar
               </button>
             </div>
           ) : (
             <form onSubmit={enviarAporte} className="space-y-4">
-              {/* Tipo */}
               <div>
                 <label className="block text-xs font-semibold mb-1 text-ink-soft uppercase tracking-wide">
                   Tipo de aporte
@@ -282,7 +228,6 @@ export default function DetalleDenuncia({ session }) {
                 </select>
               </div>
 
-              {/* Contenido */}
               <div>
                 <label className="block text-xs font-semibold mb-1 text-ink-soft uppercase tracking-wide">
                   Descripción
@@ -296,12 +241,9 @@ export default function DetalleDenuncia({ session }) {
                   className="w-full border border-surface-muted rounded-card px-3 py-2 text-sm
                              focus:outline-none focus:border-ink resize-none"
                 />
-                <p className="text-xs text-ink-faint text-right mt-0.5">
-                  {form.contenido.length}/500
-                </p>
+                <p className="text-xs text-ink-faint text-right mt-0.5">{form.contenido.length}/500</p>
               </div>
 
-              {/* Anónimo */}
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -312,30 +254,20 @@ export default function DetalleDenuncia({ session }) {
                 <span className="text-sm text-ink-soft">Publicar de forma anónima</span>
               </label>
 
-              {formError && (
-                <p className="text-brand-red text-xs">{formError}</p>
-              )}
+              {formError && <p className="text-brand-red text-xs">{formError}</p>}
               {formOk && (
                 <p className="text-brand-green text-xs font-semibold">
                   ✓ Aporte enviado correctamente.
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={enviando}
-                className="btn-primary disabled:opacity-50"
-              >
+              <button type="submit" disabled={enviando} className="btn-primary disabled:opacity-50">
                 {enviando ? 'Enviando…' : 'Enviar aporte'}
               </button>
             </form>
           )}
         </section>
-      </main>
-
-      <footer className="border-t border-surface-muted py-4 text-center text-xs text-ink-faint font-mono mt-6">
-        PortoSinFiltro · Portoviejo, Manabí · {new Date().getFullYear()}
-      </footer>
-    </div>
+      </div>
+    </Layout>
   );
 }

@@ -1,36 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import Layout from '../components/layout/Layout';
 
-const ESTADO_LABEL = {
-  pendiente:  'PENDIENTE',
-  en_proceso: 'EN PROCESO',
-  resuelto:   'RESUELTO',
-};
+const ESTADO_LABEL = { pendiente:'PENDIENTE', en_proceso:'EN PROCESO', resuelto:'RESUELTO' };
 const ESTADO_COLOR = {
   pendiente:  'estado-pendiente',
   en_proceso: 'estado-en_proceso',
   resuelto:   'estado-resuelto',
 };
-const ESTADO_NEXT = {
-  pendiente:  'en_proceso',
-  en_proceso: 'resuelto',
-  resuelto:   null,
-};
-const ESTADO_NEXT_LABEL = {
-  pendiente:  'Marcar en proceso →',
-  en_proceso: 'Marcar resuelto →',
-  resuelto:   null,
-};
+const ESTADO_NEXT       = { pendiente:'en_proceso', en_proceso:'resuelto', resuelto:null };
+const ESTADO_NEXT_LABEL = { pendiente:'Marcar en proceso →', en_proceso:'Marcar resuelto →', resuelto:null };
 
 export default function Panel({ session, perfil }) {
   const navigate = useNavigate();
-  const [stats, setStats]           = useState(null);
-  const [denuncias, setDenuncias]   = useState([]);
-  const [cargando, setCargando]     = useState(true);
-  const [filtroEstado, setFiltro]   = useState('pendiente');
-  const [respuesta, setRespuesta]   = useState({});    // { [id]: texto }
-  const [actualizando, setAct]      = useState(null);  // id en proceso
+  const [stats, setStats]         = useState(null);
+  const [denuncias, setDenuncias] = useState([]);
+  const [cargando, setCargando]   = useState(true);
+  const [filtroEstado, setFiltro] = useState('pendiente');
+  const [respuesta, setRespuesta] = useState({});
+  const [actualizando, setAct]    = useState(null);
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
@@ -49,7 +38,7 @@ export default function Panel({ session, perfil }) {
         ]);
         setStats(s);
         setDenuncias(d.data);
-      } catch {/* sin credenciales aún — ignora */}
+      } catch {/* sin credenciales aún */}
       finally { setCargando(false); }
     }
     cargar();
@@ -68,34 +57,15 @@ export default function Panel({ session, perfil }) {
         prev.map(d => d.id === denuncia.id ? { ...d, estado: nuevoEstado } : d)
       );
       setRespuesta(r => { const c = { ...r }; delete c[denuncia.id]; return c; });
-    } catch {/* mostrar error si hubiera ui de error */}
+    } catch {/* error silencioso */}
     finally { setAct(null); }
   }
 
   if (!session || !perfil) return null;
 
   return (
-    <div className="min-h-screen bg-surface-base flex flex-col">
-      {/* Header */}
-      <header className="bg-ink text-white">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-gray-400 hover:text-white transition-colors text-sm">
-              ← Muro
-            </Link>
-            <span className="text-gray-600">|</span>
-            <h1 className="font-headline text-xl tracking-wide">
-              <span className="text-brand-yellow">PORTO</span>SINFILTRO
-              <span className="text-gray-400 font-body text-sm font-normal ml-2">
-                Panel {perfil.rol}
-              </span>
-            </h1>
-          </div>
-          <span className="text-xs font-mono text-gray-400">{perfil.nombre}</span>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
+    <Layout session={session} perfil={perfil}>
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
         {/* KPIs */}
         {stats && (
@@ -103,10 +73,10 @@ export default function Panel({ session, perfil }) {
             <h2 className="font-headline text-lg mb-3">Resumen general</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Total',       value: stats.total,             color: 'text-ink' },
-                { label: 'Pendientes',  value: stats.estados.pendiente, color: 'text-brand-red' },
-                { label: 'En proceso',  value: stats.estados.en_proceso, color: 'text-brand-amber' },
-                { label: 'Resueltas',   value: stats.estados.resuelto,  color: 'text-brand-green' },
+                { label: 'Total',      value: stats.total,              color: 'text-ink' },
+                { label: 'Pendientes', value: stats.estados.pendiente,  color: 'text-brand-red' },
+                { label: 'En proceso', value: stats.estados.en_proceso, color: 'text-brand-amber' },
+                { label: 'Resueltas',  value: stats.estados.resuelto,   color: 'text-brand-green' },
               ].map(k => (
                 <div key={k.label} className="card p-4 text-center">
                   <p className={`font-headline text-3xl ${k.color}`}>{k.value}</p>
@@ -144,14 +114,15 @@ export default function Panel({ session, perfil }) {
 
         {/* Tabla de denuncias */}
         <section>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h2 className="font-headline text-lg">Denuncias</h2>
             <div className="flex gap-2">
               {['pendiente', 'en_proceso', 'resuelto'].map(e => (
                 <button
                   key={e}
                   onClick={() => setFiltro(e)}
-                  className={`chip cursor-pointer transition-colors ${filtroEstado === e ? 'chip-active' : 'hover:bg-surface-muted'}`}
+                  className={`chip cursor-pointer transition-colors
+                    ${filtroEstado === e ? 'chip-active' : 'hover:bg-surface-muted'}`}
                 >
                   {ESTADO_LABEL[e]}
                 </button>
@@ -161,9 +132,7 @@ export default function Panel({ session, perfil }) {
 
           {cargando ? (
             <div className="space-y-3">
-              {[1,2,3].map(i => (
-                <div key={i} className="card h-20 animate-pulse bg-surface-muted" />
-              ))}
+              {[1,2,3].map(i => <div key={i} className="card h-20 animate-pulse bg-surface-muted" />)}
             </div>
           ) : denuncias.length === 0 ? (
             <div className="card p-8 text-center text-ink-faint text-sm">
@@ -173,9 +142,9 @@ export default function Panel({ session, perfil }) {
             <div className="space-y-3">
               {denuncias.map(d => (
                 <div key={d.id} className="card p-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className={`chip text-xs px-2 py-0.5 rounded-full ${ESTADO_COLOR[d.estado]}`}>
                           {ESTADO_LABEL[d.estado]}
                         </span>
@@ -192,7 +161,6 @@ export default function Panel({ session, perfil }) {
                       <p className="text-xs text-ink-soft mt-1 line-clamp-1">{d.descripcion}</p>
                     </div>
 
-                    {/* Acciones */}
                     {ESTADO_NEXT[d.estado] && (
                       <div className="shrink-0 flex flex-col gap-2 items-end">
                         <input
@@ -218,7 +186,7 @@ export default function Panel({ session, perfil }) {
             </div>
           )}
         </section>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }

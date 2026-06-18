@@ -409,7 +409,7 @@ npx serve -p 3771 .
 - [ ] **Ticker en tiempo real** — Supabase Realtime para actualizar el muro sin recargar
 - [ ] **PWA** — hacer la app instalable en móviles
 - [ ] **.gitignore** adecuado (agregar `node_modules`, `dist`, `.env`)
-- [ ] **Deploy** — frontend en Vercel, backend en Railway o Render
+- [ ] **Deploy** — frontend en Vercel (o servidor propio), backend con `npm start` en tu máquina o servidor
 
 ---
 

@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import DetalleDenuncia from './pages/DetalleDenuncia';
 import NuevaDenuncia from './pages/NuevaDenuncia';
 import Panel from './pages/Panel';
+import MisDenuncias from './pages/MisDenuncias';
+import NotFound from './pages/NotFound';
 
 function App() {
   const [session, setSession] = useState(undefined); // undefined = cargando
@@ -13,17 +15,13 @@ function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => subscription.unsubscribe();
   }, []);
 
-  // Cargar perfil (rol) cuando hay sesión activa
+  // Cargar perfil (nombre, rol) cuando hay sesión activa
   useEffect(() => {
     if (!session?.user) { setPerfil(null); return; }
-
     supabase
       .from('perfiles')
       .select('id, nombre, rol')
@@ -40,15 +38,18 @@ function App() {
     );
   }
 
+  const shared = { session, perfil };
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/"            element={<Muro session={session} perfil={perfil} />} />
-        <Route path="/denuncia/:id" element={<DetalleDenuncia session={session} />} />
-        <Route path="/nueva"       element={<NuevaDenuncia session={session} />} />
-        <Route path="/panel"       element={<Panel session={session} perfil={perfil} />} />
-        <Route path="/login"       element={session ? <Navigate to="/" replace /> : <Login />} />
-        <Route path="*"            element={<Navigate to="/" replace />} />
+        <Route path="/"              element={<Muro {...shared} />} />
+        <Route path="/denuncia/:id"  element={<DetalleDenuncia {...shared} />} />
+        <Route path="/nueva"         element={<NuevaDenuncia {...shared} />} />
+        <Route path="/panel"         element={<Panel {...shared} />} />
+        <Route path="/mis-denuncias" element={<MisDenuncias {...shared} />} />
+        <Route path="/login"         element={session ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="*"              element={<NotFound {...shared} />} />
       </Routes>
     </BrowserRouter>
   );

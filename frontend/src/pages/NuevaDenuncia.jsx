@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import Layout from '../components/layout/Layout';
 
 const CATEGORIAS = [
   { id: 1, nombre: 'Baches y vías' },
@@ -29,7 +30,7 @@ const ZONAS = [
 
 const GRAVEDAD_LABELS = ['', 'Baja', 'Moderada', 'Media', 'Alta', 'Crítica'];
 
-export default function NuevaDenuncia({ session }) {
+export default function NuevaDenuncia({ session, perfil }) {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,7 +44,8 @@ export default function NuevaDenuncia({ session }) {
     gravedad: 3,
     anonima: false,
   });
-  const [error, setError]     = useState('');
+  const [foto, setFoto]         = useState(null);
+  const [error, setError]       = useState('');
   const [enviando, setEnviando] = useState(false);
 
   function set(campo, valor) {
@@ -62,7 +64,6 @@ export default function NuevaDenuncia({ session }) {
     e.preventDefault();
     const err = validar();
     if (err) return setError(err);
-
     setEnviando(true);
     setError('');
     try {
@@ -82,25 +83,11 @@ export default function NuevaDenuncia({ session }) {
 
   if (!session) return null;
 
-  return (
-    <div className="min-h-screen bg-surface-base flex flex-col">
-      {/* Header */}
-      <header className="bg-ink text-white">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-400 hover:text-white transition-colors text-sm"
-          >
-            ← Volver
-          </button>
-          <span className="text-gray-600">|</span>
-          <h1 className="font-headline text-xl tracking-wide">
-            <span className="text-brand-yellow">PORTO</span>SINFILTRO
-          </h1>
-        </div>
-      </header>
+  const descOk = form.descripcion.length >= 20;
 
-      <main className="max-w-2xl mx-auto w-full px-4 py-6">
+  return (
+    <Layout session={session} perfil={perfil} back>
+      <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="card p-6">
           <h2 className="font-headline text-2xl mb-1">Nueva denuncia</h2>
           <p className="text-sm text-ink-soft mb-6">
@@ -159,10 +146,53 @@ export default function NuevaDenuncia({ session }) {
                 className="w-full border border-surface-muted rounded-card px-3 py-2 text-sm
                            focus:outline-none focus:border-ink resize-none"
               />
-              <div className="flex justify-between text-xs text-ink-faint mt-0.5">
-                <span>{form.descripcion.length < 20 ? `Mínimo 20 caracteres (faltan ${20 - form.descripcion.length})` : '✓ Suficiente'}</span>
-                <span>{form.descripcion.length}/1000</span>
+              <div className="flex justify-between text-xs mt-0.5">
+                <span className={descOk ? 'text-brand-green' : 'text-ink-faint'}>
+                  {descOk ? '✓ Suficiente' : `Mínimo 20 caracteres (faltan ${20 - form.descripcion.length})`}
+                </span>
+                <span className="text-ink-faint">{form.descripcion.length}/1000</span>
               </div>
+            </div>
+
+            {/* Foto (UI lista, sin conexión al backend aún) */}
+            <div>
+              <label className="block text-xs font-semibold mb-1 text-ink-soft uppercase tracking-wide">
+                Foto del problema <span className="font-normal normal-case">(opcional)</span>
+              </label>
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed
+                                border-surface-muted rounded-card cursor-pointer hover:border-ink transition-colors
+                                bg-surface-base">
+                {foto ? (
+                  <div className="flex items-center gap-2 text-sm text-ink">
+                    <span>📎</span>
+                    <span className="truncate max-w-xs">{foto.name}</span>
+                    <button
+                      type="button"
+                      onClick={e => { e.preventDefault(); setFoto(null); }}
+                      className="text-brand-red hover:underline text-xs"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="text-ink-faint text-2xl mb-1">+</span>
+                    <span className="text-xs text-ink-faint">Haz clic para adjuntar una foto</span>
+                    <span className="text-xs text-ink-faint opacity-60">JPG, PNG — máx. 5 MB</span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={e => setFoto(e.target.files[0] ?? null)}
+                />
+              </label>
+              {foto && (
+                <p className="text-xs text-brand-amber mt-1">
+                  ⚠ La subida de fotos se habilitará próximamente.
+                </p>
+              )}
             </div>
 
             {/* Gravedad */}
@@ -187,8 +217,7 @@ export default function NuevaDenuncia({ session }) {
                 ))}
               </div>
               <div className="flex justify-between text-xs text-ink-faint mt-1 px-0.5">
-                <span>Baja</span>
-                <span>Crítica</span>
+                <span>Baja</span><span>Crítica</span>
               </div>
             </div>
 
@@ -211,14 +240,12 @@ export default function NuevaDenuncia({ session }) {
               </label>
             </div>
 
-            {/* Error */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-card px-4 py-3 text-sm text-brand-red">
                 {error}
               </div>
             )}
 
-            {/* Botón */}
             <button
               type="submit"
               disabled={enviando}
@@ -232,7 +259,7 @@ export default function NuevaDenuncia({ session }) {
             </p>
           </form>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }
