@@ -10,7 +10,7 @@ const ORDEN_OPTS = [
   { value: 'gravedad', label: 'Más grave' },
 ];
 
-export default function Muro({ session }) {
+export default function Muro({ session, perfil }) {
   const [denuncias, setDenuncias] = useState([]);
   const [cargando, setCargando]   = useState(true);
   const [orden, setOrden]         = useState('reciente');
@@ -54,6 +54,14 @@ export default function Muro({ session }) {
           <div className="flex items-center gap-3">
             {session ? (
               <>
+                {perfil && ['municipio', 'cuadrilla'].includes(perfil.rol) && (
+                  <button
+                    onClick={() => navigate('/panel')}
+                    className="text-gray-300 hover:text-white text-sm transition-colors"
+                  >
+                    Panel
+                  </button>
+                )}
                 <button
                   onClick={() => navigate('/nueva')}
                   className="bg-brand-yellow text-ink text-sm font-semibold px-4 py-1.5 rounded-card
