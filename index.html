@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortoSinFiltro — La ciudad expuesta, sin censura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#dcdbd5;font-family:'Archivo',sans-serif;color:#0a0a0a;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  button{font-family:inherit;line-height:normal;cursor:pointer;}
+  textarea{font-family:'Archivo',sans-serif;}
+  @keyframes pf-marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes pf-blink{0%,100%{opacity:1}50%{opacity:.25}}
+  .ticker-track{white-space:nowrap;display:flex;animation:pf-marquee 26s linear infinite;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;}
+  .blink{animation:pf-blink 1.4s steps(1) infinite;}
+</style>
+</head>
+<body>
+<div style="min-height:100%;background:#dcdbd5;padding:40px 24px 80px;">
+
+  <!-- PAGE HEADER -->
+  <div style="max-width:1240px;margin:0 auto 34px;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="background:#0a0a0a;color:#fff;font-family:'Anton',sans-serif;font-size:26px;letter-spacing:.5px;padding:6px 12px 4px;line-height:1;">PORTO<span style="color:#0a0a0a;background:#FFD400;padding:0 6px;margin-left:4px;">SIN&nbsp;FILTRO</span></div>
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;color:#6b6862;text-transform:uppercase;">Prototipo interactivo · La ciudad expuesta, sin censura · PORTOVIEJO</div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:18px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#7a776f;text-transform:uppercase;">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E11900;display:inline-block;"></span>Pendiente</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E8A300;display:inline-block;"></span>En proceso</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#0E7A45;display:inline-block;"></span>Resuelto</span>
+      <span style="color:#9b988f;">Tocá APOYAR, votá si mejora o empeora, abrí una denuncia y comentá anónimo.</span>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div style="display:flex;gap:48px;align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:1240px;margin:0 auto;">
+
+    <!-- ====== MOBILE PHONE ====== -->
+    <div style="flex:0 0 auto;">
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:#6b6862;text-transform:uppercase;margin:0 0 14px 6px;display:flex;align-items:center;gap:8px;">
+        <span style="width:4px;height:16px;background:#E11900;display:inline-block;"></span>01 · Ciudadano — App móvil
+      </div>
+
+      <div style="width:392px;background:#0a0a0a;border-radius:52px;padding:13px;box-shadow:0 40px 80px -30px rgba(0,0,0,.55),0 0 0 2px #2a2a2a inset;">
+        <div style="width:366px;height:798px;background:#f4f3ef;border-radius:40px;overflow:hidden;display:flex;flex-direction:column;position:relative;">
+
+          <!-- Status bar -->
+          <div style="background:#0a0a0a;color:#fff;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:14px;font-weight:700;flex:0 0 auto;">
+            <span style="font-family:'Space Mono',monospace;">9:10</span>
+            <span style="display:flex;gap:6px;align-items:center;font-size:11px;letter-spacing:.5px;">PORTOVIEJO ·<span style="font-family:'Space Mono',monospace;"> 4G</span> ▮▮▮▯</span>
+          </div>
+
+          <!-- App header -->
+          <div style="background:#0a0a0a;color:#fff;padding:8px 16px 0;flex:0 0 auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-family:'Anton',sans-serif;font-size:23px;letter-spacing:.5px;line-height:1;">PORTO<span style="color:#0a0a0a;background:#FFD400;padding:0 5px;margin-left:3px;">SIN FILTRO</span></div>
+              <div style="width:34px;height:34px;border-radius:50%;background:#222;border:1px solid #383838;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#FFD400;">JC</div>
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#E11900;margin:5px 0 10px;font-weight:700;">LA CIUDAD EXPUESTA · SIN CENSURA</div>
+          </div>
+
+          <!-- Breaking ticker -->
+          <div style="background:#E11900;color:#fff;height:26px;display:flex;align-items:center;overflow:hidden;flex:0 0 auto;">
+            <div style="background:#0a0a0a;color:#FFD400;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:0 9px;height:100%;display:flex;align-items:center;flex-shrink:0;">BREAKING</div>
+            <div style="overflow:hidden;flex:1;min-width:0;">
+              <div class="ticker-track">
+                <span style="padding:0 14px;">CRÁTER DE LA AV. MANABÍ CUMPLE 64 DÍAS Y CRECE ▲ EL FLORÓN: 23 NOCHES A OSCURAS ▲ SEMÁFORO MUERTO EN COLÓN: 3 CHOQUES ▲ BASURAL SEPULTA PICOAZÁ ▲&nbsp;</span>
+                <span style="padding:0 14px;">CRÁTER DE LA AV. MANABÍ CUMPLE 64 DÍAS Y CRECE ▲ EL FLORÓN: 23 NOCHES A OSCURAS ▲ SEMÁFORO MUERTO EN COLÓN: 3 CHOQUES ▲ BASURAL SEPULTA PICOAZÁ ▲&nbsp;</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scroll area — rendered by JS -->
+          <div id="scroll-area" style="flex:1 1 auto;min-height:0;overflow-y:auto;background:#f4f3ef;"></div>
+
+          <!-- Flash toast -->
+          <div id="flash-toast" style="display:none;position:absolute;left:14px;right:14px;bottom:78px;background:#0a0a0a;color:#FFD400;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:11px 14px;border-radius:10px;text-align:center;box-shadow:0 12px 24px -8px rgba(0,0,0,.6);z-index:10;pointer-events:none;"></div>
+
+          <!-- Bottom nav -->
+          <div style="background:#0a0a0a;flex:0 0 auto;display:flex;align-items:center;justify-content:space-around;padding:10px 14px 16px;">
+            <div style="text-align:center;">
+              <div style="width:7px;height:7px;background:#FFD400;margin:0 auto 5px;"></div>
+              <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#fff;">MURO</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="width:7px;height:7px;background:#555;border-radius:50%;margin:0 auto 5px;"></div>
+              <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#777;">MAPA</div>
+            </div>
+            <button id="btn-nueva" style="border:none;background:#E11900;color:#fff;width:50px;height:50px;border-radius:50%;font-family:'Anton',sans-serif;font-size:22px;margin-top:-22px;box-shadow:0 8px 18px -4px rgba(225,25,0,.6);">+</button>
+            <div style="text-align:center;">
+              <div style="width:7px;height:7px;background:#555;margin:0 auto 5px;"></div>
+              <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#777;">RANKING</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="width:7px;height:7px;background:#555;border-radius:50%;margin:0 auto 5px;"></div>
+              <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#777;">YO</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:#8a8780;margin-top:12px;text-align:center;max-width:392px;">Tocá una tarjeta para abrir la denuncia → apoyá, votá si mejora o empeora y comentá anónimo.</div>
+    </div>
+
+    <!-- ====== DASHBOARD ====== -->
+    <div style="flex:1 1 620px;min-width:560px;max-width:760px;">
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:#6b6862;text-transform:uppercase;margin:0 0 14px 6px;display:flex;align-items:center;gap:8px;">
+        <span style="width:4px;height:16px;background:#0a0a0a;display:inline-block;"></span>02 · Municipio — Panel de control (serio por dentro)
+      </div>
+
+      <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.4);border:1px solid #d4d2c9;">
+        <!-- Window chrome -->
+        <div style="background:#0a0a0a;display:flex;align-items:center;gap:8px;padding:11px 16px;">
+          <span style="width:11px;height:11px;border-radius:50%;background:#E11900;display:inline-block;"></span>
+          <span style="width:11px;height:11px;border-radius:50%;background:#E8A300;display:inline-block;"></span>
+          <span style="width:11px;height:11px;border-radius:50%;background:#0E7A45;display:inline-block;"></span>
+          <span style="margin-left:10px;font-family:'Space Mono',monospace;font-size:11px;color:#9b988f;letter-spacing:.5px;">gad-portoviejo · portosinfiltro.gob.ec/panel</span>
+        </div>
+
+        <div style="background:#f4f3ef;padding:22px;">
+          <!-- Header -->
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Anton',sans-serif;font-size:34px;line-height:.95;letter-spacing:.3px;">PANEL DE CONTROL</div>
+              <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#8a8780;margin-top:4px;">GAD MUNICIPAL DE PORTOVIEJO · ACTUALIZADO 16 JUN 2026, 09:10</div>
+            </div>
+            <div style="background:#0a0a0a;color:#fff;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 12px;border-radius:7px;">VISTA: MUNICIPIO (COMPLETA)</div>
+          </div>
+
+          <!-- Insight banner -->
+          <div style="background:#E11900;color:#fff;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+            <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#FFD400;">▲</div>
+            <div>
+              <div style="font-family:'Anton',sans-serif;font-size:20px;letter-spacing:.3px;">LA CIUDAD EMPEORA</div>
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;color:#ffd9d3;margin-top:3px;">Entran 1.4 denuncias nuevas por cada 1 resuelta este mes. La presión ciudadana sube.</div>
+            </div>
+          </div>
+
+          <!-- KPIs -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;">
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:10px;padding:12px;">
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#8a8780;text-transform:uppercase;line-height:1.3;min-height:22px;">TOTAL DENUNCIAS</div>
+              <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#0a0a0a;margin-top:4px;">1.247</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;margin-top:5px;">+184 este mes</div>
+            </div>
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:10px;padding:12px;">
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#8a8780;text-transform:uppercase;line-height:1.3;min-height:22px;">PENDIENTES</div>
+              <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#E11900;margin-top:4px;">612</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;margin-top:5px;">49% del total</div>
+            </div>
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:10px;padding:12px;">
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#8a8780;text-transform:uppercase;line-height:1.3;min-height:22px;">EN PROCESO</div>
+              <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#B26A00;margin-top:4px;">388</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;margin-top:5px;">31% del total</div>
+            </div>
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:10px;padding:12px;">
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#8a8780;text-transform:uppercase;line-height:1.3;min-height:22px;">RESUELTAS</div>
+              <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#0E7A45;margin-top:4px;">247</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;margin-top:5px;">20% del total</div>
+            </div>
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:10px;padding:12px;">
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#8a8780;text-transform:uppercase;line-height:1.3;min-height:22px;">TIEMPO PROM.</div>
+              <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#0a0a0a;margin-top:4px;">38 d</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;margin-top:5px;">meta: 15 días</div>
+            </div>
+          </div>
+
+          <!-- Row: category + zona -->
+          <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-bottom:16px;">
+
+            <!-- Category chart -->
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;">
+              <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;margin-bottom:2px;">¿DE QUÉ SE QUEJA LA GENTE?</div>
+              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;margin-bottom:14px;">Denuncias por categoría · total 1.247</div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Baches y vías</span><span style="color:#0a0a0a;font-weight:700;">512</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:100%;background:#E11900;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Alumbrado público</span><span style="color:#0a0a0a;font-weight:700;">224</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:44%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Basura y aseo</span><span style="color:#0a0a0a;font-weight:700;">187</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:37%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Agua y alcantarillado</span><span style="color:#0a0a0a;font-weight:700;">137</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:27%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Semáforos y señalética</span><span style="color:#0a0a0a;font-weight:700;">87</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:17%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Parques y espacios</span><span style="color:#0a0a0a;font-weight:700;">62</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:12%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Seguridad</span><span style="color:#0a0a0a;font-weight:700;">24</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:5%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Otros</span><span style="color:#0a0a0a;font-weight:700;">14</span></div>
+                  <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:3%;background:#0a0a0a;border-radius:6px;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zona ranking -->
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;">
+              <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;margin-bottom:2px;">LA ZONA MÁS ABANDONADA</div>
+              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;margin-bottom:14px;">Ranking de sectores de PORTOVIEJO</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#E11900;text-align:center;">1</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;">
+                      <span style="color:#3a3833;display:flex;align-items:center;gap:5px;">Andrés de Vera<span style="background:#E11900;color:#fff;font-size:7.5px;font-weight:700;padding:0 4px;border-radius:3px;">PEOR</span></span>
+                      <span style="color:#0a0a0a;font-weight:700;">287</span>
+                    </div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:100%;background:#E11900;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#bcb9b0;text-align:center;">2</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Picoazá</span><span style="color:#0a0a0a;font-weight:700;">241</span></div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:84%;background:#0a0a0a;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#bcb9b0;text-align:center;">3</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">4 de Noviembre</span><span style="color:#0a0a0a;font-weight:700;">198</span></div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:69%;background:#0a0a0a;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#bcb9b0;text-align:center;">4</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">San Pablo</span><span style="color:#0a0a0a;font-weight:700;">176</span></div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:61%;background:#0a0a0a;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#bcb9b0;text-align:center;">5</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">El Florón</span><span style="color:#0a0a0a;font-weight:700;">154</span></div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:54%;background:#0a0a0a;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#bcb9b0;text-align:center;">6</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">Colón</span><span style="color:#0a0a0a;font-weight:700;">121</span></div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:42%;background:#0a0a0a;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:#bcb9b0;text-align:center;">7</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">La Pradera</span><span style="color:#0a0a0a;font-weight:700;">70</span></div>
+                    <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:24%;background:#0a0a0a;border-radius:6px;"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row: evolution chart + estado + top5 -->
+          <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;">
+
+            <!-- Evolution chart -->
+            <div style="background:#0a0a0a;border-radius:11px;padding:16px;">
+              <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;color:#fff;margin-bottom:2px;">¿LA CIUDAD MEJORA O EMPEORA?</div>
+              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#888;margin-bottom:12px;">Denuncias nuevas vs. resueltas · últimos 6 meses</div>
+              <svg viewBox="0 0 580 210" style="width:100%;height:auto;display:block;">
+                <line x1="40" y1="200" x2="560" y2="200" stroke="#333" stroke-width="1"/>
+                <polygon points="40,200 40,98 144,107 248,81 352,64 456,48 560,96 560,200" fill="rgba(225,25,0,.22)"/>
+                <polyline points="40,98 144,107 248,81 352,64 456,48 560,96" fill="none" stroke="#E11900" stroke-width="3" stroke-linejoin="round"/>
+                <polyline points="40,149 144,138 248,132 352,126 456,121 560,146" fill="none" stroke="#0E7A45" stroke-width="3" stroke-linejoin="round"/>
+                <text x="40"  y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">ENE</text>
+                <text x="144" y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">FEB</text>
+                <text x="248" y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">MAR</text>
+                <text x="352" y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">ABR</text>
+                <text x="456" y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">MAY</text>
+                <text x="560" y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">JUN</text>
+              </svg>
+              <div style="display:flex;gap:16px;margin-top:8px;">
+                <span style="display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:10px;color:#fff;"><span style="width:14px;height:3px;background:#E11900;display:inline-block;"></span>Nuevas</span>
+                <span style="display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:10px;color:#fff;"><span style="width:14px;height:3px;background:#0E7A45;display:inline-block;"></span>Resueltas</span>
+                <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;color:#FFD400;font-weight:700;">▲ BRECHA CRECIENTE</span>
+              </div>
+            </div>
+
+            <!-- Estado + Top5 -->
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;">
+                <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.3px;margin-bottom:11px;">ESTADO DE LAS DENUNCIAS</div>
+                <div style="display:flex;height:18px;border-radius:6px;overflow:hidden;margin-bottom:10px;">
+                  <div style="width:49%;background:#E11900;"></div>
+                  <div style="width:31%;background:#E8A300;"></div>
+                  <div style="width:20%;background:#0E7A45;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;">
+                  <span style="color:#E11900;font-weight:700;">● 612 pend.</span>
+                  <span style="color:#B26A00;font-weight:700;">● 388 proc.</span>
+                  <span style="color:#0E7A45;font-weight:700;">● 247 resu.</span>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;flex:1;">
+                <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.3px;margin-bottom:11px;">TOP 5 MÁS APOYADAS</div>
+                <div style="display:flex;flex-direction:column;gap:9px;">
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="font-family:'Anton',sans-serif;font-size:14px;color:#E11900;width:16px;">1</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;line-height:1.2;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Cráter de la Av. Manabí</div>
+                      <div style="font-family:'Space Mono',monospace;font-size:8px;color:#8a8780;">Andrés de Vera</div>
+                    </div>
+                    <span style="width:7px;height:7px;border-radius:50%;background:#E11900;flex:0 0 auto;display:inline-block;"></span>
+                    <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#0a0a0a;">▲1.284</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="font-family:'Anton',sans-serif;font-size:14px;color:#E11900;width:16px;">2</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;line-height:1.2;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Semáforo muerto en Colón</div>
+                      <div style="font-family:'Space Mono',monospace;font-size:8px;color:#8a8780;">Colón</div>
+                    </div>
+                    <span style="width:7px;height:7px;border-radius:50%;background:#E11900;flex:0 0 auto;display:inline-block;"></span>
+                    <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#0a0a0a;">▲689</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="font-family:'Anton',sans-serif;font-size:14px;color:#E11900;width:16px;">3</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;line-height:1.2;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">El Florón a oscuras</div>
+                      <div style="font-family:'Space Mono',monospace;font-size:8px;color:#8a8780;">El Florón</div>
+                    </div>
+                    <span style="width:7px;height:7px;border-radius:50%;background:#E8A300;flex:0 0 auto;display:inline-block;"></span>
+                    <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#0a0a0a;">▲547</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="font-family:'Anton',sans-serif;font-size:14px;color:#E11900;width:16px;">4</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;line-height:1.2;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Basural de Picoazá</div>
+                      <div style="font-family:'Space Mono',monospace;font-size:8px;color:#8a8780;">Picoazá</div>
+                    </div>
+                    <span style="width:7px;height:7px;border-radius:50%;background:#E11900;flex:0 0 auto;display:inline-block;"></span>
+                    <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#0a0a0a;">▲432</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="font-family:'Anton',sans-serif;font-size:14px;color:#E11900;width:16px;">5</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;line-height:1.2;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Río en San Pablo</div>
+                      <div style="font-family:'Space Mono',monospace;font-size:8px;color:#8a8780;">San Pablo</div>
+                    </div>
+                    <span style="width:7px;height:7px;border-radius:50%;background:#E8A300;flex:0 0 auto;display:inline-block;"></span>
+                    <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#0a0a0a;">▲318</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:9px;color:#b3b0a7;letter-spacing:.5px;">Versión pública resumida visible para todos · La identidad de autores anónimos solo es accesible para el municipio, con fines de moderación.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ===================== STATE ===================== */
+const state = {
+  view: 'feed',
+  selectedId: 101,
+  sort: 'apoyo',
+  apoyadas: {},
+  myVote: {},
+  confirmedByMe: {},
+  draft: '',
+  draftSent: 'empeora',
+  anon: true,
+  denuncias: [
+    {id:101, cat:'Baches y vías', zona:'Andrés de Vera', badge:'¡INDIGNANTE!',
+     headline:'¡MONSTRUOSO! El cráter de la Av. Manabí cumple 64 días y NO PARA DE CRECER',
+     desc:'Lo que empezó como un bache hoy se traga media calzada. Los vecinos aseguran que crece cada semana con la lluvia y ya provocó varias caídas de motociclistas.',
+     severity:'¡CATÁSTROFE URBANA!', status:'pendiente', days:64, apoyos:1284, confirmaciones:212, aportes:38,
+     img:'foto · cráter Av. Manabí', sent:{empeora:892, igual:140, mejora:12}},
+    {id:105, cat:'Semáforos y señalética', zona:'Colón', badge:'¡PELIGRO!',
+     headline:'¡RULETA RUSA! Semáforo muerto en Colón ya provocó 3 choques en una semana',
+     desc:'El cruce más transitado de Colón lleva el semáforo apagado y nadie dirige el tránsito. Tres choques registrados en siete días.',
+     severity:'GRAVE', status:'pendiente', days:12, apoyos:689, confirmaciones:97, aportes:14,
+     img:'foto · semáforo Colón', sent:{empeora:410, igual:120, mejora:30}},
+    {id:102, cat:'Alumbrado público', zona:'El Florón', badge:'¡VERGÜENZA!',
+     headline:'¡A OSCURAS! El Florón suma 23 noches sin un solo foco encendido',
+     desc:'Familias enteras caminan a tientas. La inseguridad disparó los asaltos según los moradores del sector.',
+     severity:'GRAVE', status:'proceso', days:23, apoyos:547, confirmaciones:88, aportes:11,
+     img:'foto · calle El Florón', sent:{empeora:210, igual:180, mejora:62}},
+    {id:103, cat:'Basura y aseo', zona:'Picoazá', badge:'¡INDIGNANTE!',
+     headline:'¡PESTILENTE! Una montaña de basura sepulta la esquina de Picoazá',
+     desc:'El carro recolector no pasa hace dos semanas. El olor es insoportable y ya aparecieron roedores entre los desechos.',
+     severity:'MODERADA', status:'pendiente', days:18, apoyos:432, confirmaciones:65, aportes:9,
+     img:'foto · basural Picoazá', sent:{empeora:300, igual:90, mejora:20}},
+    {id:104, cat:'Agua y alcantarillado', zona:'San Pablo', badge:'¡ALARMA!',
+     headline:'¡RÍO EN PLENA CALLE! Tubería reventada inunda San Pablo hace 9 días',
+     desc:'El agua potable corre por la calzada las 24 horas mientras el barrio sufre cortes. Un desperdicio que indigna.',
+     severity:'GRAVE', status:'proceso', days:9, apoyos:318, confirmaciones:51, aportes:7,
+     img:'foto · fuga San Pablo', sent:{empeora:120, igual:90, mejora:108}},
+    {id:106, cat:'Parques y espacios', zona:'4 de Noviembre', badge:'¡ABANDONO!',
+     headline:'¡SELVA URBANA! El parque de la 4 de Noviembre es ahora un matorral',
+     desc:'Los juegos infantiles están oxidados y la maleza llega a la cintura. Los niños ya no tienen dónde jugar.',
+     severity:'MODERADA', status:'pendiente', days:31, apoyos:156, confirmaciones:33, aportes:5,
+     img:'foto · parque 4 de Nov.', sent:{empeora:90, igual:50, mejora:16}},
+    {id:107, cat:'Baches y vías', zona:'Colón', badge:'¡POR FIN!',
+     headline:'¡VICTORIA CIUDADANA! Tras 80 días repavimentan la vía de la Colón',
+     desc:'La presión del Muro de la Vergüenza funcionó: la cuadrilla cerró el cráter que partía la avenida en dos.',
+     severity:'RESUELTA', status:'resuelto', days:80, apoyos:921, confirmaciones:140, aportes:22,
+     img:'foto · vía reparada Colón', sent:{empeora:20, igual:40, mejora:380}},
+  ],
+  comments: {
+    101: [
+      {who:'Ciudadano Anónimo', anon:true, when:'hace 2 h', sent:'empeora', text:'Hoy casi me voy de cara con la moto. Ya no es un hueco, es una trampa mortal.'},
+      {who:'Vecina de Andrés de Vera', anon:false, when:'hace 5 h', sent:'empeora', text:'Pusieron dos conos la semana pasada y se los robaron. Seguimos igual o peor.'},
+      {who:'Ciudadano Anónimo', anon:true, when:'ayer', sent:'igual', text:'Llevo reportando esto desde abril. Nadie del municipio ha venido a ver.'},
+    ],
+    105: [
+      {who:'Ciudadano Anónimo', anon:true, when:'hace 1 h', sent:'empeora', text:'Otro choque esta mañana en el cruce. ¿Cuántos más hacen falta para que vengan?'},
+    ],
+    102: [
+      {who:'Ciudadano Anónimo', anon:true, when:'hace 3 h', sent:'igual', text:'Dicen que ya viene la cuadrilla pero seguimos a oscuras. Da miedo salir de noche.'},
+    ],
+  },
+};
+
+/* ===================== HELPERS ===================== */
+function fmt(n) {
+  return Math.round(n).toLocaleString('es-EC');
+}
+
+function statusMeta(s) {
+  return ({
+    pendiente: {label:'PENDIENTE', color:'#E11900'},
+    proceso:   {label:'EN PROCESO', color:'#E8A300'},
+    resuelto:  {label:'RESUELTO',   color:'#0E7A45'},
+  })[s] || {label:'', color:'#0a0a0a'};
+}
+
+function badgeStyle(s) {
+  return s === 'resuelto' ? {bg:'#0E7A45', fg:'#fff'} : {bg:'#FFD400', fg:'#0a0a0a'};
+}
+
+function vm(d) {
+  const sm  = statusMeta(d.status);
+  const bs  = badgeStyle(d.status);
+  const tot = d.sent.empeora + d.sent.igual + d.sent.mejora || 1;
+  const on  = !!state.apoyadas[d.id];
+  const conf = !!state.confirmedByMe[d.id];
+  const mv  = state.myVote[d.id] || '';
+
+  const order = ['pendiente','proceso','resuelto'];
+  const si = order.indexOf(d.status);
+  const reached = i => d.status === 'resuelto' ? true : i <= si;
+  const dot = i => reached(i) ? (i===2?'#0E7A45':(i===1?'#E8A300':'#E11900')) : '#d8d6cd';
+  const vbtn = (k, col) => { const a = mv===k; return a ? {bg:col,fg:'#fff',bd:col} : {bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'}; };
+  const ve  = vbtn('empeora','#E11900');
+  const vi  = vbtn('igual','#7a776f');
+  const vmj = vbtn('mejora','#0E7A45');
+
+  return {
+    ...d,
+    statusLabel:sm.label, statusColor:sm.color,
+    badgeBg:bs.bg, badgeFg:bs.fg,
+    daysLabel: d.status==='resuelto' ? ('RESUELTO EN '+d.days+' DÍAS') : (d.days+' DÍAS SIN RESOLVER'),
+    daysColor: d.status==='resuelto' ? '#0E7A45' : '#E11900',
+    apoyoVerb: on ? 'APOYAS' : 'APOYAR',
+    apoyosShown: fmt(d.apoyos + (on?1:0)),
+    confirmShown: fmt(d.confirmaciones + (conf?1:0)),
+    confirmText: conf ? '✓ CONFIRMASTE QUE SIGUE PRESENTE' : '+ CONFIRMAR QUE EL PROBLEMA SIGUE',
+    confirmBg: conf ? '#D8F0E2' : '#fff',
+    confirmFg: conf ? '#0E7A45' : '#0a0a0a',
+    pctEmpeora: Math.round(d.sent.empeora/tot*100),
+    pctIgual:   Math.round(d.sent.igual/tot*100),
+    pctMejora:  Math.round(d.sent.mejora/tot*100),
+    sentTotal:  fmt(tot),
+    step1:dot(0), step2:dot(1), step3:dot(2),
+    line1: reached(1)?'#E8A300':'#d8d6cd',
+    line2: reached(2)?'#0E7A45':'#d8d6cd',
+    voteEmpeoraBg:ve.bg,  voteEmpeoraFg:ve.fg,  voteEmpeoraBd:ve.bd,
+    voteIgualBg:vi.bg,    voteIgualFg:vi.fg,     voteIgualBd:vi.bd,
+    voteMejoraBg:vmj.bg,  voteMejoraFg:vmj.fg,   voteMejoraBd:vmj.bd,
+  };
+}
+
+function cmtMeta(c) {
+  const m = {
+    empeora:{l:'EMPEORA',    c:'#E11900', bg:'#FCE3DE'},
+    igual:  {l:'SIGUE IGUAL',c:'#6b6862', bg:'#ecEAE4'},
+    mejora: {l:'MEJORA',     c:'#0E7A45', bg:'#D8F0E2'},
+  }[c.sent] || {l:'',c:'#6b6862',bg:'#eee'};
+  const av = c.anon
+    ? {t:'?', bg:'#0a0a0a', fg:'#FFD400'}
+    : {t:(c.who[0]||'V').toUpperCase(), bg:'#E11900', fg:'#fff'};
+  return {...c, sentLabel:m.l, sentColor:m.c, sentBg:m.bg, avText:av.t, avBg:av.bg, avFg:av.fg};
+}
+
+/* ===================== FLASH ===================== */
+let _flashTimer = null;
+function showFlash(msg) {
+  const el = document.getElementById('flash-toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(_flashTimer);
+  _flashTimer = setTimeout(() => { el.style.display = 'none'; }, 2400);
+}
+
+/* ===================== RENDER ===================== */
+function hatchBg(light) {
+  return light
+    ? 'repeating-linear-gradient(135deg,#e2e0d8 0 11px,#eceae2 11px 22px)'
+    : 'repeating-linear-gradient(135deg,#2a2a2a 0 12px,#1f1f1f 12px 24px)';
+}
+
+function chipBg(active) { return active ? '#0a0a0a' : '#fff'; }
+function chipFg(active) { return active ? '#fff'    : '#0a0a0a'; }
+
+function renderFeed() {
+  const ds  = state.denuncias;
+  const hero = vm(ds.find(d => d.id === 101));
+  let rest = ds.filter(d => d.id !== 101).slice();
+  if (state.sort === 'antiguo')    rest.sort((a,b) => b.days - a.days);
+  else if (state.sort === 'indignante') rest.sort((a,b) => (b.apoyos+b.confirmaciones*3)-(a.apoyos+a.confirmaciones*3));
+  else                             rest.sort((a,b) => b.apoyos - a.apoyos);
+
+  const sa = state.sort === 'apoyo';
+  const sn = state.sort === 'antiguo';
+  const si = state.sort === 'indignante';
+
+  const cards = rest.map(d => {
+    const c = vm(d);
+    return `
+      <div data-action="openDetail" data-id="${c.id}" style="cursor:pointer;background:#fff;border:1px solid #e3e1d9;border-radius:12px;overflow:hidden;margin-bottom:13px;">
+        <div style="display:flex;">
+          <div style="width:118px;flex:0 0 auto;background:${hatchBg(true)};position:relative;display:flex;align-items:flex-end;padding:7px;">
+            <span style="font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:.5px;color:#9b988f;line-height:1.2;">${c.img}</span>
+            <div style="position:absolute;top:7px;left:7px;background:${c.statusColor};color:#fff;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.5px;padding:2px 5px;">${c.statusLabel}</div>
+          </div>
+          <div style="flex:1 1 auto;padding:11px 12px;min-width:0;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+              <span style="background:${c.badgeBg};color:${c.badgeFg};font-family:'Anton',sans-serif;font-size:9px;letter-spacing:.5px;padding:2px 5px;">${c.badge}</span>
+              <span style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#E11900;text-transform:uppercase;">${c.cat}</span>
+            </div>
+            <div style="font-family:'Anton',sans-serif;font-size:16.5px;line-height:1;letter-spacing:.2px;color:#0a0a0a;">${c.headline}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:9px;font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;">
+              <span style="color:${c.daysColor};font-weight:700;">⏱ ${c.daysLabel}</span>
+              <span>· ${c.zona}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;border-top:1px solid #efedE6;padding:8px 12px;background:#fcfbf8;">
+          <button data-action="toggleApoyo" data-id="${c.id}" style="border:1.5px solid #0a0a0a;background:#FFD400;color:#0a0a0a;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;padding:6px 12px;border-radius:8px;display:flex;align-items:center;gap:6px;">▲ ${c.apoyoVerb} <span style="font-family:'Space Mono',monospace;">${c.apoyosShown}</span></button>
+          <span style="font-family:'Space Mono',monospace;font-size:9.5px;color:#8a8780;">${c.confirmShown} confirman</span>
+          <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:9.5px;color:#0a0a0a;font-weight:700;">${c.aportes} aportes ›</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div style="padding:14px 14px 22px;">
+      <!-- Hero card -->
+      <div data-action="openDetail" data-id="${hero.id}" style="cursor:pointer;background:#0a0a0a;border-radius:14px;overflow:hidden;margin-bottom:18px;box-shadow:0 16px 30px -16px rgba(0,0,0,.5);">
+        <div style="display:flex;align-items:center;gap:8px;background:#E11900;padding:7px 12px;">
+          <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:#fff;">★ PROBLEMA DEL DÍA</span>
+          <span class="blink" style="margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#FFD400;">● EN VIVO</span>
+        </div>
+        <div style="height:172px;background:${hatchBg(false)};position:relative;display:flex;align-items:flex-end;">
+          <span style="position:absolute;top:10px;left:12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#777;background:rgba(0,0,0,.45);padding:3px 6px;">${hero.img}</span>
+          <div style="position:absolute;top:10px;right:12px;background:#FFD400;color:#0a0a0a;font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.5px;padding:4px 8px;">${hero.badge}</div>
+          <div style="background:#E11900;color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;letter-spacing:1px;padding:6px 12px;margin:0 0 12px 12px;">⏱ ${hero.daysLabel}</div>
+        </div>
+        <div style="padding:14px 14px 16px;">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#FFD400;text-transform:uppercase;margin-bottom:7px;">${hero.cat} · ${hero.zona}</div>
+          <div style="font-family:'Anton',sans-serif;color:#fff;font-size:27px;line-height:.98;letter-spacing:.3px;">${hero.headline}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+            <button data-action="toggleApoyo" data-id="${hero.id}" style="border:none;background:#FFD400;color:#0a0a0a;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.5px;padding:11px 16px;border-radius:9px;display:flex;align-items:center;gap:8px;">▲ ${hero.apoyoVerb} <span style="font-family:'Space Mono',monospace;font-size:13px;">${hero.apoyosShown}</span></button>
+            <div style="margin-left:auto;text-align:right;font-family:'Space Mono',monospace;font-size:10px;color:#999;line-height:1.5;">${hero.confirmShown} confirman<br>${hero.aportes} aportes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sort chips -->
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#8a8780;flex:0 0 auto;">ORDENAR:</span>
+        <button data-action="setSort" data-s="apoyo" style="flex:0 0 auto;border:1.5px solid #0a0a0a;background:${chipBg(sa)};color:${chipFg(sa)};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;text-transform:uppercase;">Más apoyado</button>
+        <button data-action="setSort" data-s="antiguo" style="flex:0 0 auto;border:1.5px solid #0a0a0a;background:${chipBg(sn)};color:${chipFg(sn)};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;text-transform:uppercase;">+ Antiguo sin resolver</button>
+        <button data-action="setSort" data-s="indignante" style="flex:0 0 auto;border:1.5px solid #0a0a0a;background:${chipBg(si)};color:${chipFg(si)};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;text-transform:uppercase;">Más indignante</button>
+      </div>
+
+      ${cards}
+
+      <div style="text-align:center;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#b3b0a7;margin-top:6px;">El contenido de cada denuncia es responsabilidad de quien lo publica.</div>
+    </div>`;
+}
+
+function renderDetail() {
+  const d = state.denuncias.find(x => x.id === state.selectedId) || state.denuncias[0];
+  const s = vm(d);
+  const comments = (state.comments[state.selectedId] || []).map(cmtMeta);
+
+  const de = state.draftSent==='empeora' ? {bg:'#E11900',fg:'#fff',bd:'#E11900'} : {bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'};
+  const di = state.draftSent==='igual'   ? {bg:'#7a776f',fg:'#fff',bd:'#7a776f'} : {bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'};
+  const dm = state.draftSent==='mejora'  ? {bg:'#0E7A45',fg:'#fff',bd:'#0E7A45'} : {bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'};
+
+  const anonTrackBg = state.anon ? '#0a0a0a' : '#cfccc3';
+  const anonKnobX   = state.anon ? '16px' : '2px';
+  const anonLabel   = state.anon ? 'Publicar como ANÓNIMO' : 'Publicar con MI NOMBRE';
+
+  const cmtHtml = comments.map(c => `
+    <div style="display:flex;gap:10px;">
+      <div style="width:32px;height:32px;flex:0 0 auto;border-radius:50%;background:${c.avBg};color:${c.avFg};display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:12px;">${c.avText}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+          <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:11.5px;color:#0a0a0a;">${c.who}</span>
+          <span style="background:${c.sentBg};color:${c.sentColor};font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.5px;padding:1px 5px;">${c.sentLabel}</span>
+          <span style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;">· ${c.when}</span>
+        </div>
+        <div style="font-family:'Archivo',sans-serif;font-size:12.5px;line-height:1.45;color:#3a3833;margin-top:3px;">${c.text}</div>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div>
+      <!-- Back bar -->
+      <div style="position:sticky;top:0;z-index:5;background:#0a0a0a;color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;">
+        <button data-action="back" style="border:none;background:#FFD400;color:#0a0a0a;font-family:'Anton',sans-serif;font-size:12px;padding:6px 10px;border-radius:7px;">‹ MURO</button>
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#999;">DENUNCIA #${s.id}</span>
+        <span style="margin-left:auto;background:${s.statusColor};color:#fff;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;">${s.statusLabel}</span>
+      </div>
+
+      <!-- Image placeholder -->
+      <div style="height:198px;background:${hatchBg(true)};position:relative;display:flex;align-items:flex-end;">
+        <span style="position:absolute;top:10px;left:12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#9b988f;">${s.img}</span>
+        <div style="background:#E11900;color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;letter-spacing:1px;padding:6px 12px;margin:0 0 12px 12px;">⏱ ${s.daysLabel}</div>
+      </div>
+
+      <div style="padding:14px;">
+        <!-- Badge + category -->
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">
+          <span style="background:${s.badgeBg};color:${s.badgeFg};font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.5px;padding:3px 7px;">${s.badge}</span>
+          <span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#E11900;text-transform:uppercase;">${s.cat} · ${s.zona}</span>
+        </div>
+        <div style="font-family:'Anton',sans-serif;font-size:28px;line-height:.98;letter-spacing:.3px;color:#0a0a0a;">${s.headline}</div>
+        <div style="font-family:'Archivo',sans-serif;font-size:13.5px;line-height:1.5;color:#3a3833;margin-top:11px;">${s.desc}</div>
+        <div style="display:inline-flex;align-items:center;gap:6px;margin-top:11px;background:#FBEBCF;border:1px solid #f0d999;padding:5px 9px;border-radius:7px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#9a5b00;">GRAVEDAD: ${s.severity}</div>
+
+        <!-- Apoyo -->
+        <div style="display:flex;align-items:center;gap:10px;margin-top:16px;background:#0a0a0a;border-radius:11px;padding:12px 14px;">
+          <button data-action="toggleApoyo" data-id="${s.id}" style="border:none;background:#FFD400;color:#0a0a0a;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.5px;padding:11px 18px;border-radius:9px;display:flex;align-items:center;gap:8px;">▲ ${s.apoyoVerb}</button>
+          <div style="color:#fff;line-height:1;">
+            <div style="font-family:'Anton',sans-serif;font-size:24px;color:#FFD400;">${s.apoyosShown}</div>
+            <div style="font-family:'Space Mono',monospace;font-size:9px;color:#999;letter-spacing:1px;">ciudadanos apoyan</div>
+          </div>
+        </div>
+
+        <!-- Sentiment vote -->
+        <div style="margin-top:18px;border:1px solid #e3e1d9;border-radius:11px;padding:13px;background:#fff;">
+          <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.3px;color:#0a0a0a;margin-bottom:3px;">¿CÓMO VA EL PROBLEMA?</div>
+          <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:#8a8780;margin-bottom:11px;">Votá según lo que veas en tu zona · ${s.sentTotal} votos</div>
+          <div style="display:flex;height:13px;border-radius:7px;overflow:hidden;margin-bottom:11px;">
+            <div style="width:${s.pctEmpeora}%;background:#E11900;"></div>
+            <div style="width:${s.pctIgual}%;background:#b8b4aa;"></div>
+            <div style="width:${s.pctMejora}%;background:#0E7A45;"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button data-action="vote" data-k="empeora" style="flex:1;border:1.5px solid ${s.voteEmpeoraBd};background:${s.voteEmpeoraBg};color:${s.voteEmpeoraFg};border-radius:8px;padding:8px 4px;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;text-align:center;">EMPEORA<br><span style="font-family:'Space Mono',monospace;font-weight:400;font-size:10px;">${s.pctEmpeora}%</span></button>
+            <button data-action="vote" data-k="igual" style="flex:1;border:1.5px solid ${s.voteIgualBd};background:${s.voteIgualBg};color:${s.voteIgualFg};border-radius:8px;padding:8px 4px;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;text-align:center;">SIGUE IGUAL<br><span style="font-family:'Space Mono',monospace;font-weight:400;font-size:10px;">${s.pctIgual}%</span></button>
+            <button data-action="vote" data-k="mejora" style="flex:1;border:1.5px solid ${s.voteMejoraBd};background:${s.voteMejoraBg};color:${s.voteMejoraFg};border-radius:8px;padding:8px 4px;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;text-align:center;">MEJORA<br><span style="font-family:'Space Mono',monospace;font-weight:400;font-size:10px;">${s.pctMejora}%</span></button>
+          </div>
+        </div>
+
+        <!-- Estado timeline -->
+        <div style="margin-top:18px;">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#8a8780;margin-bottom:10px;">SEGUIMIENTO OFICIAL · GAD PORTOVIEJO</div>
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;text-align:center;">
+              <div style="width:18px;height:18px;border-radius:50%;background:${s.step1};margin:0 auto 5px;"></div>
+              <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">PENDIENTE</div>
+            </div>
+            <div style="height:3px;flex:0 0 30px;background:${s.line1};"></div>
+            <div style="flex:1;text-align:center;">
+              <div style="width:18px;height:18px;border-radius:50%;background:${s.step2};margin:0 auto 5px;"></div>
+              <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">EN PROCESO</div>
+            </div>
+            <div style="height:3px;flex:0 0 30px;background:${s.line2};"></div>
+            <div style="flex:1;text-align:center;">
+              <div style="width:18px;height:18px;border-radius:50%;background:${s.step3};margin:0 auto 5px;"></div>
+              <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">RESUELTO</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmar -->
+        <div style="margin-top:20px;display:flex;align-items:center;gap:8px;">
+          <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;">SÚMATE AL RECLAMO</div>
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;">no abras otra denuncia — confirmá esta</span>
+        </div>
+        <button data-action="confirmar" data-id="${s.id}" style="width:100%;margin-top:10px;border:1.5px dashed #0a0a0a;background:${s.confirmBg};color:${s.confirmFg};border-radius:9px;padding:11px;font-family:'Archivo',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:.3px;">${s.confirmText}</button>
+
+        <!-- Comments header -->
+        <div style="margin-top:22px;display:flex;align-items:center;gap:8px;border-top:2px solid #0a0a0a;padding-top:14px;">
+          <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;">LA GENTE OPINA</div>
+          <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;">${comments.length} comentarios</span>
+        </div>
+
+        <!-- Comment composer -->
+        <div style="margin-top:12px;background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:11px;">
+          <textarea id="draft-ta" placeholder="¿Cómo está hoy en tu zona? Contá lo que ves…" style="width:100%;border:none;outline:none;resize:none;height:52px;font-size:13px;color:#0a0a0a;background:transparent;">${state.draft}</textarea>
+          <div style="display:flex;gap:5px;margin:6px 0 10px;">
+            <button data-action="setDraftSent" data-k="empeora" style="border:1.5px solid ${de.bd};background:${de.bg};color:${de.fg};border-radius:20px;padding:4px 9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;">EMPEORA</button>
+            <button data-action="setDraftSent" data-k="igual"   style="border:1.5px solid ${di.bd};background:${di.bg};color:${di.fg};border-radius:20px;padding:4px 9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;">IGUAL</button>
+            <button data-action="setDraftSent" data-k="mejora"  style="border:1.5px solid ${dm.bd};background:${dm.bg};color:${dm.fg};border-radius:20px;padding:4px 9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;">MEJORA</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button data-action="toggleAnon" style="border:none;background:transparent;padding:0;display:flex;align-items:center;gap:7px;">
+              <span style="width:34px;height:20px;border-radius:11px;background:${anonTrackBg};position:relative;display:inline-block;flex-shrink:0;">
+                <span style="position:absolute;top:2px;left:${anonKnobX};width:16px;height:16px;border-radius:50%;background:#fff;display:inline-block;transition:left .15s;"></span>
+              </span>
+              <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;color:#0a0a0a;">${anonLabel}</span>
+            </button>
+            <button data-action="addComment" style="margin-left:auto;border:none;background:#E11900;color:#fff;font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.5px;padding:9px 18px;border-radius:8px;">PUBLICAR ▲</button>
+          </div>
+        </div>
+
+        <!-- Comment list -->
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:11px;padding-bottom:22px;">
+          ${cmtHtml}
+        </div>
+      </div>
+    </div>`;
+}
+
+function render() {
+  const el = document.getElementById('scroll-area');
+
+  if (state.view === 'feed') {
+    el.innerHTML = renderFeed();
+  } else {
+    const prevDraft  = state.draft;
+    const wasFocused = document.activeElement && document.activeElement.id === 'draft-ta';
+    let selStart = 0, selEnd = 0;
+    if (wasFocused) {
+      const ta = document.getElementById('draft-ta');
+      if (ta) { selStart = ta.selectionStart; selEnd = ta.selectionEnd; }
+    }
+    el.innerHTML = renderDetail();
+    const ta = document.getElementById('draft-ta');
+    if (ta) {
+      ta.value = prevDraft;
+      if (wasFocused) { ta.focus(); try { ta.setSelectionRange(selStart, selEnd); } catch(e){} }
+    }
+  }
+}
+
+/* ===================== EVENTS ===================== */
+const scrollArea = document.getElementById('scroll-area');
+
+scrollArea.addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+
+  if (action === 'openDetail') {
+    e.stopPropagation();
+    // Don't open if click was on an inner button
+    if (e.target.closest('button')) return;
+    state.selectedId = +btn.dataset.id;
+    state.view = 'detail';
+    render();
+    scrollArea.scrollTop = 0;
+    return;
+  }
+
+  if (action === 'back') {
+    state.view = 'feed';
+    render();
+    scrollArea.scrollTop = 0;
+    return;
+  }
+
+  if (action === 'toggleApoyo') {
+    e.stopPropagation();
+    const id = +btn.dataset.id;
+    const nowOn = !state.apoyadas[id];
+    state.apoyadas[id] = nowOn;
+    if (nowOn) showFlash('¡Apoyo registrado! Tu voz suma al reclamo.');
+    render();
+    return;
+  }
+
+  if (action === 'confirmar') {
+    e.stopPropagation();
+    const id = +btn.dataset.id;
+    state.confirmedByMe[id] = true;
+    showFlash('Confirmaste: "pasé hoy y sigue igual".');
+    render();
+    return;
+  }
+
+  if (action === 'vote') {
+    const k = btn.dataset.k;
+    const id = state.selectedId;
+    const prev = state.myVote[id];
+    if (prev === k) return;
+    const d = state.denuncias.find(x => x.id === id);
+    if (!d) return;
+    if (prev) d.sent[prev] = Math.max(0, d.sent[prev] - 1);
+    d.sent[k] = d.sent[k] + 1;
+    state.myVote[id] = k;
+    render();
+    return;
+  }
+
+  if (action === 'setSort') {
+    state.sort = btn.dataset.s;
+    render();
+    return;
+  }
+
+  if (action === 'setDraftSent') {
+    state.draftSent = btn.dataset.k;
+    render();
+    return;
+  }
+
+  if (action === 'toggleAnon') {
+    state.anon = !state.anon;
+    render();
+    return;
+  }
+
+  if (action === 'addComment') {
+    const ta = document.getElementById('draft-ta');
+    const txt = (ta ? ta.value : state.draft).trim();
+    if (!txt) return;
+    const id = state.selectedId;
+    const newComment = {
+      who: state.anon ? 'Ciudadano Anónimo' : 'Tú · Vecino registrado',
+      anon: state.anon,
+      when: 'ahora',
+      sent: state.draftSent,
+      text: txt,
+    };
+    if (!state.comments[id]) state.comments[id] = [];
+    state.comments[id].unshift(newComment);
+    state.draft = '';
+    showFlash('Comentario publicado.');
+    render();
+    return;
+  }
+});
+
+// Sync textarea to state without re-rendering (preserves cursor)
+scrollArea.addEventListener('input', e => {
+  if (e.target.tagName === 'TEXTAREA' && e.target.id === 'draft-ta') {
+    state.draft = e.target.value;
+  }
+});
+
+document.getElementById('btn-nueva').addEventListener('click', () => {
+  showFlash('Nueva denuncia: foto + zona + categoría + gravedad.');
+});
+
+/* ===================== INIT ===================== */
+render();
+</script>
+</body>
+</html>

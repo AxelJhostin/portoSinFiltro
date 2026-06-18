@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-print-defaults>
+@media print {
+  @page { margin: 0.5in; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  figure, table, pre, blockquote, img, svg, li, tr { break-inside: avoid; }
+  section, article, [class*="card" i] { break-inside: avoid; }
+  img, svg { max-width: 100%; }
+  p { orphans: 3; widows: 3; }
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#dcdbd5;}
+  *{box-sizing:border-box;}
+  @keyframes pf-marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes pf-blink{0%,100%{opacity:1}50%{opacity:.25}}
+  ::-webkit-scrollbar{width:0;height:0;}
+</style>
+</helmet>
+
+<div style="min-height:100%;background:#dcdbd5;font-family:'Archivo',sans-serif;padding:40px 24px 80px;color:#0a0a0a;">
+
+  <div style="max-width:1240px;margin:0 auto 34px;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="background:#0a0a0a;color:#fff;font-family:'Anton',sans-serif;font-size:26px;letter-spacing:.5px;padding:6px 12px 4px;line-height:1;">PORTO<span style="color:#0a0a0a;background:#FFD400;padding:0 6px;margin-left:4px;">SIN&nbsp;FILTRO</span></div>
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;color:#6b6862;text-transform:uppercase;">Prototipo interactivo · La ciudad expuesta, sin censura · {{ cityName }}</div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:18px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#7a776f;text-transform:uppercase;">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E11900;display:inline-block;"></span>Pendiente</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E8A300;display:inline-block;"></span>En proceso</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#0E7A45;display:inline-block;"></span>Resuelto</span>
+      <span style="color:#9b988f;">Tocá APOYAR, votá si mejora o empeora, abrí una denuncia y comentá anónimo.</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:48px;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+
+    <!-- ============ MOBILE ============ -->
+    <div style="flex:0 0 auto;">
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:#6b6862;text-transform:uppercase;margin:0 0 14px 6px;display:flex;align-items:center;gap:8px;"><span style="width:4px;height:16px;background:#E11900;display:inline-block;"></span>01 · Ciudadano — App móvil</div>
+
+      <div style="width:392px;background:#0a0a0a;border-radius:52px;padding:13px;box-shadow:0 40px 80px -30px rgba(0,0,0,.55),0 0 0 2px #2a2a2a inset;">
+        <div style="width:366px;height:798px;background:#f4f3ef;border-radius:40px;overflow:hidden;display:flex;flex-direction:column;position:relative;">
+
+          <!-- status bar -->
+          <div style="background:#0a0a0a;color:#fff;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:14px;font-weight:700;flex:0 0 auto;">
+            <span style="font-family:'Space Mono',monospace;">9:10</span>
+            <span style="display:flex;gap:6px;align-items:center;font-size:11px;letter-spacing:.5px;">PORTOVIEJO ·<span style="font-family:'Space Mono',monospace;"> 4G</span> ▮▮▮▯</span>
+          </div>
+
+          <!-- app header -->
+          <div style="background:#0a0a0a;color:#fff;padding:8px 16px 0;flex:0 0 auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-family:'Anton',sans-serif;font-size:23px;letter-spacing:.5px;line-height:1;">PORTO<span style="color:#0a0a0a;background:#FFD400;padding:0 5px;margin-left:3px;">SIN FILTRO</span></div>
+              <div style="width:34px;height:34px;border-radius:50%;background:#222;border:1px solid #383838;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#FFD400;">JC</div>
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#E11900;margin:5px 0 10px;font-weight:700;">LA CIUDAD EXPUESTA · SIN CENSURA</div>
+          </div>
+
+          <!-- breaking ticker -->
+          <sc-if value="{{ showTicker }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#E11900;color:#fff;height:26px;display:flex;align-items:center;overflow:hidden;flex:0 0 auto;position:relative;">
+            <div style="background:#0a0a0a;color:#FFD400;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;padding:0 9px;height:100%;display:flex;align-items:center;z-index:2;">BREAKING</div>
+            <div style="white-space:nowrap;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;animation:pf-marquee 26s linear infinite;display:flex;">
+              <span style="padding:0 14px;">CRÁTER DE LA AV. MANABÍ CUMPLE 64 DÍAS Y CRECE ▲ EL FLORÓN: 23 NOCHES A OSCURAS ▲ SEMÁFORO MUERTO EN COLÓN: 3 CHOQUES ▲ BASURAL SEPULTA PICOAZÁ ▲&nbsp;</span>
+              <span style="padding:0 14px;">CRÁTER DE LA AV. MANABÍ CUMPLE 64 DÍAS Y CRECE ▲ EL FLORÓN: 23 NOCHES A OSCURAS ▲ SEMÁFORO MUERTO EN COLÓN: 3 CHOQUES ▲ BASURAL SEPULTA PICOAZÁ ▲&nbsp;</span>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- scroll area -->
+          <div ref="{{ setScroll }}" style="flex:1 1 auto;min-height:0;overflow-y:auto;background:#f4f3ef;">
+
+            <!-- ====== FEED ====== -->
+            <sc-if value="{{ isFeed }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:14px 14px 22px;">
+
+              <!-- Problema del día -->
+              <div data-id="{{ hero.id }}" onClick="{{ openDetail }}" style="cursor:pointer;background:#0a0a0a;border-radius:14px;overflow:hidden;margin-bottom:18px;box-shadow:0 16px 30px -16px rgba(0,0,0,.5);">
+                <div style="display:flex;align-items:center;gap:8px;background:#E11900;padding:7px 12px;">
+                  <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:#fff;">★ PROBLEMA DEL DÍA</span>
+                  <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#FFD400;animation:pf-blink 1.4s steps(1) infinite;">● EN VIVO</span>
+                </div>
+                <div style="height:172px;background-image:repeating-linear-gradient(135deg,#2a2a2a 0 12px,#1f1f1f 12px 24px);position:relative;display:flex;align-items:flex-end;">
+                  <span style="position:absolute;top:10px;left:12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#777;background:rgba(0,0,0,.45);padding:3px 6px;">{{ hero.img }}</span>
+                  <div style="position:absolute;top:10px;right:12px;background:#FFD400;color:#0a0a0a;font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.5px;padding:4px 8px;">{{ hero.badge }}</div>
+                  <div style="background:#E11900;color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;letter-spacing:1px;padding:6px 12px;margin:0 0 12px 12px;">⏱ {{ hero.daysLabel }}</div>
+                </div>
+                <div style="padding:14px 14px 16px;">
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#FFD400;text-transform:uppercase;margin-bottom:7px;">{{ hero.cat }} · {{ hero.zona }}</div>
+                  <div style="font-family:'Anton',sans-serif;color:#fff;font-size:27px;line-height:.98;letter-spacing:.3px;text-wrap:balance;">{{ hero.headline }}</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+                    <button data-id="{{ hero.id }}" onClick="{{ toggleApoyo }}" style="border:none;cursor:pointer;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.5px;padding:11px 16px;border-radius:9px;background:{{ hero.apoyoBg }};color:{{ hero.apoyoFg }};display:flex;align-items:center;gap:8px;">▲ {{ hero.apoyoVerb }} <span style="font-family:'Space Mono',monospace;font-size:13px;">{{ hero.apoyosShown }}</span></button>
+                    <div style="margin-left:auto;text-align:right;font-family:'Space Mono',monospace;font-size:10px;color:#999;line-height:1.5;">{{ hero.confirmShown }} confirman<br>{{ hero.aportes }} aportes</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- sort chips -->
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
+                <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#8a8780;flex:0 0 auto;">ORDENAR:</span>
+                <button data-s="apoyo" onClick="{{ setSort }}" style="flex:0 0 auto;cursor:pointer;border:1.5px solid #0a0a0a;background:{{ sortApoyoBg }};color:{{ sortApoyoFg }};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;text-transform:uppercase;">Más apoyado</button>
+                <button data-s="antiguo" onClick="{{ setSort }}" style="flex:0 0 auto;cursor:pointer;border:1.5px solid #0a0a0a;background:{{ sortAntiguoBg }};color:{{ sortAntiguoFg }};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;text-transform:uppercase;">+ Antiguo sin resolver</button>
+                <button data-s="indignante" onClick="{{ setSort }}" style="flex:0 0 auto;cursor:pointer;border:1.5px solid #0a0a0a;background:{{ sortIndigBg }};color:{{ sortIndigFg }};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;text-transform:uppercase;">Más indignante</button>
+              </div>
+
+              <!-- cards -->
+              <sc-for list="{{ feedCards }}" as="card" hint-placeholder-count="4">
+                <div data-id="{{ card.id }}" onClick="{{ openDetail }}" style="cursor:pointer;background:#fff;border:1px solid #e3e1d9;border-radius:12px;overflow:hidden;margin-bottom:13px;">
+                  <div style="display:flex;">
+                    <div style="width:118px;flex:0 0 auto;background-image:repeating-linear-gradient(135deg,#e2e0d8 0 11px,#eceae2 11px 22px);position:relative;display:flex;align-items:flex-end;padding:7px;">
+                      <span style="font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:.5px;color:#9b988f;line-height:1.2;">{{ card.img }}</span>
+                      <div style="position:absolute;top:7px;left:7px;background:{{ card.statusColor }};color:#fff;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.5px;padding:2px 5px;">{{ card.statusLabel }}</div>
+                    </div>
+                    <div style="flex:1 1 auto;padding:11px 12px;min-width:0;">
+                      <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+                        <span style="background:{{ card.badgeBg }};color:{{ card.badgeFg }};font-family:'Anton',sans-serif;font-size:9px;letter-spacing:.5px;padding:2px 5px;">{{ card.badge }}</span>
+                        <span style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#E11900;text-transform:uppercase;">{{ card.cat }}</span>
+                      </div>
+                      <div style="font-family:'Anton',sans-serif;font-size:16.5px;line-height:1;letter-spacing:.2px;color:#0a0a0a;text-wrap:balance;">{{ card.headline }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:9px;font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;">
+                        <span style="color:{{ card.daysColor }};font-weight:700;">⏱ {{ card.daysLabel }}</span>
+                        <span>· {{ card.zona }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;border-top:1px solid #efedE6;padding:8px 12px;background:#fcfbf8;">
+                    <button data-id="{{ card.id }}" onClick="{{ toggleApoyo }}" style="cursor:pointer;border:1.5px solid #0a0a0a;background:{{ card.apoyoBg }};color:{{ card.apoyoFg }};font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;padding:6px 12px;border-radius:8px;display:flex;align-items:center;gap:6px;">▲ {{ card.apoyoVerb }} <span style="font-family:'Space Mono',monospace;">{{ card.apoyosShown }}</span></button>
+                    <span style="font-family:'Space Mono',monospace;font-size:9.5px;color:#8a8780;">{{ card.confirmShown }} confirman</span>
+                    <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:9.5px;color:#0a0a0a;font-weight:700;">{{ card.aportes }} aportes ›</span>
+                  </div>
+                </div>
+              </sc-for>
+
+              <div style="text-align:center;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#b3b0a7;margin-top:6px;">El contenido de cada denuncia es responsabilidad de quien lo publica.</div>
+            </div>
+            </sc-if>
+
+            <!-- ====== DETAIL ====== -->
+            <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="position:sticky;top:0;z-index:5;background:#0a0a0a;color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;">
+                <button onClick="{{ back }}" style="cursor:pointer;border:none;background:#FFD400;color:#0a0a0a;font-family:'Anton',sans-serif;font-size:12px;padding:6px 10px;border-radius:7px;">‹ MURO</button>
+                <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#999;">DENUNCIA #{{ selected.id }}</span>
+                <span style="margin-left:auto;background:{{ selected.statusColor }};color:#fff;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;">{{ selected.statusLabel }}</span>
+              </div>
+
+              <div style="height:198px;background-image:repeating-linear-gradient(135deg,#e2e0d8 0 13px,#eceae2 13px 26px);position:relative;display:flex;align-items:flex-end;">
+                <span style="position:absolute;top:10px;left:12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#9b988f;">{{ selected.img }}</span>
+                <div style="background:#E11900;color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;letter-spacing:1px;padding:6px 12px;margin:0 0 12px 12px;">⏱ {{ selected.daysLabel }}</div>
+              </div>
+
+              <div style="padding:14px;">
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">
+                  <span style="background:{{ selected.badgeBg }};color:{{ selected.badgeFg }};font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.5px;padding:3px 7px;">{{ selected.badge }}</span>
+                  <span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:#E11900;text-transform:uppercase;">{{ selected.cat }} · {{ selected.zona }}</span>
+                </div>
+                <div style="font-family:'Anton',sans-serif;font-size:28px;line-height:.98;letter-spacing:.3px;color:#0a0a0a;text-wrap:balance;">{{ selected.headline }}</div>
+                <div style="font-family:'Archivo',sans-serif;font-size:13.5px;line-height:1.5;color:#3a3833;margin-top:11px;">{{ selected.desc }}</div>
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:11px;background:#FBEBCF;border:1px solid #f0d999;padding:5px 9px;border-radius:7px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#9a5b00;">GRAVEDAD: {{ selected.severity }}</div>
+
+                <!-- apoyar -->
+                <div style="display:flex;align-items:center;gap:10px;margin-top:16px;background:#0a0a0a;border-radius:11px;padding:12px 14px;">
+                  <button data-id="{{ selected.id }}" onClick="{{ toggleApoyo }}" style="border:none;cursor:pointer;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.5px;padding:11px 18px;border-radius:9px;background:{{ selected.apoyoBg }};color:{{ selected.apoyoFg }};display:flex;align-items:center;gap:8px;">▲ {{ selected.apoyoVerb }}</button>
+                  <div style="color:#fff;line-height:1;">
+                    <div style="font-family:'Anton',sans-serif;font-size:24px;color:#FFD400;">{{ selected.apoyosShown }}</div>
+                    <div style="font-family:'Space Mono',monospace;font-size:9px;color:#999;letter-spacing:1px;">ciudadanos apoyan</div>
+                  </div>
+                </div>
+
+                <!-- sentiment vote -->
+                <div style="margin-top:18px;border:1px solid #e3e1d9;border-radius:11px;padding:13px;background:#fff;">
+                  <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.3px;color:#0a0a0a;margin-bottom:3px;">¿CÓMO VA EL PROBLEMA?</div>
+                  <div style="font-family:'Space Mono',monospace;font-size:9.5px;color:#8a8780;margin-bottom:11px;">Votá según lo que veas en tu zona · {{ selected.sentTotal }} votos</div>
+                  <div style="display:flex;height:13px;border-radius:7px;overflow:hidden;margin-bottom:11px;">
+                    <div style="width:{{ selected.pctEmpeora }}%;background:#E11900;"></div>
+                    <div style="width:{{ selected.pctIgual }}%;background:#b8b4aa;"></div>
+                    <div style="width:{{ selected.pctMejora }}%;background:#0E7A45;"></div>
+                  </div>
+                  <div style="display:flex;gap:8px;">
+                    <button data-k="empeora" onClick="{{ vote }}" style="flex:1;cursor:pointer;border:1.5px solid {{ selected.voteEmpeoraBd }};background:{{ selected.voteEmpeoraBg }};color:{{ selected.voteEmpeoraFg }};border-radius:8px;padding:8px 4px;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;">EMPEORA<br><span style="font-family:'Space Mono',monospace;font-weight:400;font-size:10px;">{{ selected.pctEmpeora }}%</span></button>
+                    <button data-k="igual" onClick="{{ vote }}" style="flex:1;cursor:pointer;border:1.5px solid {{ selected.voteIgualBd }};background:{{ selected.voteIgualBg }};color:{{ selected.voteIgualFg }};border-radius:8px;padding:8px 4px;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;">SIGUE IGUAL<br><span style="font-family:'Space Mono',monospace;font-weight:400;font-size:10px;">{{ selected.pctIgual }}%</span></button>
+                    <button data-k="mejora" onClick="{{ vote }}" style="flex:1;cursor:pointer;border:1.5px solid {{ selected.voteMejoraBd }};background:{{ selected.voteMejoraBg }};color:{{ selected.voteMejoraFg }};border-radius:8px;padding:8px 4px;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;letter-spacing:.3px;">MEJORA<br><span style="font-family:'Space Mono',monospace;font-weight:400;font-size:10px;">{{ selected.pctMejora }}%</span></button>
+                  </div>
+                </div>
+
+                <!-- estado timeline -->
+                <div style="margin-top:18px;">
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#8a8780;margin-bottom:10px;">SEGUIMIENTO OFICIAL · GAD PORTOVIEJO</div>
+                  <div style="display:flex;align-items:center;">
+                    <div style="flex:1;text-align:center;">
+                      <div style="width:18px;height:18px;border-radius:50%;background:{{ selected.step1 }};margin:0 auto 5px;"></div>
+                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">PENDIENTE</div>
+                    </div>
+                    <div style="height:3px;flex:0 0 30px;background:{{ selected.line1 }};"></div>
+                    <div style="flex:1;text-align:center;">
+                      <div style="width:18px;height:18px;border-radius:50%;background:{{ selected.step2 }};margin:0 auto 5px;"></div>
+                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">EN PROCESO</div>
+                    </div>
+                    <div style="height:3px;flex:0 0 30px;background:{{ selected.line2 }};"></div>
+                    <div style="flex:1;text-align:center;">
+                      <div style="width:18px;height:18px;border-radius:50%;background:{{ selected.step3 }};margin:0 auto 5px;"></div>
+                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">RESUELTO</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- aportes -->
+                <div style="margin-top:20px;display:flex;align-items:center;gap:8px;">
+                  <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;">SÚMATE AL RECLAMO</div>
+                  <span style="font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;">no abras otra denuncia — confirmá esta</span>
+                </div>
+                <button data-id="{{ selected.id }}" onClick="{{ confirmar }}" style="width:100%;margin-top:10px;cursor:pointer;border:1.5px dashed #0a0a0a;background:{{ selected.confirmBg }};color:{{ selected.confirmFg }};border-radius:9px;padding:11px;font-family:'Archivo',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:.3px;">{{ selected.confirmText }}</button>
+
+                <!-- comentarios -->
+                <div style="margin-top:22px;display:flex;align-items:center;gap:8px;border-top:2px solid #0a0a0a;padding-top:14px;">
+                  <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;">LA GENTE OPINA</div>
+                  <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;">{{ selComments.length }} comentarios</span>
+                </div>
+
+                <!-- composer -->
+                <div style="margin-top:12px;background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:11px;">
+                  <textarea value="{{ draft }}" onInput="{{ setDraft }}" placeholder="¿Cómo está hoy en tu zona? Contá lo que ves…" style="width:100%;border:none;outline:none;resize:none;height:52px;font-family:'Archivo',sans-serif;font-size:13px;color:#0a0a0a;background:transparent;"></textarea>
+                  <div style="display:flex;gap:5px;margin:6px 0 10px;">
+                    <button data-k="empeora" onClick="{{ setDraftSent }}" style="cursor:pointer;border:1.5px solid {{ draftEmpeoraBd }};background:{{ draftEmpeoraBg }};color:{{ draftEmpeoraFg }};border-radius:20px;padding:4px 9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;">EMPEORA</button>
+                    <button data-k="igual" onClick="{{ setDraftSent }}" style="cursor:pointer;border:1.5px solid {{ draftIgualBd }};background:{{ draftIgualBg }};color:{{ draftIgualFg }};border-radius:20px;padding:4px 9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;">IGUAL</button>
+                    <button data-k="mejora" onClick="{{ setDraftSent }}" style="cursor:pointer;border:1.5px solid {{ draftMejoraBd }};background:{{ draftMejoraBg }};color:{{ draftMejoraFg }};border-radius:20px;padding:4px 9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;">MEJORA</button>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <button onClick="{{ toggleAnon }}" style="cursor:pointer;display:flex;align-items:center;gap:7px;border:none;background:transparent;padding:0;">
+                      <span style="width:34px;height:20px;border-radius:11px;background:{{ anonTrackBg }};position:relative;display:inline-block;transition:.15s;"><span style="position:absolute;top:2px;left:{{ anonKnobX }};width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s;"></span></span>
+                      <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;color:#0a0a0a;">{{ anonLabel }}</span>
+                    </button>
+                    <button onClick="{{ addComment }}" style="margin-left:auto;cursor:pointer;border:none;background:#E11900;color:#fff;font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.5px;padding:9px 18px;border-radius:8px;">PUBLICAR ▲</button>
+                  </div>
+                </div>
+
+                <!-- comment list -->
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:11px;padding-bottom:22px;">
+                  <sc-for list="{{ selComments }}" as="c" hint-placeholder-count="3">
+                    <div style="display:flex;gap:10px;">
+                      <div style="width:32px;height:32px;flex:0 0 auto;border-radius:50%;background:{{ c.avBg }};color:{{ c.avFg }};display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:12px;">{{ c.avText }}</div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                          <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:11.5px;color:#0a0a0a;">{{ c.who }}</span>
+                          <span style="background:{{ c.sentBg }};color:{{ c.sentColor }};font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.5px;padding:1px 5px;">{{ c.sentLabel }}</span>
+                          <span style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;">· {{ c.when }}</span>
+                        </div>
+                        <div style="font-family:'Archivo',sans-serif;font-size:12.5px;line-height:1.45;color:#3a3833;margin-top:3px;">{{ c.text }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+
+          </div>
+
+          <!-- flash toast -->
+          <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:14px;right:14px;bottom:78px;background:#0a0a0a;color:#FFD400;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:11px 14px;border-radius:10px;text-align:center;box-shadow:0 12px 24px -8px rgba(0,0,0,.6);">{{ flash }}</div>
+          </sc-if>
+
+          <!-- bottom nav -->
+          <div style="background:#0a0a0a;flex:0 0 auto;display:flex;align-items:center;justify-content:space-around;padding:10px 14px 16px;position:relative;">
+            <div style="text-align:center;"><div style="width:7px;height:7px;background:#FFD400;margin:0 auto 5px;"></div><div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#fff;">MURO</div></div>
+            <div style="text-align:center;"><div style="width:7px;height:7px;background:#555;border-radius:50%;margin:0 auto 5px;"></div><div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#777;">MAPA</div></div>
+            <button onClick="{{ flashDenuncia }}" style="cursor:pointer;border:none;background:#E11900;color:#fff;width:50px;height:50px;border-radius:50%;font-family:'Anton',sans-serif;font-size:22px;margin-top:-22px;box-shadow:0 8px 18px -4px rgba(225,25,0,.6);">+</button>
+            <div style="text-align:center;"><div style="width:7px;height:7px;background:#555;margin:0 auto 5px;"></div><div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#777;">RANKING</div></div>
+            <div style="text-align:center;"><div style="width:7px;height:7px;background:#555;border-radius:50%;margin:0 auto 5px;"></div><div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.5px;color:#777;">YO</div></div>
+          </div>
+
+        </div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:#8a8780;margin-top:12px;text-align:center;max-width:392px;">Tocá una tarjeta para abrir la denuncia → apoyá, votá si mejora o empeora y comentá anónimo.</div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <div style="flex:1 1 620px;min-width:560px;max-width:760px;">
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:#6b6862;text-transform:uppercase;margin:0 0 14px 6px;display:flex;align-items:center;gap:8px;"><span style="width:4px;height:16px;background:#0a0a0a;display:inline-block;"></span>02 · Municipio — Panel de control (serio por dentro)</div>
+
+      <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.4);border:1px solid #d4d2c9;">
+        <!-- window bar -->
+        <div style="background:#0a0a0a;display:flex;align-items:center;gap:8px;padding:11px 16px;">
+          <span style="width:11px;height:11px;border-radius:50%;background:#E11900;"></span>
+          <span style="width:11px;height:11px;border-radius:50%;background:#E8A300;"></span>
+          <span style="width:11px;height:11px;border-radius:50%;background:#0E7A45;"></span>
+          <span style="margin-left:10px;font-family:'Space Mono',monospace;font-size:11px;color:#9b988f;letter-spacing:.5px;">gad-portoviejo · portosinfiltro.gob.ec/panel</span>
+        </div>
+
+        <div style="background:#f4f3ef;padding:22px;">
+          <!-- header -->
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Anton',sans-serif;font-size:34px;line-height:.95;letter-spacing:.3px;">PANEL DE CONTROL</div>
+              <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#8a8780;margin-top:4px;">GAD MUNICIPAL DE {{ cityName }} · ACTUALIZADO 16 JUN 2026, 09:10</div>
+            </div>
+            <div style="background:#0a0a0a;color:#fff;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 12px;border-radius:7px;">VISTA: MUNICIPIO (COMPLETA)</div>
+          </div>
+
+          <!-- insight banner -->
+          <div style="background:#E11900;color:#fff;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+            <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:#FFD400;">▲</div>
+            <div>
+              <div style="font-family:'Anton',sans-serif;font-size:20px;letter-spacing:.3px;">{{ topInsight }}</div>
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;color:#ffd9d3;margin-top:3px;">Entran 1.4 denuncias nuevas por cada 1 resuelta este mes. La presión ciudadana sube.</div>
+            </div>
+          </div>
+
+          <!-- KPIs -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+              <div style="background:#fff;border:1px solid #e3e1d9;border-radius:10px;padding:12px;">
+                <div style="font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.5px;color:#8a8780;text-transform:uppercase;line-height:1.3;min-height:22px;">{{ k.l }}</div>
+                <div style="font-family:'Anton',sans-serif;font-size:30px;line-height:1;color:{{ k.c }};margin-top:4px;">{{ k.v }}</div>
+                <div style="font-family:'Space Mono',monospace;font-size:8.5px;color:#a8a59c;margin-top:5px;">{{ k.s }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- row: categoria + zona -->
+          <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-bottom:16px;">
+            <!-- categoria -->
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;">
+              <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;margin-bottom:2px;">¿DE QUÉ SE QUEJA LA GENTE?</div>
+              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;margin-bottom:14px;">Denuncias por categoría · total 1.247</div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <sc-for list="{{ catBars }}" as="c" hint-placeholder-count="8">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;">{{ c.n }}</span><span style="color:#0a0a0a;font-weight:700;">{{ c.v }}</span></div>
+                    <div style="height:11px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:{{ c.pct }}%;background:{{ c.color }};border-radius:6px;"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- zona -->
+            <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;">
+              <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;margin-bottom:2px;">LA ZONA MÁS ABANDONADA</div>
+              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#8a8780;margin-bottom:14px;">Ranking de sectores de {{ cityName }}</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{ zonaBars }}" as="z" hint-placeholder-count="7">
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <div style="width:22px;flex:0 0 auto;font-family:'Anton',sans-serif;font-size:15px;color:{{ z.rankColor }};text-align:center;">{{ z.rank }}</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;margin-bottom:3px;"><span style="color:#3a3833;display:flex;align-items:center;gap:5px;">{{ z.n }}<span style="background:{{ z.tagBg }};color:{{ z.tagFg }};font-size:7.5px;font-weight:700;padding:0 4px;border-radius:3px;">{{ z.tag }}</span></span><span style="color:#0a0a0a;font-weight:700;">{{ z.v }}</span></div>
+                      <div style="height:10px;background:#efedE6;border-radius:6px;overflow:hidden;"><div style="height:100%;width:{{ z.pct }}%;background:{{ z.color }};border-radius:6px;"></div></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <!-- row: evolucion + estado/top -->
+          <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;">
+            <!-- evolucion -->
+            <div style="background:#0a0a0a;border-radius:11px;padding:16px;">
+              <div style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.3px;color:#fff;margin-bottom:2px;">¿LA CIUDAD MEJORA O EMPEORA?</div>
+              <div style="font-family:'Space Mono',monospace;font-size:9px;color:#888;margin-bottom:12px;">Denuncias nuevas vs. resueltas · últimos 6 meses</div>
+              <svg viewBox="0 0 580 210" style="width:100%;height:auto;display:block;">
+                <line x1="40" y1="200" x2="560" y2="200" stroke="#333" stroke-width="1"></line>
+                <polygon points="{{ areaPoints }}" fill="rgba(225,25,0,.22)"></polygon>
+                <polyline points="{{ ptsN }}" fill="none" stroke="#E11900" stroke-width="3" stroke-linejoin="round"></polyline>
+                <polyline points="{{ ptsR }}" fill="none" stroke="#0E7A45" stroke-width="3" stroke-linejoin="round" stroke-dasharray="2 0"></polyline>
+                <sc-for list="{{ evoMeses }}" as="m" hint-placeholder-count="6">
+                  <text x="{{ m.x }}" y="208" fill="#888" font-family="Space Mono, monospace" font-size="11" text-anchor="middle">{{ m.m }}</text>
+                </sc-for>
+              </svg>
+              <div style="display:flex;gap:16px;margin-top:8px;">
+                <span style="display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:10px;color:#fff;"><span style="width:14px;height:3px;background:#E11900;display:inline-block;"></span>Nuevas</span>
+                <span style="display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:10px;color:#fff;"><span style="width:14px;height:3px;background:#0E7A45;display:inline-block;"></span>Resueltas</span>
+                <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;color:#FFD400;font-weight:700;">▲ BRECHA CRECIENTE</span>
+              </div>
+            </div>
+
+            <!-- estado + top5 -->
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;">
+                <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.3px;margin-bottom:11px;">ESTADO DE LAS DENUNCIAS</div>
+                <div style="display:flex;height:18px;border-radius:6px;overflow:hidden;margin-bottom:10px;">
+                  <div style="width:49%;background:#E11900;"></div><div style="width:31%;background:#E8A300;"></div><div style="width:20%;background:#0E7A45;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;">
+                  <span style="color:#E11900;font-weight:700;">● 612 pend.</span><span style="color:#B26A00;font-weight:700;">● 388 proc.</span><span style="color:#0E7A45;font-weight:700;">● 247 resu.</span>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;flex:1;">
+                <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.3px;margin-bottom:11px;">TOP 5 MÁS APOYADAS</div>
+                <div style="display:flex;flex-direction:column;gap:9px;">
+                  <sc-for list="{{ top5 }}" as="t" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:9px;">
+                      <span style="font-family:'Anton',sans-serif;font-size:14px;color:#E11900;width:16px;">{{ t.rank }}</span>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;line-height:1.2;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ t.h }}</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:8px;color:#8a8780;">{{ t.z }}</div>
+                      </div>
+                      <span style="width:7px;height:7px;border-radius:50%;background:{{ t.statusColor }};flex:0 0 auto;"></span>
+                      <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#0a0a0a;">▲{{ t.a }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:9px;color:#b3b0a7;letter-spacing:.5px;">Versión pública resumida visible para todos · La identidad de autores anónimos solo es accesible para el municipio, con fines de moderación.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1180},&quot;cityName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;PORTOVIEJO&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showTicker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;topInsight&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;LA CIUDAD EMPEORA&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = {
+    view: 'feed',
+    selectedId: 101,
+    sort: 'apoyo',
+    apoyadas: {},
+    myVote: {},
+    confirmedByMe: {},
+    draft: '',
+    draftSent: 'empeora',
+    anon: true,
+    flash: '',
+    comments: {
+      101: [
+        {who:'Ciudadano Anónimo', anon:true, when:'hace 2 h', sent:'empeora', text:'Hoy casi me voy de cara con la moto. Ya no es un hueco, es una trampa mortal.'},
+        {who:'Vecina de Andrés de Vera', anon:false, when:'hace 5 h', sent:'empeora', text:'Pusieron dos conos la semana pasada y se los robaron. Seguimos igual o peor.'},
+        {who:'Ciudadano Anónimo', anon:true, when:'ayer', sent:'igual', text:'Llevo reportando esto desde abril. Nadie del municipio ha venido a ver.'},
+      ],
+      105: [
+        {who:'Ciudadano Anónimo', anon:true, when:'hace 1 h', sent:'empeora', text:'Otro choque esta mañana en el cruce. ¿Cuántos más hacen falta para que vengan?'},
+      ],
+      102: [
+        {who:'Ciudadano Anónimo', anon:true, when:'hace 3 h', sent:'igual', text:'Dicen que ya viene la cuadrilla pero seguimos a oscuras. Da miedo salir de noche.'},
+      ],
+    },
+    denuncias: [
+      {id:101, cat:'Baches y vías', zona:'Andrés de Vera', badge:'¡INDIGNANTE!',
+       headline:'¡MONSTRUOSO! El cráter de la Av. Manabí cumple 64 días y NO PARA DE CRECER',
+       desc:'Lo que empezó como un bache hoy se traga media calzada. Los vecinos aseguran que crece cada semana con la lluvia y ya provocó varias caídas de motociclistas.',
+       severity:'¡CATÁSTROFE URBANA!', status:'pendiente', days:64, apoyos:1284, confirmaciones:212, aportes:38,
+       img:'foto · cráter Av. Manabí', sent:{empeora:892, igual:140, mejora:12}},
+      {id:105, cat:'Semáforos y señalética', zona:'Colón', badge:'¡PELIGRO!',
+       headline:'¡RULETA RUSA! Semáforo muerto en Colón ya provocó 3 choques en una semana',
+       desc:'El cruce más transitado de Colón lleva el semáforo apagado y nadie dirige el tránsito. Tres choques registrados en siete días.',
+       severity:'GRAVE', status:'pendiente', days:12, apoyos:689, confirmaciones:97, aportes:14,
+       img:'foto · semáforo Colón', sent:{empeora:410, igual:120, mejora:30}},
+      {id:102, cat:'Alumbrado público', zona:'El Florón', badge:'¡VERGÜENZA!',
+       headline:'¡A OSCURAS! El Florón suma 23 noches sin un solo foco encendido',
+       desc:'Familias enteras caminan a tientas. La inseguridad disparó los asaltos según los moradores del sector.',
+       severity:'GRAVE', status:'proceso', days:23, apoyos:547, confirmaciones:88, aportes:11,
+       img:'foto · calle El Florón', sent:{empeora:210, igual:180, mejora:62}},
+      {id:103, cat:'Basura y aseo', zona:'Picoazá', badge:'¡INDIGNANTE!',
+       headline:'¡PESTILENTE! Una montaña de basura sepulta la esquina de Picoazá',
+       desc:'El carro recolector no pasa hace dos semanas. El olor es insoportable y ya aparecieron roedores entre los desechos.',
+       severity:'MODERADA', status:'pendiente', days:18, apoyos:432, confirmaciones:65, aportes:9,
+       img:'foto · basural Picoazá', sent:{empeora:300, igual:90, mejora:20}},
+      {id:104, cat:'Agua y alcantarillado', zona:'San Pablo', badge:'¡ALARMA!',
+       headline:'¡RÍO EN PLENA CALLE! Tubería reventada inunda San Pablo hace 9 días',
+       desc:'El agua potable corre por la calzada las 24 horas mientras el barrio sufre cortes. Un desperdicio que indigna.',
+       severity:'GRAVE', status:'proceso', days:9, apoyos:318, confirmaciones:51, aportes:7,
+       img:'foto · fuga San Pablo', sent:{empeora:120, igual:90, mejora:108}},
+      {id:106, cat:'Parques y espacios', zona:'4 de Noviembre', badge:'¡ABANDONO!',
+       headline:'¡SELVA URBANA! El parque de la 4 de Noviembre es ahora un matorral',
+       desc:'Los juegos infantiles están oxidados y la maleza llega a la cintura. Los niños ya no tienen dónde jugar.',
+       severity:'MODERADA', status:'pendiente', days:31, apoyos:156, confirmaciones:33, aportes:5,
+       img:'foto · parque 4 de Nov.', sent:{empeora:90, igual:50, mejora:16}},
+      {id:107, cat:'Baches y vías', zona:'Colón', badge:'¡POR FIN!',
+       headline:'¡VICTORIA CIUDADANA! Tras 80 días repavimentan la vía de la Colón',
+       desc:'La presión del Muro de la Vergüenza funcionó: la cuadrilla cerró el cráter que partía la avenida en dos.',
+       severity:'RESUELTA', status:'resuelto', days:80, apoyos:921, confirmaciones:140, aportes:22,
+       img:'foto · vía reparada Colón', sent:{empeora:20, igual:40, mejora:380}},
+    ],
+  };
+
+  fmt(n){ return Math.round(n).toLocaleString('es-EC'); }
+  statusMeta(s){ return ({pendiente:{label:'PENDIENTE',color:'#E11900'},proceso:{label:'EN PROCESO',color:'#E8A300'},resuelto:{label:'RESUELTO',color:'#0E7A45'}})[s]; }
+  badgeStyle(s){ return s==='resuelto' ? {bg:'#0E7A45',fg:'#fff'} : {bg:'#FFD400',fg:'#0a0a0a'}; }
+
+  clearFlash(){ clearTimeout(this._ft); this._ft=setTimeout(()=>this.setState({flash:''}),2400); }
+
+  setScroll = (el)=>{ this._scroll = el; };
+  setSort = (e)=> this.setState({sort:e.currentTarget.dataset.s});
+  openDetail = (e)=>{ const id=+e.currentTarget.dataset.id; this.setState({view:'detail',selectedId:id}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; }); };
+  back = ()=>{ this.setState({view:'feed'}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; }); };
+  toggleApoyo = (e)=>{ e.stopPropagation(); const id=+e.currentTarget.dataset.id; this.setState(st=>{ const on=!st.apoyadas[id]; return {apoyadas:{...st.apoyadas,[id]:on}, flash: on?'¡Apoyo registrado! Tu voz suma al reclamo.':''}; }); this.clearFlash(); };
+  confirmar = (e)=>{ e.stopPropagation(); const id=+e.currentTarget.dataset.id; this.setState(st=>({confirmedByMe:{...st.confirmedByMe,[id]:true}, flash:'Confirmaste: "pasé hoy y sigue igual".'})); this.clearFlash(); };
+  vote = (e)=>{ const id=this.state.selectedId; const k=e.currentTarget.dataset.k; this.setState(st=>{ const prev=st.myVote[id]; if(prev===k) return {}; const denuncias=st.denuncias.map(x=>{ if(x.id!==id) return x; const sent={...x.sent}; if(prev) sent[prev]=Math.max(0,sent[prev]-1); sent[k]=sent[k]+1; return {...x,sent}; }); return {denuncias, myVote:{...st.myVote,[id]:k}}; }); };
+  setDraft = (e)=> this.setState({draft:e.currentTarget.value});
+  setDraftSent = (e)=> this.setState({draftSent:e.currentTarget.dataset.k});
+  toggleAnon = ()=> this.setState(st=>({anon:!st.anon}));
+  flashDenuncia = ()=>{ this.setState({flash:'Nueva denuncia: foto + zona + categoría + gravedad.'}); this.clearFlash(); };
+  addComment = ()=>{ const txt=this.state.draft.trim(); if(!txt) return; const id=this.state.selectedId; const c={who:this.state.anon?'Ciudadano Anónimo':'Tú · Vecino registrado', anon:this.state.anon, when:'ahora', sent:this.state.draftSent, text:txt}; this.setState(st=>({comments:{...st.comments,[id]:[c,...(st.comments[id]||[])]}, draft:'', flash:'Comentario publicado.'})); this.clearFlash(); };
+
+  vm(d){
+    const st=this.state; const sm=this.statusMeta(d.status); const bs=this.badgeStyle(d.status);
+    const t=d.sent.empeora+d.sent.igual+d.sent.mejora||1;
+    const on=!!st.apoyadas[d.id]; const conf=!!st.confirmedByMe[d.id]; const mv=st.myVote[d.id]||'';
+    const order=['pendiente','proceso','resuelto']; const si=order.indexOf(d.status);
+    const reached=(i)=> d.status==='resuelto'?true:(i<=si);
+    const dot=(i)=> reached(i)? (i===2?'#0E7A45':(i===1?'#E8A300':'#E11900')) : '#d8d6cd';
+    const vbtn=(k,col)=>{ const a=mv===k; return a?{bg:col,fg:'#fff',bd:col}:{bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'}; };
+    const ve=vbtn('empeora','#E11900'), vi=vbtn('igual','#7a776f'), vmj=vbtn('mejora','#0E7A45');
+    return { ...d,
+      statusLabel:sm.label, statusColor:sm.color,
+      badgeBg:bs.bg, badgeFg:bs.fg,
+      daysLabel: d.status==='resuelto' ? ('RESUELTO EN '+d.days+' DÍAS') : (d.days+' DÍAS SIN RESOLVER'),
+      daysColor: d.status==='resuelto' ? '#0E7A45' : '#E11900',
+      apoyado:on,
+      apoyoVerb: on?'APOYAS':'APOYAR',
+      apoyoBg: on?'#FFD400':'#FFD400', apoyoFg:'#0a0a0a',
+      apoyosShown:this.fmt(d.apoyos+(on?1:0)),
+      confirmShown:this.fmt(d.confirmaciones+(conf?1:0)),
+      confirmText: conf?'✓ CONFIRMASTE QUE SIGUE PRESENTE':'+ CONFIRMAR QUE EL PROBLEMA SIGUE',
+      confirmBg: conf?'#D8F0E2':'#fff', confirmFg: conf?'#0E7A45':'#0a0a0a',
+      pctEmpeora:Math.round(d.sent.empeora/t*100), pctIgual:Math.round(d.sent.igual/t*100), pctMejora:Math.round(d.sent.mejora/t*100),
+      sentTotal:this.fmt(t),
+      step1:dot(0), step2:dot(1), step3:dot(2),
+      line1: reached(1)?'#E8A300':'#d8d6cd', line2: reached(2)?'#0E7A45':'#d8d6cd',
+      voteEmpeoraBg:ve.bg, voteEmpeoraFg:ve.fg, voteEmpeoraBd:ve.bd,
+      voteIgualBg:vi.bg, voteIgualFg:vi.fg, voteIgualBd:vi.bd,
+      voteMejoraBg:vmj.bg, voteMejoraFg:vmj.fg, voteMejoraBd:vmj.bd,
+    };
+  }
+
+  cmt(c){
+    const meta={empeora:{l:'EMPEORA',c:'#E11900',bg:'#FCE3DE'},igual:{l:'SIGUE IGUAL',c:'#6b6862',bg:'#ecEAE4'},mejora:{l:'MEJORA',c:'#0E7A45',bg:'#D8F0E2'}}[c.sent]||{l:'',c:'#6b6862',bg:'#eee'};
+    const av = c.anon ? {t:'?', bg:'#0a0a0a', fg:'#FFD400'} : {t:(c.who[0]||'V').toUpperCase(), bg:'#E11900', fg:'#fff'};
+    return {...c, sentLabel:meta.l, sentColor:meta.c, sentBg:meta.bg, avText:av.t, avBg:av.bg, avFg:av.fg};
+  }
+
+  renderVals(){
+    const st=this.state;
+    const ds=st.denuncias;
+    const hero=this.vm(ds.find(d=>d.id===101));
+    let rest=ds.filter(d=>d.id!==101).slice();
+    rest.sort((a,b)=> st.sort==='antiguo' ? b.days-a.days : st.sort==='indignante' ? (b.apoyos+b.confirmaciones*3)-(a.apoyos+a.confirmaciones*3) : b.apoyos-a.apoyos);
+    const feedCards=rest.map(d=>this.vm(d));
+    const selected=this.vm(ds.find(d=>d.id===st.selectedId)||ds[0]);
+    const selComments=(st.comments[st.selectedId]||[]).map(c=>this.cmt(c));
+    const chip=(v)=> v?{bg:'#0a0a0a',fg:'#fff'}:{bg:'#fff',fg:'#0a0a0a'};
+    const sa=chip(st.sort==='apoyo'), sn=chip(st.sort==='antiguo'), si=chip(st.sort==='indignante');
+    const dchip=(k,col)=>{ const a=st.draftSent===k; return a?{bg:col,fg:'#fff',bd:col}:{bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'}; };
+    const de=dchip('empeora','#E11900'), di=dchip('igual','#7a776f'), dm=dchip('mejora','#0E7A45');
+
+    // dashboard data
+    const catRaw=[['Baches y vías',512,'#E11900'],['Alumbrado público',224,'#0a0a0a'],['Basura y aseo',187,'#0a0a0a'],['Agua y alcantarillado',137,'#0a0a0a'],['Semáforos y señalética',87,'#0a0a0a'],['Parques y espacios',62,'#0a0a0a'],['Seguridad',24,'#0a0a0a'],['Otros',14,'#0a0a0a']];
+    const catBars=catRaw.map(c=>({n:c[0],v:c[1],pct:Math.round(c[1]/512*100),color:c[2]}));
+    const zonaRaw=[['Andrés de Vera',287],['Picoazá',241],['4 de Noviembre',198],['San Pablo',176],['El Florón',154],['Colón',121],['La Pradera',70]];
+    const zonaBars=zonaRaw.map((z,i)=>({n:z[0],v:z[1],rank:i+1,pct:Math.round(z[1]/287*100),color:i===0?'#E11900':'#0a0a0a',rankColor:i===0?'#E11900':'#bcb9b0',tag:i===0?'PEOR':'',tagBg:i===0?'#E11900':'transparent',tagFg:i===0?'#fff':'transparent'}));
+    const kpis=[{l:'TOTAL DENUNCIAS',v:'1.247',c:'#0a0a0a',s:'+184 este mes'},{l:'PENDIENTES',v:'612',c:'#E11900',s:'49% del total'},{l:'EN PROCESO',v:'388',c:'#B26A00',s:'31% del total'},{l:'RESUELTAS',v:'247',c:'#0E7A45',s:'20% del total'},{l:'TIEMPO PROM.',v:'38 d',c:'#0a0a0a',s:'meta: 15 días'}];
+    const t5=[['Cráter de la Av. Manabí','Andrés de Vera',1284,'pendiente'],['Semáforo muerto en Colón','Colón',689,'pendiente'],['El Florón a oscuras','El Florón',547,'proceso'],['Basural de Picoazá','Picoazá',432,'pendiente'],['Río en San Pablo','San Pablo',318,'proceso']];
+    const top5=t5.map((t,i)=>({rank:i+1,h:t[0],z:t[1],a:this.fmt(t[2]),statusColor:this.statusMeta(t[3]).color}));
+    const meses=['ENE','FEB','MAR','ABR','MAY','JUN'];
+    const nuevas=[180,165,210,240,268,184], resueltas=[90,110,120,130,140,95];
+    const X=i=>40+i*(520/5), Y=v=>200-(v/300)*170;
+    const ptsN=nuevas.map((v,i)=>X(i).toFixed(0)+','+Y(v).toFixed(0)).join(' ');
+    const ptsR=resueltas.map((v,i)=>X(i).toFixed(0)+','+Y(v).toFixed(0)).join(' ');
+    const areaPoints='40,200 '+nuevas.map((v,i)=>X(i).toFixed(0)+','+Y(v).toFixed(0)).join(' ')+' '+X(5).toFixed(0)+',200';
+    const evoMeses=meses.map((m,i)=>({m,x:X(i).toFixed(0)}));
+
+    return {
+      cityName: this.props.cityName ?? 'PORTOVIEJO',
+      showTicker: this.props.showTicker ?? true,
+      topInsight: this.props.topInsight ?? 'LA CIUDAD EMPEORA',
+      isFeed: st.view==='feed', isDetail: st.view==='detail',
+      view: st.view, sort: st.sort, flash: st.flash,
+      hero, feedCards, selected, selComments,
+      draft: st.draft,
+      sortApoyoBg:sa.bg, sortApoyoFg:sa.fg, sortAntiguoBg:sn.bg, sortAntiguoFg:sn.fg, sortIndigBg:si.bg, sortIndigFg:si.fg,
+      draftEmpeoraBg:de.bg, draftEmpeoraFg:de.fg, draftEmpeoraBd:de.bd,
+      draftIgualBg:di.bg, draftIgualFg:di.fg, draftIgualBd:di.bd,
+      draftMejoraBg:dm.bg, draftMejoraFg:dm.fg, draftMejoraBd:dm.bd,
+      anonLabel: st.anon?'Publicar como ANÓNIMO':'Publicar con MI NOMBRE',
+      anonTrackBg: st.anon?'#0a0a0a':'#cfccc3', anonKnobX: st.anon?'16px':'2px',
+      kpis, catBars, zonaBars, top5, ptsN, ptsR, areaPoints, evoMeses,
+      setScroll:this.setScroll, setSort:this.setSort, openDetail:this.openDetail, back:this.back,
+      toggleApoyo:this.toggleApoyo, confirmar:this.confirmar, vote:this.vote,
+      setDraft:this.setDraft, setDraftSent:this.setDraftSent, toggleAnon:this.toggleAnon, addComment:this.addComment, flashDenuncia:this.flashDenuncia,
+    };
+  }
+}
+</script>
+<script>
+(async () => {
+  // Prepend so page-supplied @page / break rules (deck-stage's margin:0,
+  // author CSS) keep source-order precedence over the baseline.
+  const baseCss = document.createElement('style');
+  baseCss.textContent = "@media print {\n  @page { margin: 0.5cm; }\n  html, body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }\n  section, article, figure, table { break-inside: avoid; }\n  *, *::before, *::after {\n    animation-delay: -99s !important; animation-duration: .001s !important;\n    animation-iteration-count: 1 !important; animation-fill-mode: both !important;\n    animation-play-state: running !important; transition-duration: 0s !important;\n  }\n}";
+  document.head.prepend(baseCss);
+  if (document.readyState === 'loading') {
+    await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+  }
+  let ds = document.querySelector('deck-stage');
+  // whenDefined never resolves when nothing registers the element, so only
+  // await it when a <deck-stage> tag exists (and race a timeout regardless).
+  if (ds && !customElements.get('deck-stage')) {
+    try {
+      await Promise.race([
+        customElements.whenDefined('deck-stage'),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) {}
+    ds = document.querySelector('deck-stage');
+  }
+  // dc-runtime assigns window.DCLogic at init and mounts into #dc-root on
+  // DOMContentLoaded; settle on that subtree so React has rendered before
+  // print(). Non-DC pages fall through to weighing body.
+  const isDc = !ds && 'DCLogic' in window;
+  const settleRoot = ds || (isDc ? document.getElementById('dc-root') : null) || document.body;
+  if (settleRoot) {
+    // Weigh only content children — skip script/style/template so inline
+    // Babel/CSS doesn't register as stable "content" before the framework
+    // has mounted anything.
+    const MEDIA = 'img,svg,canvas,video,picture,iframe,embed,object';
+    const weigh = () => {
+      let text = 0, media = 0;
+      for (const c of settleRoot.children) {
+        const t = c.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+        text += (c.textContent || '').trim().length;
+        media += c.querySelectorAll(MEDIA).length + (c.matches(MEDIA) ? 1 : 0);
+      }
+      return text + media * 100;
+    };
+    // "Non-zero and stable" alone is not sufficient to mean rendered: generic
+    // body can carry a static shell while async main content is pending, and
+    // #dc-root can carry the root DC's static text while child refs are still
+    // .sc-placeholder boxes. Gate generic on readyState 'complete', and never
+    // accept stability while a dc-runtime placeholder is present.
+    const isGeneric = settleRoot === document.body;
+    const deadline = Date.now() + 15000;
+    let last = -1, stable = 0;
+    while (Date.now() < deadline) {
+      const n = weigh();
+      const ready =
+        (!isGeneric || document.readyState === 'complete') &&
+        !settleRoot.querySelector('.sc-placeholder');
+      if (n > 0 && n === last && ready) { if (++stable >= 2) break; } else { stable = 0; }
+      last = n;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  // Reveal content gated on scroll or visibility before printing. Lazy <img>,
+  // IntersectionObserver fade-ins, and collapsed <details> don't render while
+  // off-screen, so a long page would print with them blank or closed. Open
+  // every <details>, force native-lazy images eager, and scroll the document
+  // through its full height to trip lazy-load + IO; then wait (bounded) for the
+  // newly-triggered images. Inert for deck-stage (slides aren't scroll-gated).
+  try {
+    for (const d of document.querySelectorAll('details')) d.open = true;
+    for (const img of document.querySelectorAll('img[loading="lazy"]'))
+      img.loading = 'eager';
+    const scroller = document.scrollingElement || document.documentElement;
+    const full = Math.max(scroller.scrollHeight, document.body.scrollHeight);
+    const step = window.innerHeight || 800;
+    for (let y = 0; y <= full; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    window.scrollTo(0, 0);
+    await Promise.race([
+      Promise.all(
+        [...document.images].map((img) =>
+          img.complete
+            ? null
+            : new Promise((res) => {
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+              })
+        )
+      ),
+      new Promise((r) => setTimeout(r, 4000)),
+    ]);
+  } catch (e) {}
+  try { await document.fonts.ready; } catch (e) {}
+  // Jump every animation to its end state so print() never captures a slide
+  // mid-entrance. Ordering matters: the 0s-transition style must be live
+  // BEFORE data-deck-active is set so attribute-keyed transitions don't
+  // start a (now-0s) run from the pre-active base.
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}';
+  document.head.appendChild(st);
+  for (const d of document.querySelectorAll('deck-stage')) {
+    for (const c of d.children) {
+      const t = c.tagName;
+      if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+      c.setAttribute('data-deck-active', '');
+    }
+  }
+  try {
+    const sweep = () => {
+      for (const a of document.getAnimations()) {
+        try { a.finish(); } catch (e) {
+          try { a.currentTime = (a.effect && a.effect.getComputedTiming().duration) || 0; a.pause(); } catch (e2) {}
+        }
+      }
+    };
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+  } catch (e) {}
+  // Relax break-inside on oversized elements. An element taller than a
+  // printable page can't honor break-inside: avoid — browsers either overflow
+  // it or push it whole to the next page, leaving a blank gap, then break it
+  // anyway at an arbitrary point. After the final layout (content revealed,
+  // animations jumped), find elements taller than a page that still compute
+  // break-inside: avoid and reset them to auto, so the browser breaks them at
+  // their children's boundaries instead (children keep their own avoid). PAGE_PX
+  // is a conservative portrait estimate at 96 CSS px/in — Letter/A4 usable
+  // height minus our 0.5in margins — so only clearly-oversized elements are
+  // touched and under-page elements still stay whole. Skipped for decks, whose
+  // slides are sized to the page.
+  try {
+    if (!document.querySelector('deck-stage')) {
+      const PAGE_PX = 1024;
+      const oversized = [...document.body.querySelectorAll('*')].filter(
+        (el) => el instanceof HTMLElement && el.offsetHeight > PAGE_PX
+      );
+      for (const el of oversized) {
+        const cs = getComputedStyle(el);
+        if (cs.breakInside === 'avoid' || cs.pageBreakInside === 'avoid') {
+          el.style.breakInside = 'auto';
+          el.style.pageBreakInside = 'auto';
+        }
+      }
+    }
+  } catch (e) {}
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 200);
+})();
+</script>
+</body>
+</html>

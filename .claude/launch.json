@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "PortoSinFiltro",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3771", "."],
+      "port": 3771
+    }
+  ]
+}
