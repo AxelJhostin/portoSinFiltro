@@ -170,7 +170,14 @@ SELECT
   EXTRACT(DAY FROM NOW() - d.created_at)::INTEGER AS dias_sin_resolver,
   COUNT(DISTINCT r.id)  AS total_apoyos,
   COUNT(DISTINCT a.id)  AS total_aportes,
-  COUNT(DISTINCT f.id)  AS total_fotos
+  COUNT(DISTINCT f.id)  AS total_fotos,
+  (
+    SELECT f2.url
+    FROM fotos_denuncia f2
+    WHERE f2.denuncia_id = d.id
+    ORDER BY f2.created_at ASC
+    LIMIT 1
+  ) AS foto_portada
 FROM denuncias d
   JOIN perfiles   p ON p.id = d.autor_id
   JOIN categorias c ON c.id = d.categoria_id

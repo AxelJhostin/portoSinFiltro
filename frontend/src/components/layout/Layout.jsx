@@ -48,13 +48,15 @@ export default function Layout({ session, perfil, children, back }) {
                     Mis denuncias
                   </Link>
                 )}
-                <Link
-                  to="/nueva"
-                  className="bg-brand-yellow text-ink text-sm font-semibold px-4 py-1.5 rounded-card
-                             hover:brightness-95 transition-all"
-                >
-                  + Denunciar
-                </Link>
+                {perfil?.rol === 'ciudadano' && (
+                  <Link
+                    to="/nueva"
+                    className="bg-brand-yellow text-ink text-sm font-semibold px-4 py-1.5 rounded-card
+                               hover:brightness-95 transition-all"
+                  >
+                    + Denunciar
+                  </Link>
+                )}
                 <button
                   onClick={cerrarSesion}
                   className="text-gray-400 hover:text-white text-sm transition-colors"
@@ -77,7 +79,7 @@ export default function Layout({ session, perfil, children, back }) {
         {!back && (
           <div className="border-t border-gray-700 bg-brand-red overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-1 text-white text-xs font-mono">
-              <span className="font-bold uppercase tracking-widest shrink-0 animate-pulse">
+              <span className="font-bold uppercase tracking-widest shrink-0 ticker-live animate-pulse">
                 EN VIVO
               </span>
               <span className="opacity-60 shrink-0">|</span>

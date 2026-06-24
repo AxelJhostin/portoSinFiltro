@@ -37,6 +37,27 @@
            shadow-sm hover:shadow-md transition-shadow;
   }
 
+  .card-interactive {
+    @apply card cursor-pointer focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-ink focus-visible:ring-offset-2;
+  }
+
+  .filter-select {
+    @apply text-xs border border-surface-muted rounded-card px-2.5 py-2 min-h-[36px]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ink
+           focus-visible:ring-offset-1 bg-white text-ink;
+  }
+
+  .skeleton-block {
+    @apply bg-surface-muted rounded animate-pulse;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-live {
+      animation: none;
+    }
+  }
+
   .estado-pendiente {
     @apply text-brand-red bg-red-50 border border-red-200;
   }

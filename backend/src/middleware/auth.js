@@ -69,7 +69,13 @@ export async function optionalAuth(req, _res, next) {
 export function requireRol(...roles) {
   return (req, res, next) => {
     if (!roles.includes(req.user?.rol)) {
-      return res.status(403).json({ error: 'Sin permisos para esta acción' });
+      const actual = req.user?.rol ?? 'desconocido';
+      const esperados = roles.join(' o ');
+      return res.status(403).json({
+        error: actual === 'municipio' || actual === 'cuadrilla'
+          ? `Tu cuenta es de ${actual}. Solo ciudadanos pueden publicar denuncias. Inicia sesión con una cuenta de ciudadano.`
+          : `Sin permisos para esta acción (se requiere rol: ${esperados}).`,
+      });
     }
     next();
   };

@@ -11,8 +11,14 @@ export default function NuevaDenuncia({ session, perfil }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!session) navigate('/login', { replace: true });
-  }, [session, navigate]);
+    if (!session) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    if (perfil && perfil.rol !== 'ciudadano') {
+      navigate('/', { replace: true });
+    }
+  }, [session, perfil, navigate]);
 
   const [form, setForm] = useState({
     categoria_id: '',
@@ -118,7 +124,7 @@ export default function NuevaDenuncia({ session, perfil }) {
     }
   }
 
-  if (!session) return null;
+  if (!session || (perfil && perfil.rol !== 'ciudadano')) return null;
 
   const descOk = form.descripcion.length >= 20;
 

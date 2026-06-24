@@ -19,6 +19,35 @@ function validate(req, res, next) {
   next();
 }
 
+// Primera foto de cada denuncia (para miniaturas en el Muro)
+async function adjuntarFotosPortada(items) {
+  if (!items?.length) return items;
+
+  const ids = items
+    .filter(d => Number(d.total_fotos) > 0)
+    .map(d => d.id);
+  if (!ids.length) {
+    return items.map(d => ({ ...d, foto_portada: null }));
+  }
+
+  const { data: fotos, error } = await supabase
+    .from('fotos_denuncia')
+    .select('denuncia_id, url, created_at')
+    .in('denuncia_id', ids)
+    .order('created_at', { ascending: true });
+
+  if (error || !fotos?.length) {
+    return items.map(d => ({ ...d, foto_portada: null }));
+  }
+
+  const primera = {};
+  for (const f of fotos) {
+    if (!primera[f.denuncia_id]) primera[f.denuncia_id] = f.url;
+  }
+
+  return items.map(d => ({ ...d, foto_portada: primera[d.id] ?? null }));
+}
+
 // GET /denuncias — Muro público (sin auth)
 // Con ?autor_id=UUID solo devuelve las denuncias de ese usuario.
 // El autor_id se valida contra el JWT: solo puedes pedir las tuyas.
@@ -77,7 +106,8 @@ router.get('/',
     const { data, error, count } = await q;
     if (error) return res.status(500).json({ error: error.message });
 
-    res.json({ data, total: count, pagina: Number(pagina), limite });
+    const enriquecidas = await adjuntarFotosPortada(data);
+    res.json({ data: enriquecidas, total: count, pagina: Number(pagina), limite });
   }
 );
 
