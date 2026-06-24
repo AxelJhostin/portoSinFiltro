@@ -1,6 +1,6 @@
 # PortoSinFiltro — El Muro de la Vergüenza
 
-Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí. Los ciudadanos denuncian, confirman y dan seguimiento a problemas como baches, alumbrado, basura y más. El municipio y cuadrillas gestionan el estado de cada denuncia desde un panel de control.
+Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí. Los ciudadanos denuncian, confirman y dan seguimiento a problemas como baches, alumbrado, basura y más. El **estado** de cada denuncia lo refleja la **comunidad**; los **administradores** solo moderan (ocultar/restaurar).
 
 > Proyecto universitario — PUCE Sede Manabí, Portoviejo, materia de Sistemas de Información.
 
@@ -44,6 +44,8 @@ Esto ya crea las tablas, la vista `vista_denuncias`, la policy `usuarios_ven_su_
 > 🖼️ **Para miniaturas en el muro:** ejecuta `database/migracion_foto_portada.sql` — agrega `foto_portada` a la vista.
 >
 > 📊 **Para valoraciones de progreso:** ejecuta `database/migracion_progreso_ciudadano.sql` — tabla `valoraciones_progreso` y conteos en la vista. (Si recreas todo desde `schema.sql` actual, ya viene incluido.)
+>
+> 👥 **Para roles comunitarios:** ejecuta `database/migracion_roles_comunitarios.sql` — roles `ciudadano`/`administrador`, reportes de denuncias falsas, estado comunitario en la vista y tipo de aporte `resolucion`. Ver `docs/PLAN-ROLES-COMUNITARIOS.md`.
 
 **A2.** En **Authentication → URL Configuration**:
 
@@ -57,24 +59,24 @@ En **Authentication → Providers → Email**: activar Email.
 
 > 📝 **Para el registro en vivo (signUp):** en **Authentication → Providers → Email**, desactiva **"Confirm email"**. Así, cuando un ciudadano se registra desde la página, entra al instante sin tener que confirmar un correo. (El login es email + contraseña; no se envían correos.)
 
-**A3.** En **Authentication → Users → Add user → Create new user**, crear los usuarios de prueba con rol especial (`cuadrilla` y `municipio`), ya que esos roles **no** se pueden crear desde la app. Para cada uno: poner email, **contraseña**, y marcar **"Auto Confirm User"**. Pueden ser correos ficticios:
+**A3.** En **Authentication → Users → Add user → Create new user**, crear usuarios de prueba con rol **administrador** (ese rol **no** se puede crear desde la app). Para cada uno: poner email, **contraseña**, y marcar **"Auto Confirm User"**. Pueden ser correos ficticios:
 
 ```text
-adolfo@demo.com    (contraseña a tu elección)
-axel@demo.com      (contraseña a tu elección)
-elkin@demo.com     (contraseña a tu elección)
+adolfo@demo.com    (contraseña a tu elección) — ciudadano (registro desde la app)
+axel@demo.com      (contraseña a tu elección) — administrador
+elkin@demo.com     (contraseña a tu elección) — administrador
 ```
 
-Copiar el UUID (User UID) de cada uno y crear sus perfiles en SQL Editor con el rol correspondiente:
+Copiar el UUID (User UID) de cada admin y crear sus perfiles en SQL Editor:
 
 ```sql
 INSERT INTO perfiles (id, nombre, rol) VALUES
-  ('UUID_CUADRILLA', 'Cuadrilla Demo', 'cuadrilla'),
-  ('UUID_MUNICIPIO', 'Municipio Demo', 'municipio');
--- Valores válidos para rol: 'ciudadano', 'cuadrilla', 'municipio'
+  ('UUID_ADMIN_1', 'Admin Demo 1', 'administrador'),
+  ('UUID_ADMIN_2', 'Admin Demo 2', 'administrador');
+-- Valores válidos para rol: 'ciudadano', 'administrador'
 ```
 
-> Los usuarios **ciudadanos** NO hace falta crearlos a mano: pueden **registrarse desde la página** (`/login` → "Regístrate"). El trigger `handle_new_user` les crea el perfil con rol `ciudadano` automáticamente. Los roles `cuadrilla` y `municipio` sí se asignan manualmente aquí.
+> Los usuarios **ciudadanos** NO hace falta crearlos a mano: pueden **registrarse desde la página** (`/login` → "Regístrate"). El trigger `handle_new_user` les crea el perfil con rol `ciudadano` automáticamente. El rol `administrador` se asigna manualmente en Supabase.
 
 **A4.** Compartir con el equipo solo la **secret key** (por canal privado, NO subir a Git). Está en **Project Settings → API Keys → secret**. No hace falta compartir ningún JWT secret (se usa JWKS).
 
@@ -127,7 +129,7 @@ Abrir `http://localhost:5173`.
 [ ] 8.  Ver /mis-denuncias (incluye anónimas propias)
 [ ] 9.  Abrir /panel-publico — estadísticas y denuncias (solo lectura)
 [ ] 10. Cerrar sesión → vuelve al muro
-[ ] 11. Iniciar como municipio@demo.com → /panel — KPIs y cambio de estado
+[ ] 11. Iniciar como admin@demo.com → /admin — KPIs, reportes y ocultar denuncias
 [ ] 12. Verificar que el estado cambió en muro/detalle
 ```
 
@@ -179,7 +181,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Muro (`/`) — lista vertical, tarjetas con foto y barra de gravedad | ✅ Completo |
 | Detalle de denuncia (`/denuncia/:id`) | ✅ Completo |
 | Formulario nueva denuncia (`/nueva`) — solo rol ciudadano | ✅ Completo |
-| Panel municipio/cuadrilla (`/panel`) — gestión de estados | ✅ Completo |
+| Panel admin (`/admin`) — moderación y reportes | ✅ Completo |
 | Panel público (`/panel-publico`) — estadísticas solo lectura | ✅ Completo |
 | Mis denuncias (`/mis-denuncias`) | ✅ Completo |
 | Valoración de progreso por ciudadanos (Sí / No progresa) | ✅ Completo |
@@ -326,7 +328,7 @@ portoSinFiltro/
         │   ├── Muro.jsx              ← Feed vertical, filtros, DenunciaCard
         │   ├── DetalleDenuncia.jsx   ← Detalle + apoyo + progreso + aportes
         │   ├── NuevaDenuncia.jsx     ← Crear denuncia (solo ciudadano)
-        │   ├── Panel.jsx             ← Gestión municipio/cuadrilla
+        │   ├── Admin.jsx               ← Moderación administrador
         │   ├── PanelPublico.jsx      ← Estadísticas públicas (solo lectura)
         │   ├── MisDenuncias.jsx      ← Denuncias del usuario logueado
         │   ├── Login.jsx             ← Login + registro ciudadano
@@ -372,7 +374,7 @@ Crea las 8 tablas, el trigger de `updated_at`, la vista `vista_denuncias` y las 
 
 **Paso 2 — Seed** (opcional, para datos de prueba):
 1. Ir a **Supabase → Authentication → Users → Add user**
-2. Crear los usuarios de prueba (ciudadano, cuadrilla, municipio)
+2. Crear los usuarios de prueba (ciudadano y administradores)
 3. Copiar el UUID de cada usuario (aparece en la lista de usuarios)
 4. Pegar los UUIDs en `database/seed.sql` donde dice `UUID-DEL-...`
 5. Ejecutar el seed en el SQL Editor
@@ -468,9 +470,16 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # anon key
 | Rol | Acceso |
 |---|---|
 | **Visitante** | Ver denuncias, panel público (`/panel-publico`) |
-| **Ciudadano** | + Crear denuncias, apoyar, marcar progreso (Sí/No), aportes, mis denuncias |
-| **Cuadrilla** | + Cambiar estado, respuesta oficial, panel de gestión (`/panel`) |
-| **Municipio** | + Dashboard de gestión (`/panel`) |
+| **Ciudadano** | + Crear denuncias, apoyar, marcar progreso (Sí/No), aportes, reportar falsas, mis denuncias |
+| **Administrador** | + Moderación (`/admin`): ocultar/restaurar denuncias, ver reportes |
+
+**Estados comunitarios** (calculados en `vista_denuncias`, no editables a mano):
+
+| Estado | Significado |
+|---|---|
+| `activa` | Sin consenso claro de avance |
+| `con_avance` | ≥2 votos “sí progresa” y más sí que no |
+| `resuelta` | ≥3 aportes tipo `resolucion` |
 
 **Cómo asignar un rol a un usuario:**
 
@@ -482,7 +491,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # anon key
 INSERT INTO perfiles (id, nombre, rol)
 VALUES ('PEGAR-UUID-AQUI', 'Nombre Apellido', 'ciudadano');
 
--- Valores válidos para rol: 'ciudadano', 'cuadrilla', 'municipio'
+-- Valores válidos para rol: 'ciudadano', 'administrador'
 ```
 
 El rol se verifica en cada request al backend mediante el middleware `requireRol()` en `backend/src/middleware/auth.js`.
@@ -500,7 +509,8 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
 | `GET` | `/denuncias` | No | Lista paginada, pública |
 | `GET` | `/denuncias/:id` | Opcional | Detalle (+ `mi_progreso` si hay sesión) |
 | `POST` | `/denuncias` | ciudadano | Crear nueva denuncia |
-| `PATCH` | `/denuncias/:id/estado` | cuadrilla o municipio | Cambiar estado + respuesta oficial |
+| `POST` | `/denuncias/:id/reporte` | ciudadano | Reportar denuncia falsa (`motivo`) |
+| `PATCH` | `/denuncias/:id/ocultar` | administrador | Ocultar o restaurar (`oculta: true/false`) |
 | `POST` | `/denuncias/:id/apoyo` | cualquier usuario logueado | Toggle de apoyo (1 por usuario) |
 | `POST` | `/denuncias/:id/progreso` | ciudadano | Marcar si progresa (`progresando: true/false`, toggle) |
 | `GET` | `/denuncias/:id/fotos` | No | Lista de fotos de una denuncia |
@@ -510,7 +520,7 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
 ```
 ?zona_id=1             — filtrar por zona (ID numérico)
 ?categoria_id=2        — filtrar por categoría (ID numérico)
-?estado=pendiente      — pendiente | en_proceso | resuelto
+?estado=activa         — activa | con_avance | resuelta
 ?orden=reciente        — reciente | apoyos | gravedad
 ?pagina=1              — paginación (20 resultados por página)
 ```
@@ -545,7 +555,7 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
   "anonimo": false
 }
 ```
-Valores válidos para `tipo`: `confirmacion`, `evidencia`, `detalle`, `relacionado`
+Valores válidos para `tipo`: `confirmacion`, `evidencia`, `detalle`, `relacionado`, `resolucion`
 
 **Body de `POST /denuncias/:id/progreso`:**
 ```json
@@ -558,7 +568,9 @@ Valores válidos para `tipo`: `confirmacion`, `evidencia`, `detalle`, `relaciona
 | Método | Ruta | Auth requerida | Descripción |
 |---|---|---|---|
 | `GET` | `/dashboard/public` | No | KPIs, zonas, categorías, tendencia 7 días (solo lectura) |
-| `GET` | `/dashboard` | municipio o cuadrilla | Mismas estadísticas (panel de gestión) |
+| `GET` | `/dashboard` | administrador | Estadísticas + conteos de ocultas y reportes |
+| `GET` | `/admin/denuncias` | administrador | Cola de moderación (incluye ocultas) |
+| `GET` | `/admin/reportes` | administrador | Reportes recientes de denuncias falsas |
 
 ---
 
@@ -594,7 +606,7 @@ Se dispara en cada `UPDATE` de la tabla `denuncias` y actualiza automáticamente
 ### Anonimato
 
 - **Hacia afuera**: si `anonima = true`, la API nunca retorna el `autor_id` ni el nombre real
-- **Hacia adentro**: el `autor_id` siempre se almacena en la BD para moderación interna del municipio
+- **Hacia adentro**: el `autor_id` siempre se almacena en la BD para moderación interna
 
 ---
 
@@ -622,7 +634,7 @@ El selector de foto sube la imagen al bucket público `denuncias` de Supabase St
 
 ### Valoraciones de progreso
 
-En el detalle, los **ciudadanos** pueden marcar si el caso **progresa** o **no progresa**. No cambia el estado oficial (eso lo hace municipio/cuadrilla en `/panel`). Los conteos se ven en detalle y en las tarjetas del muro como `↑N ↓M`.
+En el detalle, los **ciudadanos** pueden marcar si el caso **progresa** o **no progresa**. Eso alimenta el estado comunitario `con_avance`. Los conteos se ven en detalle y en las tarjetas del muro como `↑N ↓M`.
 
 > Requiere `database/migracion_progreso_ciudadano.sql` en Supabase si la BD se creó antes de esta funcionalidad.
 
@@ -631,7 +643,7 @@ En el detalle, los **ciudadanos** pueden marcar si el caso **progresa** o **no p
 | Ruta | Quién | Qué hace |
 |---|---|---|
 | `/panel-publico` | Todos (visitantes incluidos) | Estadísticas + listado de denuncias **solo lectura** |
-| `/panel` | municipio, cuadrilla | KPIs + **cambiar estados** y respuesta oficial |
+| `/admin` | administrador | KPIs + reportes + **ocultar/restaurar** denuncias |
 
 ---
 
@@ -643,12 +655,11 @@ En el detalle, los **ciudadanos** pueden marcar si el caso **progresa** o **no p
 - [x] Subida de fotos — Storage + validación de formatos ✅
 - [x] Ubicación en mapa — Leaflet ✅
 - [x] Panel público y valoraciones de progreso ✅
+- [x] Roles comunitarios, reportes y moderación admin ✅
 
 ### Media prioridad
 
-- [ ] **Historial de estados en el detalle** — mostrar el log de `historial_estados` en `/denuncia/:id`
-- [ ] **Moderación** — botón en el panel para marcar `oculta = true` en denuncias inapropiadas
-- [ ] **Notificaciones por email** — avisar al ciudadano cuando cambia el estado de su denuncia (Supabase Edge Functions)
+- [ ] **Notificaciones por email** — avisar al ciudadano cuando su denuncia cambia de estado comunitario (Supabase Edge Functions)
 
 ### Post-entrega
 
@@ -711,7 +722,7 @@ Hay operaciones que requieren lógica de negocio que no se puede expresar en RLS
 **¿Por qué centralizar las constantes en `lib/constants.js`?**
 Las listas de categorías, zonas y estados se usaban en 5-6 archivos distintos. Si hay que agregar una zona nueva o cambiar un label, se edita un solo archivo y se propaga a toda la app.
 
-**Anonimato con responsabilidad**: el `autor_id` siempre se guarda en la BD. El ciudadano ve "Ciudadano Anónimo" en el muro; el municipio con acceso directo a Supabase puede identificar al autor si hay un abuso.
+**Anonimato con responsabilidad**: el `autor_id` siempre se guarda en la BD. El ciudadano ve "Ciudadano Anónimo" en el muro; un administrador con acceso a Supabase puede identificar al autor si hay abuso.
 
 ---
 
