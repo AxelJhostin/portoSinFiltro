@@ -155,8 +155,9 @@ router.get('/:id',
     let mi_progreso = null;
     let ya_reporto = false;
     let ya_apoyo = false;
+    let ya_resolucion = false;
     if (req.user) {
-      const [{ data: voto }, { data: reporte }, { data: reaccion }] = await Promise.all([
+      const [{ data: voto }, { data: reporte }, { data: reaccion }, { data: resolucion }] = await Promise.all([
         supabase
           .from('valoraciones_progreso')
           .select('progresando')
@@ -175,10 +176,18 @@ router.get('/:id',
           .eq('denuncia_id', denuncia_id)
           .eq('usuario_id', req.user.id)
           .maybeSingle(),
+        supabase
+          .from('aportes')
+          .select('id')
+          .eq('denuncia_id', denuncia_id)
+          .eq('autor_id', req.user.id)
+          .eq('tipo', 'resolucion')
+          .maybeSingle(),
       ]);
       mi_progreso = voto?.progresando ?? null;
       ya_reporto = !!reporte;
       ya_apoyo = !!reaccion;
+      ya_resolucion = !!resolucion;
     }
 
     res.json({
@@ -189,6 +198,7 @@ router.get('/:id',
       mi_progreso,
       ya_reporto,
       ya_apoyo,
+      ya_resolucion,
     });
   }
 );

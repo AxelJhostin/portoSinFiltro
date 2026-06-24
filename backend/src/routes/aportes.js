@@ -49,11 +49,27 @@ router.post('/:id/aportes',
   validate,
   async (req, res) => {
     const { tipo, contenido, anonimo = false } = req.body;
+    const denuncia_id = Number(req.params.id);
+
+    if (tipo === 'resolucion') {
+      const { data: existente, error: fetchErr } = await supabase
+        .from('aportes')
+        .select('id')
+        .eq('denuncia_id', denuncia_id)
+        .eq('autor_id', req.user.id)
+        .eq('tipo', 'resolucion')
+        .maybeSingle();
+
+      if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+      if (existente) {
+        return res.status(409).json({ error: 'Ya confirmaste la resolución de esta denuncia.' });
+      }
+    }
 
     const { data, error } = await supabase
       .from('aportes')
       .insert({
-        denuncia_id: Number(req.params.id),
+        denuncia_id,
         autor_id: req.user.id,
         tipo,
         contenido,
@@ -62,7 +78,12 @@ router.post('/:id/aportes',
       .select()
       .single();
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(409).json({ error: 'Ya confirmaste la resolución de esta denuncia.' });
+      }
+      return res.status(500).json({ error: error.message });
+    }
     res.status(201).json(data);
   }
 );

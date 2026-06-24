@@ -18,7 +18,7 @@ export function mensajeProximoEstado({
 
   if (faltanResolucion > 0) {
     partes.push(
-      `Faltan ${faltanResolucion} confirmación${faltanResolucion !== 1 ? 'es' : ''} de resolución para RESUELTA`
+      `Faltan ${faltanResolucion} confirmación${faltanResolucion !== 1 ? 'es' : ''} de resolución de otros ciudadanos para RESUELTA`
     );
   }
 

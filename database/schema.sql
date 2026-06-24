@@ -117,6 +117,10 @@ CREATE TABLE aportes (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX aportes_una_resolucion_por_usuario
+  ON aportes (denuncia_id, autor_id)
+  WHERE tipo = 'resolucion';
+
 -- ─────────────────────────────────────────────
 -- 7. REACCIONES (apoyo)
 -- ─────────────────────────────────────────────

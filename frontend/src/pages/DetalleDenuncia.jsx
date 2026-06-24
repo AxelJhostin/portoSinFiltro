@@ -35,6 +35,7 @@ export default function DetalleDenuncia({ session, perfil }) {
   const [reporteOk, setReporteOk] = useState(false);
   const [apoyoError, setApoyoError] = useState('');
   const [progresoError, setProgresoError] = useState('');
+  const [yaResolucion, setYaResolucion] = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -51,6 +52,7 @@ export default function DetalleDenuncia({ session, perfil }) {
         setProgresoSi(d.total_progreso_si ?? 0);
         setProgresoNo(d.total_progreso_no ?? 0);
         setYaReporto(d.ya_reporto ?? false);
+        setYaResolucion(d.ya_resolucion ?? false);
         setTotalReportes(d.total_reportes ?? 0);
         setAportes(a);
         try {
@@ -143,6 +145,7 @@ export default function DetalleDenuncia({ session, perfil }) {
         rol: form.anonimo ? null : perfil?.rol,
       };
       setAportes(prev => [...prev, enriquecido]);
+      if (form.tipo === 'resolucion') setYaResolucion(true);
       setForm({ tipo: 'confirmacion', contenido: '', anonimo: false });
       setFormOk(true);
       setTimeout(() => setFormOk(false), 3000);
@@ -452,8 +455,15 @@ export default function DetalleDenuncia({ session, perfil }) {
                   <option value="evidencia">Tengo evidencia (foto / descripción)</option>
                   <option value="detalle">Agrego un detalle importante</option>
                   <option value="relacionado">Es un problema relacionado</option>
-                  <option value="resolucion">Confirmo que ya se resolvió</option>
+                  {!yaResolucion && (
+                    <option value="resolucion">Confirmo que ya se resolvió</option>
+                  )}
                 </select>
+                {yaResolucion && (
+                  <p className="text-xs text-brand-green mt-1.5 font-semibold">
+                    ✓ Ya confirmaste que esta denuncia se resolvió.
+                  </p>
+                )}
               </div>
 
               <div>

@@ -47,6 +47,8 @@ Esto ya crea las tablas, la vista `vista_denuncias`, la policy `usuarios_ven_su_
 >
 > 👥 **Para roles comunitarios:** ejecuta `database/migracion_roles_comunitarios.sql` — roles `ciudadano`/`administrador`, reportes de denuncias falsas, estado comunitario en la vista y tipo de aporte `resolucion`. Ver `docs/PLAN-ROLES-COMUNITARIOS.md`.
 >
+> ✅ **Para resolución única:** ejecuta `database/migracion_resolucion_unica.sql` — cada ciudadano solo puede confirmar resolución **una vez** por denuncia (se necesitan **3 ciudadanos distintos** para RESUELTA).
+>
 > ⚠️ **Orden importante en la migración de roles:** primero se elimina el CHECK viejo de `perfiles.rol`, luego se hace el `UPDATE` a `administrador`, y al final se crea el CHECK nuevo. Si el script falla con error `23514`, usa la versión actual del archivo en el repo (commit `0219dbc` o posterior).
 
 **A2.** En **Authentication → URL Configuration**:
@@ -150,7 +152,7 @@ Abrir `http://localhost:5173`.
 [ ] 10. Abrir /panel-publico — estadísticas y filtros ACTIVA / CON AVANCE / RESUELTA
 [ ] 11. Entrar como Axel (administrador) → /admin — ver reportes y ocultar denuncia
 [ ] 12. Verificar que la denuncia oculta desaparece del muro; restaurar desde /admin
-[ ] 13. Con ≥3 aportes resolucion, la denuncia pasa a estado RESUELTA en el muro
+[ ] 13. Tres ciudadanos distintos confirman resolución → estado RESUELTA en el muro (1 resolución por persona)
 ```
 
 ### Paso D — Estados comunitarios (IMPORTANTE)
@@ -161,7 +163,7 @@ Abrir `http://localhost:5173`.
 |---|---|---|
 | **ACTIVA** | — | Default. No hay suficientes señales comunitarias. |
 | **CON AVANCE** | Ciudadanos | ≥ **2** votos **“Sí progresa”** y más sí que no (`total_progreso_si > total_progreso_no`). |
-| **RESUELTA** | Ciudadanos | ≥ **3** aportes tipo **`resolucion`** (“Confirmo que ya se resolvió”). |
+| **RESUELTA** | Ciudadanos | ≥ **3** aportes tipo **`resolucion`** de **3 ciudadanos distintos** (máx. 1 por persona). |
 
 **Prioridad:** si hay ≥3 resoluciones, la denuncia es **RESUELTA** aunque no haya votos de progreso.
 
@@ -186,8 +188,8 @@ Abrir `http://localhost:5173`.
 1. Entrar como ciudadano → abrir `/denuncia/:id`.
 2. En **“¿Conoces este problema?”** → tipo **“Confirmo que ya se resolvió”**.
 3. Escribir descripción (mín. 5 caracteres en la UI) → **Enviar aporte**.
-4. Enviar **3 aportes** de ese tipo (pueden ser 3 usuarios distintos o la misma cuenta 3 veces).
-5. Recargar → chip **RESUELTA** y KPI **Resueltas** en `/admin` y `/panel-publico`.
+4. Repetir con **2 ciudadanos más** (cuentas distintas; cada uno solo puede confirmar **una vez**).
+5. El chip pasa a **RESUELTA** sin recargar la página; KPI **Resueltas** sube en `/admin` y `/panel-publico`.
 
 #### Qué NO cambia el estado
 
@@ -364,7 +366,8 @@ portoSinFiltro/
 │   ├── migracion_ubicacion_fotos.sql   ← Mapa + Storage (BD existente)
 │   ├── migracion_foto_portada.sql      ← Miniatura en listados (BD existente)
 │   ├── migracion_progreso_ciudadano.sql ← Valoraciones Sí/No progresa (BD existente)
-│   └── migracion_roles_comunitarios.sql ← Roles ciudadano/admin, reportes, estado comunitario
+│   ├── migracion_roles_comunitarios.sql ← Roles ciudadano/admin, reportes, estado comunitario
+│   └── migracion_resolucion_unica.sql   ← 1 resolución por ciudadano por denuncia
 │
 ├── docs/
 │   └── PLAN-ROLES-COMUNITARIOS.md      ← Plan y decisiones del modelo comunitario
@@ -455,6 +458,7 @@ Ejecutar en orden según lo que falte:
 | `migracion_foto_portada.sql` | Miniatura en listados |
 | `migracion_progreso_ciudadano.sql` | Valoraciones Sí/No progresa |
 | `migracion_roles_comunitarios.sql` | Roles comunitarios, reportes, estado calculado, vista admin |
+| `migracion_resolucion_unica.sql` | 1 aporte resolución por ciudadano y denuncia |
 
 > En el proyecto académico activo (`xynkalcsaubgseoiiavz`), **todas las migraciones ya están aplicadas**, incluida `migracion_roles_comunitarios.sql`.
 
@@ -606,7 +610,7 @@ Fuente: `database/migracion_roles_comunitarios.sql` y `database/schema.sql`.
 |---|---|---|---|
 | `activa` | ACTIVA | Default | — |
 | `con_avance` | CON AVANCE | `valoraciones_progreso` | ≥2 `progresando = true` y sí > no |
-| `resuelta` | RESUELTA | `aportes.tipo = 'resolucion'` | ≥3 aportes |
+| `resuelta` | RESUELTA | `aportes.tipo = 'resolucion'` | ≥3 aportes de usuarios distintos (1 por persona) |
 
 ### Acciones en la app (ciudadano)
 
@@ -637,7 +641,7 @@ Fuente: `database/migracion_roles_comunitarios.sql` y `database/schema.sql`.
 1. Adolfo crea denuncia
 2. Adolfo → “Sí progresa”
 3. Segundo ciudadano (cuenta nueva) → “Sí progresa”  → CON AVANCE
-4. Tres aportes “Confirmo que ya se resolvió”          → RESUELTA
+4. Tres ciudadanos distintos confirman resolución           → RESUELTA
 5. Axel en /admin ve subir los contadores; puede ocultar si hay reportes
 ```
 
@@ -794,7 +798,7 @@ En el detalle (`/denuncia/:id`), los **ciudadanos** pueden:
 
 Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N ↓M`.
 
-> Requiere `database/migracion_progreso_ciudadano.sql` y `database/migracion_roles_comunitarios.sql` si la BD se creó antes de estas funcionalidades.
+> Requiere `database/migracion_progreso_ciudadano.sql`, `database/migracion_roles_comunitarios.sql` y `database/migracion_resolucion_unica.sql` si la BD se creó antes de estas funcionalidades.
 
 ### Panel público vs panel de gestión
 
