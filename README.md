@@ -6,6 +6,177 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 
 ---
 
+## 🚀 Setup rápido para el equipo (handoff)
+
+> **Esta sección está pensada para copiarse y pegarse a una IA (ChatGPT, Claude, Cursor, etc.).**
+> Contiene TODO lo necesario para dejar el proyecto corriendo **en local** para pruebas/presentación.
+> Modo de ejecución elegido: **app local (frontend + backend en tu máquina) usando Supabase Cloud** para Auth + base de datos. No se usa Docker ni Supabase local.
+
+### Reparto de responsabilidades
+
+| Responsable | Tarea |
+|---|---|
+| **Encargado de Supabase** | Crear el schema, arreglar la vista, añadir la policy, crear usuarios de prueba, y compartir las claves del backend |
+| **Resto del equipo** | Configurar `.env` con las claves recibidas, instalar dependencias y correr el proyecto en local |
+
+### Datos del proyecto Supabase (académico)
+
+```text
+URL:               https://zxcrxclrmzntbvpjmlwa.supabase.co
+Anon/Publishable:  sb_publishable_74c_B8_MzxBkAAlR7oR-iA_k5Iw1e_v
+Conexión Postgres: postgresql://postgres:[YOUR-PASSWORD]@db.zxcrxclrmzntbvpjmlwa.supabase.co:5432/postgres
+```
+
+> ⚠️ El **backend** además necesita la `service_role` key y el `JWT Secret` (Project Settings → API). Sin esas dos el backend **no arranca** (se validan al inicio en `backend/src/index.js`). Esas claves NO van nunca en el frontend.
+
+### Paso A — Tareas del encargado de Supabase
+
+**A1.** En **Supabase → SQL Editor**, ejecutar todo el contenido de `database/schema.sql`.
+
+**A2.** Reemplazar la vista para que incluya `zona_id` y `categoria_id` (el backend filtra por esos IDs; la vista original solo exponía los nombres):
+
+```sql
+DROP VIEW IF EXISTS vista_denuncias;
+
+CREATE VIEW vista_denuncias AS
+SELECT
+  d.id,
+  d.anonima,
+  CASE WHEN d.anonima THEN NULL ELSE d.autor_id END AS autor_id,
+  CASE WHEN d.anonima THEN 'Ciudadano Anónimo' ELSE p.nombre END AS autor_nombre,
+  d.categoria_id,
+  d.zona_id,
+  c.nombre AS categoria,
+  c.slug   AS categoria_slug,
+  z.nombre AS zona,
+  d.descripcion,
+  d.gravedad,
+  d.titular,
+  d.estado,
+  d.oculta,
+  d.created_at,
+  d.updated_at,
+  EXTRACT(DAY FROM NOW() - d.created_at)::INTEGER AS dias_sin_resolver,
+  COUNT(DISTINCT r.id) AS total_apoyos,
+  COUNT(DISTINCT a.id) AS total_aportes,
+  COUNT(DISTINCT f.id) AS total_fotos
+FROM denuncias d
+JOIN perfiles   p ON p.id = d.autor_id
+JOIN categorias c ON c.id = d.categoria_id
+JOIN zonas      z ON z.id = d.zona_id
+LEFT JOIN reacciones     r ON r.denuncia_id = d.id
+LEFT JOIN aportes        a ON a.denuncia_id = d.id
+LEFT JOIN fotos_denuncia f ON f.denuncia_id = d.id
+WHERE d.oculta = false
+GROUP BY d.id, p.nombre, c.nombre, c.slug, z.nombre;
+```
+
+**A3.** Permitir que el frontend lea el perfil (nombre/rol) del usuario logueado:
+
+```sql
+CREATE POLICY "usuarios_ven_su_perfil"
+ON perfiles
+FOR SELECT
+TO authenticated
+USING (id = auth.uid());
+```
+
+**A4.** En **Authentication → URL Configuration**:
+
+```text
+Site URL:       http://localhost:5173
+Redirect URLs:  http://localhost:5173
+                http://localhost:5173/*
+```
+
+En **Authentication → Providers → Email**: activar Email. Para desarrollo, desactivar "Confirm email" para que el magic link entre directo.
+
+**A5.** En **Authentication → Users → Add user**, crear 3 usuarios de prueba:
+
+```text
+ciudadano@demo.com
+cuadrilla@demo.com
+municipio@demo.com
+```
+
+Copiar el UUID de cada uno y crear sus perfiles en SQL Editor:
+
+```sql
+INSERT INTO perfiles (id, nombre, rol) VALUES
+  ('UUID_CIUDADANO', 'Ciudadano Demo', 'ciudadano'),
+  ('UUID_CUADRILLA', 'Cuadrilla Demo', 'cuadrilla'),
+  ('UUID_MUNICIPIO', 'Municipio Demo', 'municipio');
+```
+
+**A6.** Compartir con el equipo (por canal privado, NO subir a Git):
+
+```text
+SUPABASE_SERVICE_KEY = (Project Settings → API → service_role secret)
+SUPABASE_JWT_SECRET  = (Project Settings → API → JWT Secret)
+```
+
+### Paso B — Tareas del resto del equipo (configurar y correr)
+
+Los archivos `.env` ya están creados en el repo local. Solo falta completar las 2 claves del backend cuando lleguen.
+
+**`frontend/.env`** (ya listo):
+
+```env
+VITE_SUPABASE_URL=https://zxcrxclrmzntbvpjmlwa.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_74c_B8_MzxBkAAlR7oR-iA_k5Iw1e_v
+```
+
+**`backend/.env`** (reemplazar los dos `PENDIENTE_...` cuando lleguen):
+
+```env
+PORT=4000
+SUPABASE_URL=https://zxcrxclrmzntbvpjmlwa.supabase.co
+SUPABASE_SERVICE_KEY=PENDIENTE_PEDIR_AL_COMPANERO
+SUPABASE_JWT_SECRET=PENDIENTE_PEDIR_AL_COMPANERO
+FRONTEND_URL=http://localhost:5173
+```
+
+Instalar y correr (en **dos terminales**):
+
+```bash
+# Terminal 1
+cd backend && npm install && npm run dev      # → http://localhost:4000
+
+# Terminal 2
+cd frontend && npm install && npm run dev     # → http://localhost:5173
+```
+
+Abrir `http://localhost:5173`.
+
+### Paso C — Checklist de prueba (flujo de presentación)
+
+```text
+[ ] 1.  Abrir el muro (/) — carga sin errores
+[ ] 2.  Login como ciudadano@demo.com (magic link)
+[ ] 3.  Crear denuncia en /nueva
+[ ] 4.  La denuncia aparece en el muro
+[ ] 5.  Abrir el detalle de la denuncia
+[ ] 6.  Dar apoyo
+[ ] 7.  Agregar un aporte (se ve el autor sin recargar)
+[ ] 8.  Ver /mis-denuncias (incluye las anónimas propias)
+[ ] 9.  Cerrar sesión e iniciar como municipio@demo.com
+[ ] 10. Abrir /panel — KPIs y ranking de zonas se ven
+[ ] 11. Cambiar el estado de una denuncia
+[ ] 12. Verificar que el estado cambió en el muro/detalle
+```
+
+### Plan B (si Supabase falla en la presentación)
+
+El archivo `index.html` de la raíz es un **prototipo standalone** que funciona sin backend ni base de datos:
+
+```bash
+open index.html            # Mac
+# o servirlo:
+npx serve -p 3771 .        # luego abrir http://localhost:3771
+```
+
+---
+
 ## Tabla de contenidos
 
 - [Vista general del proyecto](#vista-general-del-proyecto)

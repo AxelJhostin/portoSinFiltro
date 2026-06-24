@@ -90,9 +90,9 @@ export default function Panel({ session, perfil }) {
               {stats.zonas.map((z, i) => {
                 const max = stats.zonas[0].total;
                 return (
-                  <div key={z.zona} className="flex items-center gap-3">
+                  <div key={z.nombre} className="flex items-center gap-3">
                     <span className="font-mono text-xs text-ink-faint w-4">{i + 1}</span>
-                    <span className="text-sm w-40 shrink-0">{z.zona}</span>
+                    <span className="text-sm w-40 shrink-0">{z.nombre}</span>
                     <div className="flex-1 bg-surface-muted rounded-full h-2 overflow-hidden">
                       <div
                         className="h-full bg-brand-red rounded-full transition-all"

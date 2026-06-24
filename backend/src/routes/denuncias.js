@@ -43,7 +43,23 @@ router.get('/',
       if (!req.user || req.user.id !== autor_id) {
         return res.status(403).json({ error: 'Solo puedes consultar tus propias denuncias.' });
       }
-      q = q.eq('autor_id', autor_id);
+      // La vista oculta autor_id en denuncias anónimas, así que no se puede
+      // filtrar por autor directamente sin perder las propias anónimas.
+      // Buscamos los IDs en la tabla base (donde autor_id siempre existe)
+      // y luego filtramos la vista por esos IDs.
+      const { data: propias, error: errPropias } = await supabase
+        .from('denuncias')
+        .select('id')
+        .eq('autor_id', autor_id)
+        .eq('oculta', false);
+
+      if (errPropias) return res.status(500).json({ error: errPropias.message });
+
+      const ids = propias.map(d => d.id);
+      if (ids.length === 0) {
+        return res.json({ data: [], total: 0, pagina: Number(pagina), limite });
+      }
+      q = q.in('id', ids);
     }
 
     if (orden === 'apoyos')   q = q.order('total_apoyos', { ascending: false });

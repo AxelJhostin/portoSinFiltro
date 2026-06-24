@@ -55,7 +55,14 @@ export default function DetalleDenuncia({ session, perfil }) {
     setFormError('');
     try {
       const nuevo = await api.aportes.create(id, form);
-      setAportes(prev => [...prev, nuevo]);
+      // El backend devuelve el aporte crudo (sin nombre de autor); lo enriquecemos
+      // localmente para mostrarlo igual que los aportes cargados desde el GET.
+      const enriquecido = {
+        ...nuevo,
+        autor: form.anonimo ? 'Ciudadano Anónimo' : (perfil?.nombre ?? 'Tú'),
+        rol: form.anonimo ? null : perfil?.rol,
+      };
+      setAportes(prev => [...prev, enriquecido]);
       setForm({ tipo: 'confirmacion', contenido: '', anonimo: false });
       setFormOk(true);
       setTimeout(() => setFormOk(false), 3000);
