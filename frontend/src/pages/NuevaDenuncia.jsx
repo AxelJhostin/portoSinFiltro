@@ -134,7 +134,7 @@ export default function NuevaDenuncia({ session, perfil }) {
         <div className="card p-6">
           <h2 className="font-headline text-2xl mb-1">Nueva denuncia</h2>
           <p className="text-sm text-ink-soft mb-6">
-            Reporta un problema en tu barrio. El municipio lo verá publicado en el Muro.
+            Reporta un problema en tu barrio. La comunidad lo verá publicado en el Muro.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -315,7 +315,7 @@ export default function NuevaDenuncia({ session, perfil }) {
                 <div>
                   <p className="text-sm font-semibold text-ink">Publicar de forma anónima</p>
                   <p className="text-xs text-ink-faint mt-0.5">
-                    Tu nombre no aparecerá en el muro público. El municipio puede
+                    Tu nombre no aparecerá en el muro público. Los administradores pueden
                     identificarte internamente en caso de abuso.
                   </p>
                 </div>

@@ -26,6 +26,12 @@ export default function DetalleDenuncia({ session, perfil }) {
   const [form, setForm]         = useState({ tipo: 'confirmacion', contenido: '', anonimo: false });
   const [formError, setFormError] = useState('');
   const [formOk, setFormOk]     = useState(false);
+  const [yaReporto, setYaReporto] = useState(false);
+  const [totalReportes, setTotalReportes] = useState(0);
+  const [motivoReporte, setMotivoReporte] = useState('');
+  const [enviandoReporte, setEnviandoReporte] = useState(false);
+  const [reporteError, setReporteError] = useState('');
+  const [reporteOk, setReporteOk] = useState(false);
 
   useEffect(() => {
     async function cargar() {
@@ -40,6 +46,8 @@ export default function DetalleDenuncia({ session, perfil }) {
         setMiProgreso(d.mi_progreso ?? null);
         setProgresoSi(d.total_progreso_si ?? 0);
         setProgresoNo(d.total_progreso_no ?? 0);
+        setYaReporto(d.ya_reporto ?? false);
+        setTotalReportes(d.total_reportes ?? 0);
         setAportes(a);
         try {
           const f = await api.denuncias.fotos(id);
@@ -76,6 +84,28 @@ export default function DetalleDenuncia({ session, perfil }) {
       setApoyado(apoyo);
       setApoyos(n => apoyo ? n + 1 : n - 1);
     } catch {/* silencioso */}
+  }
+
+  async function enviarReporte(e) {
+    e.preventDefault();
+    if (!session) return navigate('/login');
+    if (motivoReporte.trim().length < 10) {
+      return setReporteError('Describe el motivo con al menos 10 caracteres.');
+    }
+    setEnviandoReporte(true);
+    setReporteError('');
+    try {
+      const res = await api.denuncias.reporte(id, { motivo: motivoReporte.trim() });
+      setYaReporto(true);
+      setTotalReportes(res.total_reportes ?? totalReportes + 1);
+      setMotivoReporte('');
+      setReporteOk(true);
+      setTimeout(() => setReporteOk(false), 3000);
+    } catch (err) {
+      setReporteError(err.message);
+    } finally {
+      setEnviandoReporte(false);
+    }
   }
 
   async function enviarAporte(e) {
@@ -181,7 +211,7 @@ export default function DetalleDenuncia({ session, perfil }) {
             <div className="bg-surface-base rounded-card p-4">
               <p className="text-sm font-semibold text-ink mb-1">¿Está progresando?</p>
               <p className="text-xs text-ink-soft mb-3">
-                Opinión ciudadana sobre si el municipio está avanzando con este caso.
+                Opinión ciudadana sobre si el problema está mejorando en la calle.
               </p>
 
               <div className="grid grid-cols-2 gap-3 mb-4 text-center">
@@ -239,6 +269,49 @@ export default function DetalleDenuncia({ session, perfil }) {
             </div>
           </div>
         </article>
+
+        {/* Reportar falsa */}
+        {session && perfil?.rol === 'ciudadano' && (
+          <section className="card p-5 border-red-100">
+            <h3 className="font-headline text-lg mb-2">¿Denuncia falsa o abusiva?</h3>
+            <p className="text-xs text-ink-soft mb-3">
+              Si crees que esta publicación no refleja un problema real, puedes reportarla.
+              Un administrador revisará el caso.
+              {totalReportes > 0 && (
+                <span className="block mt-1 font-semibold text-brand-red">
+                  {totalReportes} reporte{totalReportes !== 1 ? 's' : ''} de la comunidad
+                </span>
+              )}
+            </p>
+
+            {yaReporto ? (
+              <p className="text-sm text-brand-green font-semibold">✓ Ya reportaste esta denuncia.</p>
+            ) : (
+              <form onSubmit={enviarReporte} className="space-y-3">
+                <textarea
+                  value={motivoReporte}
+                  onChange={e => setMotivoReporte(e.target.value)}
+                  rows={2}
+                  maxLength={300}
+                  placeholder="Explica por qué consideras que es falsa o abusiva…"
+                  className="w-full border border-surface-muted rounded-card px-3 py-2 text-sm
+                             focus:outline-none focus:border-ink resize-none"
+                />
+                {reporteError && <p className="text-brand-red text-xs">{reporteError}</p>}
+                {reporteOk && (
+                  <p className="text-brand-green text-xs font-semibold">✓ Reporte enviado.</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={enviandoReporte}
+                  className="btn-ghost text-brand-red border-red-200 disabled:opacity-50"
+                >
+                  {enviandoReporte ? 'Enviando…' : 'Reportar denuncia'}
+                </button>
+              </form>
+            )}
+          </section>
+        )}
 
         {/* Fotos */}
         {fotos.length > 0 && (
@@ -341,6 +414,7 @@ export default function DetalleDenuncia({ session, perfil }) {
                   <option value="evidencia">Tengo evidencia (foto / descripción)</option>
                   <option value="detalle">Agrego un detalle importante</option>
                   <option value="relacionado">Es un problema relacionado</option>
+                  <option value="resolucion">Confirmo que ya se resolvió</option>
                 </select>
               </div>
 

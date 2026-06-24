@@ -26,15 +26,15 @@ export const ZONAS = [
 ];
 
 export const ESTADO_LABEL = {
-  pendiente:  'PENDIENTE',
-  en_proceso: 'EN PROCESO',
-  resuelto:   'RESUELTO',
+  activa:     'ACTIVA',
+  con_avance: 'CON AVANCE',
+  resuelta:   'RESUELTA',
 };
 
 export const ESTADO_COLOR = {
-  pendiente:  'estado-pendiente',
-  en_proceso: 'estado-en_proceso',
-  resuelto:   'estado-resuelto',
+  activa:     'estado-activa',
+  con_avance: 'estado-con_avance',
+  resuelta:   'estado-resuelta',
 };
 
 export const GRAVEDAD_LABEL = {
@@ -50,4 +50,5 @@ export const TIPO_APORTE_LABEL = {
   evidencia:    'Agrega evidencia',
   detalle:      'Agrega detalle',
   relacionado:  'Problema relacionado',
+  resolucion:   'Confirma resolución',
 };

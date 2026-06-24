@@ -58,15 +58,15 @@
     }
   }
 
-  .estado-pendiente {
+  .estado-activa {
     @apply text-brand-red bg-red-50 border border-red-200;
   }
 
-  .estado-en_proceso {
+  .estado-con_avance {
     @apply text-brand-amber bg-amber-50 border border-amber-200;
   }
 
-  .estado-resuelto {
+  .estado-resuelta {
     @apply text-brand-green bg-green-50 border border-green-200;
   }
 }

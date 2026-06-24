@@ -77,7 +77,7 @@ export default function PanelPublico({ session, perfil }) {
   const [stats, setStats]         = useState(null);
   const [denuncias, setDenuncias] = useState([]);
   const [cargando, setCargando]   = useState(true);
-  const [filtroEstado, setFiltro] = useState('pendiente');
+  const [filtroEstado, setFiltro] = useState('activa');
   const [error, setError]         = useState(null);
 
   useEffect(() => {
@@ -131,9 +131,9 @@ export default function PanelPublico({ session, perfil }) {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: 'Total',      value: stats.total,              color: 'text-ink' },
-                  { label: 'Pendientes', value: stats.estados.pendiente,  color: 'text-brand-red' },
-                  { label: 'En proceso', value: stats.estados.en_proceso, color: 'text-brand-amber' },
-                  { label: 'Resueltas',  value: stats.estados.resuelto,   color: 'text-brand-green' },
+                  { label: 'Activas',    value: stats.estados.activa,     color: 'text-brand-red' },
+                  { label: 'Con avance', value: stats.estados.con_avance, color: 'text-brand-amber' },
+                  { label: 'Resueltas',  value: stats.estados.resuelta,   color: 'text-brand-green' },
                 ].map(k => (
                   <div key={k.label} className="card p-4 text-center">
                     <p className={`font-headline text-3xl tabular-nums ${k.color}`}>{k.value}</p>
@@ -176,7 +176,7 @@ export default function PanelPublico({ session, perfil }) {
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h2 className="font-headline text-lg">Denuncias</h2>
             <div className="flex gap-2 flex-wrap">
-              {['pendiente', 'en_proceso', 'resuelto'].map(e => (
+              {['activa', 'con_avance', 'resuelta'].map(e => (
                 <button
                   key={e}
                   type="button"
