@@ -8,7 +8,7 @@ import aportesRouter from './routes/aportes.js';
 import dashboardRouter from './routes/dashboard.js';
 
 // ─── Validar variables de entorno obligatorias antes de arrancar ─────────────
-const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY', 'SUPABASE_JWT_SECRET'];
+const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
 const missing = REQUIRED_ENV.filter(k => !process.env[k]);
 if (missing.length) {
   console.error(`\n❌ Variables de entorno faltantes: ${missing.join(', ')}`);

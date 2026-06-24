@@ -151,6 +151,8 @@ SELECT
   d.anonima,
   CASE WHEN d.anonima THEN NULL ELSE d.autor_id END AS autor_id,
   CASE WHEN d.anonima THEN 'Ciudadano Anónimo' ELSE p.nombre END AS autor_nombre,
+  d.categoria_id,
+  d.zona_id,
   c.nombre AS categoria,
   c.slug   AS categoria_slug,
   z.nombre AS zona,
@@ -193,3 +195,38 @@ CREATE POLICY "lectura_publica_denuncias" ON denuncias
 
 CREATE POLICY "lectura_publica_aportes" ON aportes
   FOR SELECT USING (true);
+
+-- El frontend (con la anon/publishable key) necesita leer el perfil del
+-- usuario logueado para conocer su nombre y rol.
+CREATE POLICY "usuarios_ven_su_perfil" ON perfiles
+  FOR SELECT
+  TO authenticated
+  USING (id = auth.uid());
+
+-- ─────────────────────────────────────────────
+-- REGISTRO DE CIUDADANOS (auto-perfil)
+-- Al crearse un usuario en auth.users (vía signUp desde la app),
+-- se crea automáticamente su perfil con rol 'ciudadano'.
+-- Los roles 'cuadrilla' y 'municipio' se asignan manualmente.
+-- ─────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.perfiles (id, nombre, rol)
+  VALUES (
+    NEW.id,
+    COALESCE(NULLIF(NEW.raw_user_meta_data->>'nombre', ''), split_part(NEW.email, '@', 1)),
+    'ciudadano'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

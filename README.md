@@ -22,66 +22,24 @@ Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí.
 ### Datos del proyecto Supabase (académico)
 
 ```text
-URL:               https://zxcrxclrmzntbvpjmlwa.supabase.co
-Anon/Publishable:  sb_publishable_74c_B8_MzxBkAAlR7oR-iA_k5Iw1e_v
-Conexión Postgres: postgresql://postgres:[YOUR-PASSWORD]@db.zxcrxclrmzntbvpjmlwa.supabase.co:5432/postgres
+URL:               https://xynkalcsaubgseoiiavz.supabase.co
+Publishable key:   sb_publishable_Lx9D4wQVbgrvxP5eUpuz4w_2ptjXJxq   (frontend, pública)
+Secret key:        sb_secret_********  (solo backend — NO se publica; pedirla por canal privado)
+Conexión Postgres: postgresql://postgres:[DB-PASSWORD]@db.xynkalcsaubgseoiiavz.supabase.co:5432/postgres
 ```
 
-> ⚠️ El **backend** además necesita la `service_role` key y el `JWT Secret` (Project Settings → API). Sin esas dos el backend **no arranca** (se validan al inicio en `backend/src/index.js`). Esas claves NO van nunca en el frontend.
+> ⚠️ La **secret key** solo va en el backend, NUNCA en el frontend.
+>
+> 🔐 **Autenticación (importante):** el login es **email + contraseña** (`signInWithPassword`). Este proyecto usa **JWT asimétrico (ES256)**: el backend verifica los tokens contra el **JWKS** de Supabase (`/auth/v1/.well-known/jwks.json`) de forma automática. Por eso **NO se necesita** `SUPABASE_JWT_SECRET`. El backend solo requiere `SUPABASE_URL` y `SUPABASE_SERVICE_KEY` para arrancar (se validan en `backend/src/index.js`).
 
 ### Paso A — Tareas del encargado de Supabase
 
 **A1.** En **Supabase → SQL Editor**, ejecutar todo el contenido de `database/schema.sql`.
+Esto ya crea **todo**: las 8 tablas, la vista `vista_denuncias` (con `zona_id`/`categoria_id`), la policy para que el frontend lea su propio perfil, y el **trigger de auto-registro** que crea el perfil `ciudadano` cuando alguien se registra desde la app.
 
-**A2.** Reemplazar la vista para que incluya `zona_id` y `categoria_id` (el backend filtra por esos IDs; la vista original solo exponía los nombres):
+> Si corriste una versión **anterior** del `schema.sql` (sin estos arreglos), vuelve a ejecutar solo la parte de la vista, la policy `usuarios_ven_su_perfil` y el bloque `handle_new_user` que están al final del archivo actual.
 
-```sql
-DROP VIEW IF EXISTS vista_denuncias;
-
-CREATE VIEW vista_denuncias AS
-SELECT
-  d.id,
-  d.anonima,
-  CASE WHEN d.anonima THEN NULL ELSE d.autor_id END AS autor_id,
-  CASE WHEN d.anonima THEN 'Ciudadano Anónimo' ELSE p.nombre END AS autor_nombre,
-  d.categoria_id,
-  d.zona_id,
-  c.nombre AS categoria,
-  c.slug   AS categoria_slug,
-  z.nombre AS zona,
-  d.descripcion,
-  d.gravedad,
-  d.titular,
-  d.estado,
-  d.oculta,
-  d.created_at,
-  d.updated_at,
-  EXTRACT(DAY FROM NOW() - d.created_at)::INTEGER AS dias_sin_resolver,
-  COUNT(DISTINCT r.id) AS total_apoyos,
-  COUNT(DISTINCT a.id) AS total_aportes,
-  COUNT(DISTINCT f.id) AS total_fotos
-FROM denuncias d
-JOIN perfiles   p ON p.id = d.autor_id
-JOIN categorias c ON c.id = d.categoria_id
-JOIN zonas      z ON z.id = d.zona_id
-LEFT JOIN reacciones     r ON r.denuncia_id = d.id
-LEFT JOIN aportes        a ON a.denuncia_id = d.id
-LEFT JOIN fotos_denuncia f ON f.denuncia_id = d.id
-WHERE d.oculta = false
-GROUP BY d.id, p.nombre, c.nombre, c.slug, z.nombre;
-```
-
-**A3.** Permitir que el frontend lea el perfil (nombre/rol) del usuario logueado:
-
-```sql
-CREATE POLICY "usuarios_ven_su_perfil"
-ON perfiles
-FOR SELECT
-TO authenticated
-USING (id = auth.uid());
-```
-
-**A4.** En **Authentication → URL Configuration**:
+**A2.** En **Authentication → URL Configuration**:
 
 ```text
 Site URL:       http://localhost:5173
@@ -89,52 +47,54 @@ Redirect URLs:  http://localhost:5173
                 http://localhost:5173/*
 ```
 
-En **Authentication → Providers → Email**: activar Email. Para desarrollo, desactivar "Confirm email" para que el magic link entre directo.
+En **Authentication → Providers → Email**: activar Email.
 
-**A5.** En **Authentication → Users → Add user**, crear 3 usuarios de prueba:
+> 📝 **Para el registro en vivo (signUp):** en **Authentication → Providers → Email**, desactiva **"Confirm email"**. Así, cuando un ciudadano se registra desde la página, entra al instante sin tener que confirmar un correo. (El login es email + contraseña; no se envían correos.)
+
+**A3.** En **Authentication → Users → Add user → Create new user**, crear los usuarios de prueba con rol especial (`cuadrilla` y `municipio`), ya que esos roles **no** se pueden crear desde la app. Para cada uno: poner email, **contraseña**, y marcar **"Auto Confirm User"**. Pueden ser correos ficticios:
 
 ```text
-ciudadano@demo.com
-cuadrilla@demo.com
-municipio@demo.com
+adolfo@demo.com    (contraseña a tu elección)
+axel@demo.com      (contraseña a tu elección)
+elkin@demo.com     (contraseña a tu elección)
 ```
 
-Copiar el UUID de cada uno y crear sus perfiles en SQL Editor:
+Copiar el UUID (User UID) de cada uno y crear sus perfiles en SQL Editor con el rol correspondiente:
 
 ```sql
 INSERT INTO perfiles (id, nombre, rol) VALUES
-  ('UUID_CIUDADANO', 'Ciudadano Demo', 'ciudadano'),
   ('UUID_CUADRILLA', 'Cuadrilla Demo', 'cuadrilla'),
   ('UUID_MUNICIPIO', 'Municipio Demo', 'municipio');
+-- Valores válidos para rol: 'ciudadano', 'cuadrilla', 'municipio'
 ```
 
-**A6.** Compartir con el equipo (por canal privado, NO subir a Git):
+> Los usuarios **ciudadanos** NO hace falta crearlos a mano: pueden **registrarse desde la página** (`/login` → "Regístrate"). El trigger `handle_new_user` les crea el perfil con rol `ciudadano` automáticamente. Los roles `cuadrilla` y `municipio` sí se asignan manualmente aquí.
 
-```text
-SUPABASE_SERVICE_KEY = (Project Settings → API → service_role secret)
-SUPABASE_JWT_SECRET  = (Project Settings → API → JWT Secret)
-```
+**A4.** Compartir con el equipo solo la **secret key** (por canal privado, NO subir a Git). Está en **Project Settings → API Keys → secret**. No hace falta compartir ningún JWT secret (se usa JWKS).
 
 ### Paso B — Tareas del resto del equipo (configurar y correr)
 
-Los archivos `.env` ya están creados en el repo local. Solo falta completar las 2 claves del backend cuando lleguen.
+Los archivos `.env` ya están creados en el repo local con las credenciales del proyecto. No deberías necesitar tocarlos, pero estos son los valores correctos:
 
-**`frontend/.env`** (ya listo):
+**`frontend/.env`**:
 
 ```env
-VITE_SUPABASE_URL=https://zxcrxclrmzntbvpjmlwa.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_74c_B8_MzxBkAAlR7oR-iA_k5Iw1e_v
+VITE_SUPABASE_URL=https://xynkalcsaubgseoiiavz.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_Lx9D4wQVbgrvxP5eUpuz4w_2ptjXJxq
 ```
 
-**`backend/.env`** (reemplazar los dos `PENDIENTE_...` cuando lleguen):
+> El frontend lee la variable `VITE_SUPABASE_ANON_KEY` (ver `frontend/src/lib/supabase.js`). El **valor** es la publishable key; el nombre de la variable debe mantenerse así.
+
+**`backend/.env`**:
 
 ```env
 PORT=4000
-SUPABASE_URL=https://zxcrxclrmzntbvpjmlwa.supabase.co
-SUPABASE_SERVICE_KEY=PENDIENTE_PEDIR_AL_COMPANERO
-SUPABASE_JWT_SECRET=PENDIENTE_PEDIR_AL_COMPANERO
+SUPABASE_URL=https://xynkalcsaubgseoiiavz.supabase.co
+SUPABASE_SERVICE_KEY=sb_secret_********   # pedir por canal privado, NO publicar
 FRONTEND_URL=http://localhost:5173
 ```
+
+> 🔑 La **secret key real** no se versiona. Está en tu `backend/.env` local (que está en `.gitignore`). Si un compañero la necesita, compártela por un canal privado, nunca en el repo.
 
 Instalar y correr (en **dos terminales**):
 
@@ -152,7 +112,7 @@ Abrir `http://localhost:5173`.
 
 ```text
 [ ] 1.  Abrir el muro (/) — carga sin errores
-[ ] 2.  Login como ciudadano@demo.com (magic link)
+[ ] 2.  Registrarse como ciudadano nuevo (/login → "Regístrate") o entrar con uno existente
 [ ] 3.  Crear denuncia en /nueva
 [ ] 4.  La denuncia aparece en el muro
 [ ] 5.  Abrir el detalle de la denuncia
@@ -209,7 +169,8 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Schema de base de datos (Supabase) | ✅ Completo |
 | Backend Node.js/Express (API REST) | ✅ Completo |
 | Frontend React + Vite + Tailwind | ✅ Completo |
-| Autenticación Supabase Auth (magic link) | ✅ Completo |
+| Autenticación Supabase Auth (email + contraseña) | ✅ Completo |
+| Registro de ciudadanos desde la página (signUp + trigger) | ✅ Completo |
 | Muro (`/`) — lista paginada y filtrable | ✅ Completo |
 | Detalle de denuncia (`/denuncia/:id`) | ✅ Completo |
 | Formulario nueva denuncia (`/nueva`) | ✅ Completo |
@@ -269,12 +230,12 @@ Después de instalar, necesitas configurar Supabase (ver sección siguiente) y l
 - **Vite** — bundler rápido para desarrollo y build
 - **Tailwind CSS 3** — utilidades de estilo con paleta personalizada en `tailwind.config.js`
 - **React Router v6** — navegación SPA (client-side routing)
-- **Supabase JS** — cliente para Auth (magic link) desde el navegador
+- **Supabase JS** — cliente para Auth (email + contraseña) desde el navegador
 
 ### Backend
 - **Node.js + Express 4** — API REST (`"type": "module"` — usa ES imports)
-- **Supabase JS** (service role) — acceso a la BD con permisos de administrador
-- **jsonwebtoken** — verificación de tokens JWT emitidos por Supabase Auth
+- **Supabase JS** (service role / secret key) — acceso a la BD con permisos de administrador
+- **jose** — verificación de tokens JWT (ES256) de Supabase Auth contra el JWKS
 - **express-validator** — validación de entradas en cada ruta
 - **multer** — preparado para subida de fotos (pendiente de conectar)
 - **dotenv** — variables de entorno
@@ -290,7 +251,7 @@ Después de instalar, necesitas configurar Supabase (ver sección siguiente) y l
 ```
 Navegador (React)
     │
-    │── Supabase Auth (magic link) ──► Supabase Auth Service
+    │── Supabase Auth (email + contraseña) ─► Supabase Auth Service
     │
     │── fetch /api/* ─────────────────► Express API (puerto 4000)
     │                                         │
@@ -356,7 +317,7 @@ portoSinFiltro/
         │   ├── NuevaDenuncia.jsx    ← Formulario: categoría, zona, descripción, gravedad, foto, anónimo
         │   ├── Panel.jsx        ← Dashboard municipio/cuadrilla: KPIs, ranking zonas, cambio de estado
         │   ├── MisDenuncias.jsx ← Denuncias del usuario logueado (ver bugs conocidos)
-        │   ├── Login.jsx        ← Autenticación con magic link (sin contraseña)
+        │   ├── Login.jsx        ← Autenticación con email + contraseña
         │   └── NotFound.jsx     ← Página 404
         └── components/
             ├── layout/
@@ -373,18 +334,19 @@ portoSinFiltro/
 
 1. Crear un proyecto en [supabase.com](https://supabase.com) — es gratis, tarda ~2 minutos.
 
-2. Ir a **Project Settings → API** y copiar estos 4 valores:
+2. Ir a **Project Settings → API** y copiar estos 3 valores:
 
    | Valor en Supabase | Variable que necesita |
    |---|---|
    | Project URL | `SUPABASE_URL` (backend) y `VITE_SUPABASE_URL` (frontend) |
-   | `anon` `public` key | `VITE_SUPABASE_ANON_KEY` (solo frontend) |
-   | `service_role` `secret` key | `SUPABASE_SERVICE_KEY` (solo backend) ⚠️ |
-   | JWT Secret (en la misma página) | `SUPABASE_JWT_SECRET` (solo backend) |
+   | publishable / `anon` key | `VITE_SUPABASE_ANON_KEY` (solo frontend) |
+   | secret / `service_role` key | `SUPABASE_SERVICE_KEY` (solo backend) ⚠️ |
+
+   > No se necesita ningún JWT secret: el backend verifica los tokens (ES256) contra el JWKS de Supabase automáticamente.
 
 3. Ir a **Authentication → Settings**:
    - Confirmar que el proveedor **Email** está habilitado
-   - Desactivar **"Confirm email"** mientras desarrollas (así el magic link no requiere confirmar primero)
+   - El login es por **email + contraseña**; al crear usuarios marca **"Auto Confirm User"** para que entren sin verificar correo
 
 ### 2. Base de datos
 
@@ -456,8 +418,7 @@ Abrir el navegador en `http://localhost:5173`.
 ```env
 PORT=4000
 SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # service_role key
-SUPABASE_JWT_SECRET=tu-jwt-secret-de-supabase
+SUPABASE_SERVICE_KEY=sb_secret_...        # secret / service_role key
 FRONTEND_URL=http://localhost:5173
 ```
 
@@ -465,11 +426,12 @@ FRONTEND_URL=http://localhost:5173
 |---|---|---|
 | `PORT` | Libre | Puerto del servidor (default: 4000) |
 | `SUPABASE_URL` | Project Settings → API → Project URL | URL del proyecto |
-| `SUPABASE_SERVICE_KEY` | Project Settings → API → service_role secret | ⚠️ NUNCA exponer al frontend |
-| `SUPABASE_JWT_SECRET` | Project Settings → API → JWT Secret | Para verificar tokens del frontend |
+| `SUPABASE_SERVICE_KEY` | Project Settings → API Keys → secret | ⚠️ NUNCA exponer al frontend |
 | `FRONTEND_URL` | La URL donde corre el frontend | Configura CORS |
 
-> ⚠️ La `service_role` key bypassa Row Level Security — tiene acceso total a la BD. **Nunca** la pongas en el frontend ni la subas a GitHub. El archivo `.env` ya está en `.gitignore`.
+> ⚠️ La secret/`service_role` key bypassa Row Level Security — tiene acceso total a la BD. **Nunca** la pongas en el frontend ni la subas a GitHub. El archivo `.env` ya está en `.gitignore`.
+>
+> 🔐 La verificación de tokens usa el **JWKS** de Supabase (ES256), por lo que **no** se necesita `SUPABASE_JWT_SECRET`. Lo gestiona `backend/src/middleware/auth.js` con la librería `jose`.
 
 ### `frontend/.env`
 
@@ -677,8 +639,8 @@ El diseño original fue calificado como "chevere pero demasiado saturado". La pa
 
 ## Decisiones de diseño importantes
 
-**¿Por qué magic link y no contraseña?**
-El ciudadano promedio no quiere crear otra cuenta. El magic link reduce la fricción al mínimo — solo se necesita un correo para denunciar.
+**¿Por qué email + contraseña?**
+Para el entorno académico y las pruebas locales, el login por email + contraseña (`signInWithPassword`) permite entrar al instante sin depender de recibir correos. La verificación del token sigue siendo segura: el backend valida el JWT (ES256) contra el JWKS de Supabase.
 
 **¿Por qué el backend usa `service_role` y no la anon key?**
 La anon key respeta RLS, lo que puede bloquear inserciones o lecturas según las políticas definidas. El backend con `service_role` tiene control total y aplica su propia lógica de autorización (verificación de JWT + rol), siendo más predecible y explícito que RLS solo.

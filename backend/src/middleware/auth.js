@@ -1,5 +1,20 @@
-import jwt from 'jsonwebtoken';
+import 'dotenv/config';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { supabase } from '../db/supabase.js';
+
+// Supabase firma los access tokens con llaves asimétricas (ES256) expuestas
+// vía JWKS. createRemoteJWKSet descarga y cachea las llaves públicas, y
+// refresca automáticamente cuando Supabase rota la llave.
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`)
+);
+const ISSUER = `${process.env.SUPABASE_URL}/auth/v1`;
+
+// Verifica el token contra el JWKS de Supabase. Devuelve el payload o lanza.
+async function verificarToken(token) {
+  const { payload } = await jwtVerify(token, JWKS, { issuer: ISSUER });
+  return payload;
+}
 
 // Carga el perfil desde el JWT. Rechaza si no hay token o es inválido.
 export async function requireAuth(req, res, next) {
@@ -11,7 +26,7 @@ export async function requireAuth(req, res, next) {
   const token = header.slice(7);
   let payload;
   try {
-    payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET);
+    payload = await verificarToken(token);
   } catch {
     return res.status(401).json({ error: 'Token inválido o expirado' });
   }
@@ -36,7 +51,7 @@ export async function optionalAuth(req, _res, next) {
   if (!header?.startsWith('Bearer ')) return next();
 
   try {
-    const payload = jwt.verify(header.slice(7), process.env.SUPABASE_JWT_SECRET);
+    const payload = await verificarToken(header.slice(7));
     const { data: perfil } = await supabase
       .from('perfiles')
       .select('id, nombre, rol, activo')
