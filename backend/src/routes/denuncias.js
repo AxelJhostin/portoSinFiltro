@@ -48,6 +48,26 @@ async function adjuntarFotosPortada(items) {
   return items.map(d => ({ ...d, foto_portada: primera[d.id] ?? null }));
 }
 
+async function adjuntarYaApoyo(items, usuarioId) {
+  if (!items?.length || !usuarioId) {
+    return items?.map(d => ({ ...d, ya_apoyo: false })) ?? items;
+  }
+
+  const ids = items.map(d => d.id);
+  const { data: reacciones, error } = await supabase
+    .from('reacciones')
+    .select('denuncia_id')
+    .eq('usuario_id', usuarioId)
+    .in('denuncia_id', ids);
+
+  if (error) {
+    return items.map(d => ({ ...d, ya_apoyo: false }));
+  }
+
+  const apoyadas = new Set(reacciones?.map(r => r.denuncia_id) ?? []);
+  return items.map(d => ({ ...d, ya_apoyo: apoyadas.has(d.id) }));
+}
+
 // GET /denuncias — Muro público (sin auth)
 // Con ?autor_id=UUID solo devuelve las denuncias de ese usuario.
 // El autor_id se valida contra el JWT: solo puedes pedir las tuyas.
@@ -106,7 +126,12 @@ router.get('/',
     const { data, error, count } = await q;
     if (error) return res.status(500).json({ error: error.message });
 
-    const enriquecidas = await adjuntarFotosPortada(data);
+    let enriquecidas = await adjuntarFotosPortada(data);
+    if (req.user) {
+      enriquecidas = await adjuntarYaApoyo(enriquecidas, req.user.id);
+    } else {
+      enriquecidas = enriquecidas.map(d => ({ ...d, ya_apoyo: false }));
+    }
     res.json({ data: enriquecidas, total: count, pagina: Number(pagina), limite });
   }
 );
@@ -129,8 +154,9 @@ router.get('/:id',
 
     let mi_progreso = null;
     let ya_reporto = false;
+    let ya_apoyo = false;
     if (req.user) {
-      const [{ data: voto }, { data: reporte }] = await Promise.all([
+      const [{ data: voto }, { data: reporte }, { data: reaccion }] = await Promise.all([
         supabase
           .from('valoraciones_progreso')
           .select('progresando')
@@ -143,9 +169,16 @@ router.get('/:id',
           .eq('denuncia_id', denuncia_id)
           .eq('usuario_id', req.user.id)
           .maybeSingle(),
+        supabase
+          .from('reacciones')
+          .select('id')
+          .eq('denuncia_id', denuncia_id)
+          .eq('usuario_id', req.user.id)
+          .maybeSingle(),
       ]);
       mi_progreso = voto?.progresando ?? null;
       ya_reporto = !!reporte;
+      ya_apoyo = !!reaccion;
     }
 
     res.json({
@@ -155,6 +188,7 @@ router.get('/:id',
       total_reportes:     data.total_reportes     ?? 0,
       mi_progreso,
       ya_reporto,
+      ya_apoyo,
     });
   }
 );

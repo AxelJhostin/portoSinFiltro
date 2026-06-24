@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout';
 import MapaUbicacion from '../components/ui/MapaUbicacion';
 import BarraGravedad from '../components/ui/BarraGravedad';
 import { ESTADO_LABEL, ESTADO_COLOR, GRAVEDAD_LABEL, TIPO_APORTE_LABEL } from '../lib/constants';
+import { mensajeProximoEstado } from '../lib/estadoComunitario';
 
 export default function DetalleDenuncia({ session, perfil }) {
   const { id } = useParams();
@@ -32,6 +33,8 @@ export default function DetalleDenuncia({ session, perfil }) {
   const [enviandoReporte, setEnviandoReporte] = useState(false);
   const [reporteError, setReporteError] = useState('');
   const [reporteOk, setReporteOk] = useState(false);
+  const [apoyoError, setApoyoError] = useState('');
+  const [progresoError, setProgresoError] = useState('');
 
   useEffect(() => {
     async function cargar() {
@@ -43,6 +46,7 @@ export default function DetalleDenuncia({ session, perfil }) {
         ]);
         setDenuncia(d);
         setApoyos(d.total_apoyos);
+        setApoyado(d.ya_apoyo ?? false);
         setMiProgreso(d.mi_progreso ?? null);
         setProgresoSi(d.total_progreso_si ?? 0);
         setProgresoNo(d.total_progreso_no ?? 0);
@@ -64,26 +68,41 @@ export default function DetalleDenuncia({ session, perfil }) {
     cargar();
   }, [id, navigate]);
 
+  async function refrescarDenuncia() {
+    const d = await api.denuncias.get(id);
+    setDenuncia(d);
+    setProgresoSi(d.total_progreso_si ?? 0);
+    setProgresoNo(d.total_progreso_no ?? 0);
+    setTotalReportes(d.total_reportes ?? 0);
+    return d;
+  }
+
   async function marcarProgreso(progresando) {
     if (!session) return navigate('/login');
     if (perfil?.rol !== 'ciudadano') return;
     setMarcandoProgreso(true);
+    setProgresoError('');
     try {
       const res = await api.denuncias.progreso(id, progresando);
       setMiProgreso(res.mi_progreso);
       setProgresoSi(res.total_progreso_si);
       setProgresoNo(res.total_progreso_no);
-    } catch {/* silencioso */}
-    finally { setMarcandoProgreso(false); }
+      await refrescarDenuncia();
+    } catch (err) {
+      setProgresoError(err.message);
+    } finally { setMarcandoProgreso(false); }
   }
 
   async function toggleApoyo() {
     if (!session) return navigate('/login');
+    setApoyoError('');
     try {
       const { apoyo } = await api.denuncias.apoyo(id);
       setApoyado(apoyo);
       setApoyos(n => apoyo ? n + 1 : n - 1);
-    } catch {/* silencioso */}
+    } catch (err) {
+      setApoyoError(err.message);
+    }
   }
 
   async function enviarReporte(e) {
@@ -127,6 +146,7 @@ export default function DetalleDenuncia({ session, perfil }) {
       setForm({ tipo: 'confirmacion', contenido: '', anonimo: false });
       setFormOk(true);
       setTimeout(() => setFormOk(false), 3000);
+      await refrescarDenuncia();
     } catch (err) {
       setFormError(err.message);
     } finally {
@@ -145,6 +165,14 @@ export default function DetalleDenuncia({ session, perfil }) {
   }
 
   if (!denuncia) return null;
+
+  const totalResoluciones = aportes.filter(a => a.tipo === 'resolucion').length;
+  const hintEstado = mensajeProximoEstado({
+    estado: denuncia.estado,
+    total_progreso_si: progresoSi,
+    total_progreso_no: progresoNo,
+    total_resoluciones: totalResoluciones,
+  });
 
   return (
     <Layout session={session} perfil={perfil} back>
@@ -167,6 +195,12 @@ export default function DetalleDenuncia({ session, perfil }) {
               {ESTADO_LABEL[denuncia.estado]}
             </span>
           </div>
+
+          {hintEstado && (
+            <p className="text-xs text-ink-soft bg-surface-base rounded-card px-3 py-2 mb-4 border border-surface-muted">
+              {hintEstado}
+            </p>
+          )}
 
           <h2 className="font-headline text-2xl leading-tight mb-4">{denuncia.titular}</h2>
           <p className="text-ink leading-relaxed mb-4">{denuncia.descripcion}</p>
@@ -207,6 +241,7 @@ export default function DetalleDenuncia({ session, perfil }) {
               {apoyado ? '▲ Apoyaste esta denuncia' : '△ Apoyar esta denuncia'}
               {!session && <span className="text-xs font-normal ml-1">(inicia sesión)</span>}
             </button>
+            {apoyoError && <p className="text-brand-red text-xs">{apoyoError}</p>}
 
             <div className="bg-surface-base rounded-card p-4">
               <p className="text-sm font-semibold text-ink mb-1">¿Está progresando?</p>
@@ -265,6 +300,9 @@ export default function DetalleDenuncia({ session, perfil }) {
                 <p className="text-xs text-ink-faint text-center">
                   Solo los ciudadanos pueden marcar el progreso.
                 </p>
+              )}
+              {progresoError && (
+                <p className="text-brand-red text-xs mt-2">{progresoError}</p>
               )}
             </div>
           </div>

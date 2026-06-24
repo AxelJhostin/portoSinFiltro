@@ -12,6 +12,7 @@ export default function Admin({ session, perfil }) {
   const [cargando, setCargando]     = useState(true);
   const [filtroOculta, setFiltro]   = useState('false');
   const [actualizando, setAct]      = useState(null);
+  const [accionError, setAccionError] = useState('');
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
@@ -41,6 +42,7 @@ export default function Admin({ session, perfil }) {
   async function toggleOculta(denuncia) {
     const nuevaOculta = !denuncia.oculta;
     setAct(denuncia.id);
+    setAccionError('');
     try {
       await api.denuncias.ocultar(denuncia.id, { oculta: nuevaOculta });
       setDenuncias(prev =>
@@ -52,8 +54,9 @@ export default function Admin({ session, perfil }) {
           ocultas: (s.ocultas ?? 0) + (nuevaOculta ? 1 : -1),
         }));
       }
-    } catch {/* silencioso */}
-    finally { setAct(null); }
+    } catch (err) {
+      setAccionError(err.message);
+    } finally { setAct(null); }
   }
 
   if (!session || !perfil) return null;
@@ -68,6 +71,12 @@ export default function Admin({ session, perfil }) {
             Revisa reportes de la comunidad y oculta denuncias falsas o abusivas.
           </p>
         </div>
+
+        {accionError && (
+          <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
+            {accionError}
+          </div>
+        )}
 
         {stats && (
           <section>

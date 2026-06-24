@@ -3,12 +3,19 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import DenunciaCard from '../components/ui/DenunciaCard';
 import Layout from '../components/layout/Layout';
-import { CATEGORIAS, ZONAS } from '../lib/constants';
+import { CATEGORIAS, ZONAS, ESTADO_LABEL } from '../lib/constants';
 
 const ORDEN_OPTS = [
   { value: 'reciente', label: 'Más reciente' },
   { value: 'apoyos',   label: 'Más apoyado' },
   { value: 'gravedad', label: 'Más grave' },
+];
+
+const ESTADO_OPTS = [
+  { value: '',           label: 'Todas' },
+  { value: 'activa',     label: ESTADO_LABEL.activa },
+  { value: 'con_avance', label: ESTADO_LABEL.con_avance },
+  { value: 'resuelta',   label: ESTADO_LABEL.resuelta },
 ];
 
 function SkeletonCard() {
@@ -38,11 +45,12 @@ export default function Muro({ session, perfil }) {
   const [orden, setOrden]           = useState('reciente');
   const [zonaId, setZonaId]         = useState('');
   const [catId, setCatId]           = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
   const [pagina, setPagina]         = useState(1);
   const [total, setTotal]           = useState(0);
   const navigate = useNavigate();
 
-  const hayFiltros = Boolean(zonaId || catId);
+  const hayFiltros = Boolean(zonaId || catId || filtroEstado);
   const zonaNombre = ZONAS.find(z => String(z.id) === zonaId)?.nombre;
   const catNombre = CATEGORIAS.find(c => String(c.id) === catId)?.nombre;
 
@@ -53,6 +61,7 @@ export default function Muro({ session, perfil }) {
       const params = { orden, pagina };
       if (zonaId) params.zona_id = zonaId;
       if (catId)  params.categoria_id = catId;
+      if (filtroEstado) params.estado = filtroEstado;
       const res = await api.denuncias.list(params);
       setDenuncias(res.data);
       setTotal(res.total);
@@ -61,7 +70,7 @@ export default function Muro({ session, perfil }) {
     } finally {
       setCargando(false);
     }
-  }, [orden, zonaId, catId, pagina]);
+  }, [orden, zonaId, catId, filtroEstado, pagina]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -71,7 +80,7 @@ export default function Muro({ session, perfil }) {
   }
 
   function limpiarFiltros() {
-    cambiarFiltro(() => { setZonaId(''); setCatId(''); });
+    cambiarFiltro(() => { setZonaId(''); setCatId(''); setFiltroEstado(''); });
   }
 
   const totalPaginas = Math.ceil(total / 20);
@@ -109,6 +118,23 @@ export default function Muro({ session, perfil }) {
                   ${orden === o.value ? 'chip-active' : 'hover:bg-surface-muted'}`}
               >
                 {o.label}
+              </button>
+            ))}
+          </fieldset>
+
+          <fieldset className="flex flex-wrap items-center gap-1.5 min-w-0 border-0 p-0 m-0">
+            <legend className="sr-only">Filtrar por estado</legend>
+            {ESTADO_OPTS.map(e => (
+              <button
+                key={e.value || 'todas'}
+                type="button"
+                aria-pressed={filtroEstado === e.value}
+                onClick={() => cambiarFiltro(() => setFiltroEstado(e.value))}
+                className={`chip cursor-pointer transition-colors min-h-[36px] px-3
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1
+                  ${filtroEstado === e.value ? 'chip-active' : 'hover:bg-surface-muted'}`}
+              >
+                {e.label}
               </button>
             ))}
           </fieldset>
@@ -167,6 +193,19 @@ export default function Muro({ session, perfil }) {
                     onClick={() => cambiarFiltro(() => setCatId(''))}
                     className="ml-0.5 text-ink-faint hover:text-brand-red transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink rounded"
                     aria-label={`Quitar filtro de categoría ${catNombre}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {filtroEstado && (
+                <span className="chip text-ink-soft">
+                  {ESTADO_LABEL[filtroEstado]}
+                  <button
+                    type="button"
+                    onClick={() => cambiarFiltro(() => setFiltroEstado(''))}
+                    className="ml-0.5 text-ink-faint hover:text-brand-red transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink rounded"
+                    aria-label={`Quitar filtro de estado ${ESTADO_LABEL[filtroEstado]}`}
                   >
                     ×
                   </button>

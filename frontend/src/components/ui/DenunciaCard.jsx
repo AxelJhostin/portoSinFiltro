@@ -5,16 +5,20 @@ import BarraGravedad from './BarraGravedad';
 
 export default function DenunciaCard({ denuncia, session, onSelect }) {
   const [apoyos, setApoyos] = useState(denuncia.total_apoyos);
-  const [apoyado, setApoyado] = useState(false);
+  const [apoyado, setApoyado] = useState(denuncia.ya_apoyo ?? false);
+  const [apoyoError, setApoyoError] = useState('');
 
   async function toggleApoyo(e) {
     e.stopPropagation();
     if (!session) return;
+    setApoyoError('');
     try {
       const { apoyo } = await api.denuncias.apoyo(denuncia.id);
       setApoyado(apoyo);
       setApoyos(n => apoyo ? n + 1 : n - 1);
-    } catch {/* silencioso */}
+    } catch (err) {
+      setApoyoError(err.message);
+    }
   }
 
   function abrirDetalle() {
@@ -90,23 +94,30 @@ export default function DenunciaCard({ denuncia, session, onSelect }) {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={toggleApoyo}
-            disabled={!session}
-            aria-pressed={apoyado}
-            aria-label={session
-              ? (apoyado ? 'Quitar apoyo' : 'Apoyar denuncia')
-              : `${apoyos} apoyos. Inicia sesión para apoyar.`}
-            title={!session ? 'Inicia sesión para apoyar' : undefined}
-            className={`flex items-center gap-1 font-semibold shrink-0 min-h-[32px] px-1 transition-colors
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1 rounded
-              ${apoyado ? 'text-brand-red' : 'text-ink-soft hover:text-brand-red'}
-              ${!session ? 'cursor-default opacity-70' : ''}`}
-          >
-            <span aria-hidden="true">{apoyado ? '▲' : '△'}</span>
-            <span>{apoyos}</span>
-          </button>
+          <div className="flex flex-col items-end shrink-0">
+            <button
+              type="button"
+              onClick={toggleApoyo}
+              disabled={!session}
+              aria-pressed={apoyado}
+              aria-label={session
+                ? (apoyado ? 'Quitar apoyo' : 'Apoyar denuncia')
+                : `${apoyos} apoyos. Inicia sesión para apoyar.`}
+              title={!session ? 'Inicia sesión para apoyar' : undefined}
+              className={`flex items-center gap-1 font-semibold min-h-[32px] px-1 transition-colors
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1 rounded
+                ${apoyado ? 'text-brand-red' : 'text-ink-soft hover:text-brand-red'}
+                ${!session ? 'cursor-default opacity-70' : ''}`}
+            >
+              <span aria-hidden="true">{apoyado ? '▲' : '△'}</span>
+              <span>{apoyos}</span>
+            </button>
+            {apoyoError && (
+              <span className="text-[10px] text-brand-red max-w-[8rem] text-right leading-tight mt-0.5">
+                {apoyoError}
+              </span>
+            )}
+          </div>
         </div>
 
         <BarraGravedad nivel={denuncia.gravedad} className="mt-2.5" />

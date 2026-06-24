@@ -138,13 +138,13 @@ Abrir `http://localhost:5173`.
 ### Paso C — Checklist de prueba (flujo de presentación)
 
 ```text
-[ ] 1.  Abrir el muro (/) — lista vertical con tarjetas horizontales (foto + info)
+[ ] 1.  Abrir el muro (/) — filtrar por ACTIVA / CON AVANCE / RESUELTA / Todas
 [ ] 2.  Entrar como Adolfo (ciudadano) o registrarse en /login
 [ ] 3.  Crear denuncia en /nueva (mapa + foto JPG/PNG, no HEIC)
 [ ] 4.  La denuncia aparece en el muro con miniatura si tiene foto
 [ ] 5.  Abrir el detalle — foto, mapa, barra de gravedad tipo pila
-[ ] 6.  Dar apoyo y marcar si progresa (Sí / No) — solo ciudadanos
-[ ] 7.  Agregar aporte o "Confirmo que ya se resolvió" (tipo resolucion)
+[ ] 6.  Dar apoyo (persiste al recargar) y marcar si progresa (Sí / No)
+[ ] 7.  Ver indicador «cuánto falta» bajo el chip de estado; el chip se actualiza sin recargar la página
 [ ] 8.  Otro ciudadano reporta la denuncia como falsa (motivo ≥ 10 caracteres)
 [ ] 9.  Ver /mis-denuncias (incluye anónimas propias)
 [ ] 10. Abrir /panel-publico — estadísticas y filtros ACTIVA / CON AVANCE / RESUELTA
