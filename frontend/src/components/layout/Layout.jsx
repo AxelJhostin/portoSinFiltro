@@ -43,6 +43,14 @@ export default function Layout({ session, perfil, children, back }) {
                 )}
                 {perfil?.rol === 'ciudadano' && (
                   <Link
+                    to="/panel-publico"
+                    className="text-gray-300 hover:text-white text-sm transition-colors"
+                  >
+                    Panel público
+                  </Link>
+                )}
+                {perfil?.rol === 'ciudadano' && (
+                  <Link
                     to="/mis-denuncias"
                     className="text-gray-300 hover:text-white text-sm transition-colors"
                   >
@@ -66,12 +74,20 @@ export default function Layout({ session, perfil, children, back }) {
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="text-sm text-gray-300 hover:text-white transition-colors"
-              >
-                Ingresar
-              </Link>
+              <>
+                <Link
+                  to="/panel-publico"
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
+                  Panel público
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
+                  Ingresar
+                </Link>
+              </>
             )}
           </nav>
         </div>

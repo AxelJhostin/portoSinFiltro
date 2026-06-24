@@ -54,6 +54,7 @@ export const api = {
     create: (id, body)    => req('POST', `/denuncias/${id}/aportes`, body),
   },
   dashboard: {
-    get: () => req('GET', '/dashboard'),
+    get:    () => req('GET', '/dashboard'),
+    public: () => req('GET', '/dashboard/public'),
   },
 };

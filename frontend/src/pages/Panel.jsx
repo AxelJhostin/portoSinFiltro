@@ -18,6 +18,10 @@ export default function Panel({ session, perfil }) {
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
+    if (perfil?.rol === 'ciudadano') {
+      navigate('/panel-publico', { replace: true });
+      return;
+    }
     if (perfil && !['municipio', 'cuadrilla'].includes(perfil.rol)) {
       navigate('/', { replace: true });
     }
