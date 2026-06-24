@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import Layout from '../components/layout/Layout';
-import BarraGravedad from '../components/ui/BarraGravedad';
-import { ESTADO_LABEL, ESTADO_COLOR, GRAVEDAD_LABEL } from '../lib/constants';
+import DenunciaCard from '../components/ui/DenunciaCard';
+import { ESTADO_LABEL } from '../lib/constants';
 
 function RankingBarras({ items, colorClass = 'bg-brand-red' }) {
   if (!items?.length) return null;
@@ -52,7 +52,28 @@ function TendenciaSemanal({ tendencia }) {
   );
 }
 
+function SkeletonCard() {
+  return (
+    <div className="card overflow-hidden flex flex-row min-h-[9rem]" aria-hidden="true">
+      <div className="skeleton-block w-28 sm:w-36 md:w-44 shrink-0 min-h-[9rem] rounded-none" />
+      <div className="p-4 flex-1 space-y-3 min-w-0">
+        <div className="flex justify-between gap-2">
+          <div className="skeleton-block h-3 w-24" />
+          <div className="skeleton-block h-5 w-20 rounded-full" />
+        </div>
+        <div className="space-y-2">
+          <div className="skeleton-block h-4 w-full" />
+          <div className="skeleton-block h-4 w-4/5" />
+        </div>
+        <div className="skeleton-block h-3 w-2/3" />
+        <div className="skeleton-block h-1 w-full rounded-full" />
+      </div>
+    </div>
+  );
+}
+
 export default function PanelPublico({ session, perfil }) {
+  const navigate = useNavigate();
   const [stats, setStats]         = useState(null);
   const [denuncias, setDenuncias] = useState([]);
   const [cargando, setCargando]   = useState(true);
@@ -151,7 +172,7 @@ export default function PanelPublico({ session, perfil }) {
           </>
         )}
 
-        <section>
+        <section className="max-w-3xl mx-auto w-full">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h2 className="font-headline text-lg">Denuncias</h2>
             <div className="flex gap-2 flex-wrap">
@@ -171,98 +192,25 @@ export default function PanelPublico({ session, perfil }) {
           </div>
 
           {cargando ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="card overflow-hidden flex flex-row min-h-[9rem] animate-pulse">
-                  <div className="w-28 sm:w-40 md:w-48 shrink-0 bg-surface-muted" />
-                  <div className="flex-1 p-4 space-y-3">
-                    <div className="h-4 w-1/3 bg-surface-muted rounded" />
-                    <div className="h-5 w-2/3 bg-surface-muted rounded" />
-                    <div className="h-3 w-full bg-surface-muted rounded" />
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-col gap-4">
+              {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
             </div>
           ) : denuncias.length === 0 ? (
             <div className="card p-8 text-center text-ink-soft text-sm">
               No hay denuncias en estado {ESTADO_LABEL[filtroEstado].toLowerCase()}.
             </div>
           ) : (
-            <div className="space-y-3">
+            <ul className="flex flex-col gap-4 list-none p-0 m-0">
               {denuncias.map(d => (
-                <Link
-                  key={d.id}
-                  to={`/denuncia/${d.id}`}
-                  className="card block overflow-hidden hover:shadow-md transition-shadow group
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-                >
-                  <div className="flex flex-row min-h-[9rem]">
-                    {/* Columna visual — siempre ocupa el mismo ancho */}
-                    <div className="w-28 sm:w-40 md:w-48 shrink-0 self-stretch bg-surface-muted overflow-hidden">
-                      {d.foto_portada ? (
-                        <img
-                          src={d.foto_portada}
-                          alt=""
-                          className="w-full h-full min-h-[9rem] object-cover transition-transform duration-300 ease-out
-                                     group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full min-h-[9rem] flex items-center justify-center px-2">
-                          <span className="text-[10px] font-mono text-ink-faint uppercase tracking-wide text-center">
-                            Sin foto
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Contenido + métricas */}
-                    <div className="flex-1 min-w-0 p-4 flex flex-col">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
-                        <span className={`chip text-xs px-2 py-0.5 rounded-full ${ESTADO_COLOR[d.estado]}`}>
-                          {ESTADO_LABEL[d.estado]}
-                        </span>
-                        <span className="text-xs text-ink-soft font-mono truncate">{d.zona}</span>
-                        <span className="text-xs text-ink-faint hidden sm:inline">·</span>
-                        <span className="text-xs text-ink-soft truncate">{d.categoria}</span>
-                      </div>
-
-                      <div className="flex flex-1 gap-4 flex-col sm:flex-row sm:items-start">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-headline text-base sm:text-lg leading-snug line-clamp-2 text-balance group-hover:text-brand-red transition-colors">
-                            {d.titular}
-                          </p>
-                          <p className="text-sm text-ink-soft mt-1.5 line-clamp-2 sm:line-clamp-3 text-pretty">
-                            {d.descripcion}
-                          </p>
-                        </div>
-
-                        <div className="flex sm:flex-col gap-4 sm:gap-3 sm:items-end sm:text-right shrink-0
-                                        border-t sm:border-t-0 sm:border-l border-surface-muted pt-3 sm:pt-0 sm:pl-4 sm:w-32">
-                          {[
-                            { value: d.total_apoyos,  label: 'apoyos' },
-                            { value: d.total_aportes, label: 'aportes' },
-                            { value: d.dias_sin_resolver, label: 'días' },
-                          ].map(m => (
-                            <div key={m.label}>
-                              <p className="font-headline text-xl sm:text-2xl tabular-nums leading-none">{m.value}</p>
-                              <p className="text-[11px] text-ink-faint mt-0.5">{m.label}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex items-center gap-3">
-                        <BarraGravedad nivel={d.gravedad} className="flex-1 min-w-0" />
-                        <span className="text-xs font-mono text-ink-soft shrink-0 w-14 text-right">
-                          {GRAVEDAD_LABEL[d.gravedad]}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <li key={d.id}>
+                  <DenunciaCard
+                    denuncia={d}
+                    session={session}
+                    onSelect={id => navigate(`/denuncia/${id}`)}
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
           )}
 
           <p className="text-xs text-ink-faint text-center mt-4">
