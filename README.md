@@ -153,6 +153,53 @@ Abrir `http://localhost:5173`.
 [ ] 13. Con ≥3 aportes resolucion, la denuncia pasa a estado RESUELTA en el muro
 ```
 
+### Paso D — Estados comunitarios (IMPORTANTE)
+
+> **El administrador NO puede marcar “Con avance” ni “Resuelta” a mano.** Esos contadores en `/admin` reflejan lo que hace la comunidad. El admin solo **oculta o restaura** denuncias.
+
+| Estado en UI | Quién lo provoca | Condición exacta |
+|---|---|---|
+| **ACTIVA** | — | Default. No hay suficientes señales comunitarias. |
+| **CON AVANCE** | Ciudadanos | ≥ **2** votos **“Sí progresa”** y más sí que no (`total_progreso_si > total_progreso_no`). |
+| **RESUELTA** | Ciudadanos | ≥ **3** aportes tipo **`resolucion`** (“Confirmo que ya se resolvió”). |
+
+**Prioridad:** si hay ≥3 resoluciones, la denuncia es **RESUELTA** aunque no haya votos de progreso.
+
+#### Cómo pasar a CON AVANCE (paso a paso)
+
+1. Entrar como **ciudadano** (ej. Adolfo) → abrir `/denuncia/:id`.
+2. En **“¿Está progresando?”** → pulsar **“✓ Sí progresa”**.
+3. Repetir con **otro ciudadano distinto** (registrar segunda cuenta en `/login` si hace falta).
+4. Recargar muro o `/admin` → el chip pasa a **CON AVANCE** y el KPI sube.
+
+| Votos sí | Votos no | Resultado |
+|---|---|---|
+| 2 | 0 | ✅ CON AVANCE |
+| 2 | 1 | ✅ CON AVANCE |
+| 2 | 2 | ❌ sigue ACTIVA (no hay mayoría de sí) |
+| 1 | 0 | ❌ sigue ACTIVA (falta 1 voto más) |
+
+> Cada ciudadano tiene **1 voto** por denuncia (`valoraciones_progreso`). Pulsar otra vez el mismo botón **quita** el voto.
+
+#### Cómo pasar a RESUELTA (paso a paso)
+
+1. Entrar como ciudadano → abrir `/denuncia/:id`.
+2. En **“¿Conoces este problema?”** → tipo **“Confirmo que ya se resolvió”**.
+3. Escribir descripción (mín. 5 caracteres en la UI) → **Enviar aporte**.
+4. Enviar **3 aportes** de ese tipo (pueden ser 3 usuarios distintos o la misma cuenta 3 veces).
+5. Recargar → chip **RESUELTA** y KPI **Resueltas** en `/admin` y `/panel-publico`.
+
+#### Qué NO cambia el estado
+
+| Acción | ¿Cambia estado? |
+|---|---|
+| Apoyar denuncia | No |
+| Reportar como falsa | No (solo alerta al admin) |
+| Admin oculta denuncia | No (desaparece del muro, pero el estado calculado sigue igual) |
+| Aportes confirmación / evidencia / detalle | No (solo `resolucion` cuenta para RESUELTA) |
+
+Ver también: [Estados comunitarios — guía completa](#estados-comunitarios--guía-completa).
+
 ### Plan B (si Supabase falla en la presentación)
 
 El archivo `index.html` de la raíz es un **prototipo standalone** que funciona sin backend ni base de datos:
@@ -180,6 +227,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
   - [4. Frontend](#4-frontend)
 - [Variables de entorno](#variables-de-entorno)
 - [Roles de usuario](#roles-de-usuario)
+- [Estados comunitarios — guía completa](#estados-comunitarios--guía-completa)
 - [API — Endpoints disponibles](#api--endpoints-disponibles)
 - [Base de datos — Esquema](#base-de-datos--esquema)
 - [Lo que falta implementar](#lo-que-falta-implementar)
@@ -536,6 +584,67 @@ El rol se verifica en cada request al backend mediante el middleware `requireRol
 
 ---
 
+## Estados comunitarios — guía completa
+
+El estado **no se guarda en la tabla `denuncias`**. Lo calcula la vista SQL `vista_denuncias` cada vez que se consulta el muro, el detalle o el dashboard.
+
+### Reglas de cálculo (SQL)
+
+```sql
+CASE
+  WHEN resoluciones >= 3                          THEN 'resuelta'
+  WHEN progreso_si >= 2 AND progreso_si > progreso_no THEN 'con_avance'
+  ELSE 'activa'
+END
+```
+
+Fuente: `database/migracion_roles_comunitarios.sql` y `database/schema.sql`.
+
+### Tabla resumen
+
+| Estado | Label en UI | Origen en BD | Umbral |
+|---|---|---|---|
+| `activa` | ACTIVA | Default | — |
+| `con_avance` | CON AVANCE | `valoraciones_progreso` | ≥2 `progresando = true` y sí > no |
+| `resuelta` | RESUELTA | `aportes.tipo = 'resolucion'` | ≥3 aportes |
+
+### Acciones en la app (ciudadano)
+
+| Quiero… | Dónde | Qué hacer |
+|---|---|---|
+| Marcar avance | `/denuncia/:id` | Botones **“Sí progresa”** / **“No progresa”** |
+| Confirmar cierre | `/denuncia/:id` | Aporte tipo **“Confirmo que ya se resolvió”** |
+| Reportar falsa | `/denuncia/:id` | Sección **“¿Denuncia falsa o abusiva?”** (motivo ≥ 10 caracteres) |
+
+### Acciones del administrador (`/admin`)
+
+| Puede | No puede |
+|---|---|
+| Ver KPIs (Activas, Con avance, Resueltas, Ocultas, Reportes) | Cambiar estado a mano |
+| Ver cola de reportes | Forzar “Con avance” o “Resuelta” |
+| **Ocultar** / **Restaurar** denuncias | Crear denuncias (solo ciudadanos) |
+
+### Dónde se refleja el estado
+
+- Chip de color en tarjetas del **muro** (`/`)
+- Filtros en **panel público** (`/panel-publico`)
+- KPIs en **moderación** (`/admin`)
+- Detalle de la denuncia (`/denuncia/:id`)
+
+### Demo rápida (2 cuentas ciudadanas)
+
+```text
+1. Adolfo crea denuncia
+2. Adolfo → “Sí progresa”
+3. Segundo ciudadano (cuenta nueva) → “Sí progresa”  → CON AVANCE
+4. Tres aportes “Confirmo que ya se resolvió”          → RESUELTA
+5. Axel en /admin ve subir los contadores; puede ocultar si hay reportes
+```
+
+> Para cambiar los umbrales (ej. 1 voto en vez de 2, o 2 resoluciones en vez de 3), hay que editar el `CASE` en `vista_denuncias` y volver a ejecutar esa parte en Supabase.
+
+---
+
 ## API — Endpoints disponibles
 
 El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/api/*` (el proxy de Vite lo redirige al backend automáticamente).
@@ -676,11 +785,16 @@ El selector de foto sube la imagen al bucket público `denuncias` de Supabase St
 
 **Si la foto no aparece:** verifica JPG/PNG/WEBP (no HEIC), máximo 5 MB, bucket `denuncias` en Storage.
 
-### Valoraciones de progreso
+### Valoraciones de progreso y resolución comunitaria
 
-En el detalle, los **ciudadanos** pueden marcar si el caso **progresa** o **no progresa**. Eso alimenta el estado comunitario `con_avance`. Los conteos se ven en detalle y en las tarjetas del muro como `↑N ↓M`.
+En el detalle (`/denuncia/:id`), los **ciudadanos** pueden:
 
-> Requiere `database/migracion_progreso_ciudadano.sql` en Supabase si la BD se creó antes de esta funcionalidad.
+- **Marcar progreso** — botones “Sí progresa” / “No progresa”. Alimenta el estado `con_avance` (ver [guía de estados](#estados-comunitarios--guía-completa)).
+- **Confirmar resolución** — aporte tipo `resolucion` (“Confirmo que ya se resolvió”). Con **3 o más**, la denuncia pasa a `resuelta`.
+
+Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N ↓M`.
+
+> Requiere `database/migracion_progreso_ciudadano.sql` y `database/migracion_roles_comunitarios.sql` si la BD se creó antes de estas funcionalidades.
 
 ### Panel público vs panel de gestión
 
