@@ -35,11 +35,15 @@ Conexión Postgres: postgresql://postgres:[DB-PASSWORD]@db.xynkalcsaubgseoiiavz.
 ### Paso A — Tareas del encargado de Supabase
 
 **A1.** En **Supabase → SQL Editor**, ejecutar todo el contenido de `database/schema.sql`.
-Esto ya crea **todo**: las 8 tablas, la vista `vista_denuncias` (con `zona_id`/`categoria_id`), la policy para que el frontend lea su propio perfil, y el **trigger de auto-registro** que crea el perfil `ciudadano` cuando alguien se registra desde la app.
+Esto ya crea las tablas, la vista `vista_denuncias`, la policy `usuarios_ven_su_perfil`, el trigger `handle_new_user` y el bucket de fotos.
 
 > Si corriste una versión **anterior** del `schema.sql` (sin estos arreglos), vuelve a ejecutar solo la parte de la vista, la policy `usuarios_ven_su_perfil` y el bloque `handle_new_user` que están al final del archivo actual.
 >
-> 🗺️📷 **Para ubicación (mapa) y fotos:** ejecuta también `database/migracion_ubicacion_fotos.sql` — agrega las columnas `latitud`/`longitud`, actualiza la vista y crea el bucket de Storage `denuncias`. (Si recreas todo desde `schema.sql`, ya viene incluido.)
+> 🗺️📷 **Para ubicación (mapa) y fotos:** ejecuta `database/migracion_ubicacion_fotos.sql` — agrega `latitud`/`longitud`, actualiza la vista y crea el bucket `denuncias`.
+>
+> 🖼️ **Para miniaturas en el muro:** ejecuta `database/migracion_foto_portada.sql` — agrega `foto_portada` a la vista.
+>
+> 📊 **Para valoraciones de progreso:** ejecuta `database/migracion_progreso_ciudadano.sql` — tabla `valoraciones_progreso` y conteos en la vista. (Si recreas todo desde `schema.sql` actual, ya viene incluido.)
 
 **A2.** En **Authentication → URL Configuration**:
 
@@ -113,18 +117,18 @@ Abrir `http://localhost:5173`.
 ### Paso C — Checklist de prueba (flujo de presentación)
 
 ```text
-[ ] 1.  Abrir el muro (/) — carga sin errores
-[ ] 2.  Registrarse como ciudadano nuevo (/login → "Regístrate") o entrar con uno existente
-[ ] 3.  Crear denuncia en /nueva (marca el punto en el mapa y adjunta una foto)
-[ ] 4.  La denuncia aparece en el muro
-[ ] 5.  Abrir el detalle (se ven la foto y el mapa con la ubicación)
-[ ] 6.  Dar apoyo
+[ ] 1.  Abrir el muro (/) — lista vertical con tarjetas horizontales (foto + info)
+[ ] 2.  Registrarse como ciudadano (/login → "Regístrate") o entrar con uno existente
+[ ] 3.  Crear denuncia en /nueva (mapa + foto JPG/PNG, no HEIC)
+[ ] 4.  La denuncia aparece en el muro con miniatura si tiene foto
+[ ] 5.  Abrir el detalle — foto, mapa, barra de gravedad tipo pila
+[ ] 6.  Dar apoyo y marcar si progresa (Sí / No) — solo ciudadanos
 [ ] 7.  Agregar un aporte (se ve el autor sin recargar)
-[ ] 8.  Ver /mis-denuncias (incluye las anónimas propias)
-[ ] 9.  Cerrar sesión e iniciar como municipio@demo.com
-[ ] 10. Abrir /panel — KPIs y ranking de zonas se ven
-[ ] 11. Cambiar el estado de una denuncia
-[ ] 12. Verificar que el estado cambió en el muro/detalle
+[ ] 8.  Ver /mis-denuncias (incluye anónimas propias)
+[ ] 9.  Abrir /panel-publico — estadísticas y denuncias (solo lectura)
+[ ] 10. Cerrar sesión → vuelve al muro
+[ ] 11. Iniciar como municipio@demo.com → /panel — KPIs y cambio de estado
+[ ] 12. Verificar que el estado cambió en muro/detalle
 ```
 
 ### Plan B (si Supabase falla en la presentación)
@@ -156,7 +160,6 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 - [Roles de usuario](#roles-de-usuario)
 - [API — Endpoints disponibles](#api--endpoints-disponibles)
 - [Base de datos — Esquema](#base-de-datos--esquema)
-- [Bugs conocidos y limitaciones actuales](#bugs-conocidos-y-limitaciones-actuales)
 - [Lo que falta implementar](#lo-que-falta-implementar)
 - [Diseño y prototipo](#diseño-y-prototipo)
 - [Decisiones de diseño importantes](#decisiones-de-diseño-importantes)
@@ -173,17 +176,19 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Frontend React + Vite + Tailwind | ✅ Completo |
 | Autenticación Supabase Auth (email + contraseña) | ✅ Completo |
 | Registro de ciudadanos desde la página (signUp + trigger) | ✅ Completo |
-| Muro (`/`) — lista paginada y filtrable | ✅ Completo |
+| Muro (`/`) — lista vertical, tarjetas con foto y barra de gravedad | ✅ Completo |
 | Detalle de denuncia (`/denuncia/:id`) | ✅ Completo |
-| Formulario nueva denuncia (`/nueva`) | ✅ Completo |
-| Panel municipio/cuadrilla (`/panel`) | ✅ Completo |
+| Formulario nueva denuncia (`/nueva`) — solo rol ciudadano | ✅ Completo |
+| Panel municipio/cuadrilla (`/panel`) — gestión de estados | ✅ Completo |
+| Panel público (`/panel-publico`) — estadísticas solo lectura | ✅ Completo |
 | Mis denuncias (`/mis-denuncias`) | ✅ Completo |
+| Valoración de progreso por ciudadanos (Sí / No progresa) | ✅ Completo |
 | Página 404 | ✅ Completo |
 | Layout compartido sin duplicación | ✅ Completo |
 | Constantes centralizadas (`lib/constants.js`) | ✅ Completo |
 | Subida de fotos a Supabase Storage | ✅ Completo |
 | Ubicación en mapa interactivo (Leaflet) | ✅ Completo |
-| Conectar Supabase real (configurar `.env`) | ⏳ Pendiente |
+| Conectar Supabase real (configurar `.env`) | ✅ Completo |
 | Deploy en servidor | ⏳ Pendiente |
 
 ---
@@ -282,8 +287,11 @@ portoSinFiltro/
 │   └── PortoSinFiltro-print.dc.html
 │
 ├── database/
-│   ├── schema.sql               ← Schema completo: tablas, trigger, vista, RLS
-│   └── seed.sql                 ← Datos de prueba (leer comentarios del archivo)
+│   ├── schema.sql                      ← Schema completo: tablas, trigger, vista, RLS
+│   ├── seed.sql                        ← Datos de prueba (leer comentarios del archivo)
+│   ├── migracion_ubicacion_fotos.sql   ← Mapa + Storage (BD existente)
+│   ├── migracion_foto_portada.sql      ← Miniatura en listados (BD existente)
+│   └── migracion_progreso_ciudadano.sql ← Valoraciones Sí/No progresa (BD existente)
 │
 ├── backend/
 │   ├── .env.example             ← Plantilla de variables (copiar a .env y rellenar)
@@ -295,9 +303,9 @@ portoSinFiltro/
 │       ├── middleware/
 │       │   └── auth.js          ← requireAuth() verifica JWT · requireRol() verifica rol
 │       └── routes/
-│           ├── denuncias.js     ← GET lista, GET detalle, POST crear, PATCH estado, POST apoyo
-│           ├── aportes.js       ← GET aportes de denuncia, POST nuevo aporte
-│           └── dashboard.js     ← Estadísticas para municipio/cuadrilla
+│           ├── denuncias.js     ← CRUD, apoyo, progreso, fotos
+│           ├── aportes.js       ← GET/POST aportes
+│           └── dashboard.js     ← Stats gestión + /dashboard/public
 │
 └── frontend/
     ├── .env.example             ← Plantilla de variables (copiar a .env y rellenar)
@@ -315,18 +323,21 @@ portoSinFiltro/
         │   ├── api.js           ← fetch wrapper: inyecta JWT automáticamente en cada petición
         │   └── constants.js     ← Fuente única: CATEGORIAS, ZONAS, ESTADO_*, GRAVEDAD_LABEL, TIPO_APORTE_LABEL
         ├── pages/
-        │   ├── Muro.jsx         ← Lista paginada + filtros zona / categoría / orden
-        │   ├── DetalleDenuncia.jsx  ← Detalle completo + lista de aportes + formulario de aporte
-        │   ├── NuevaDenuncia.jsx    ← Formulario: categoría, zona, descripción, gravedad, foto, anónimo
-        │   ├── Panel.jsx        ← Dashboard municipio/cuadrilla: KPIs, ranking zonas, cambio de estado
-        │   ├── MisDenuncias.jsx ← Denuncias del usuario logueado (ver bugs conocidos)
-        │   ├── Login.jsx        ← Autenticación con email + contraseña
-        │   └── NotFound.jsx     ← Página 404
+        │   ├── Muro.jsx              ← Feed vertical, filtros, DenunciaCard
+        │   ├── DetalleDenuncia.jsx   ← Detalle + apoyo + progreso + aportes
+        │   ├── NuevaDenuncia.jsx     ← Crear denuncia (solo ciudadano)
+        │   ├── Panel.jsx             ← Gestión municipio/cuadrilla
+        │   ├── PanelPublico.jsx      ← Estadísticas públicas (solo lectura)
+        │   ├── MisDenuncias.jsx      ← Denuncias del usuario logueado
+        │   ├── Login.jsx             ← Login + registro ciudadano
+        │   └── NotFound.jsx
         └── components/
             ├── layout/
-            │   └── Layout.jsx   ← Header + footer compartido · prop `back` muestra "← Volver" y oculta ticker
+            │   └── Layout.jsx        ← Header, ticker, Salir → muro
             └── ui/
-                └── DenunciaCard.jsx  ← Tarjeta: titular, chip de estado, apoyo toggle, barra de gravedad
+                ├── DenunciaCard.jsx  ← Tarjeta horizontal (foto + info + apoyo)
+                ├── BarraGravedad.jsx ← Indicador tipo pila (verde → rojo)
+                └── MapaUbicacion.jsx ← Mapa Leaflet
 ```
 
 ---
@@ -456,10 +467,10 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # anon key
 
 | Rol | Acceso |
 |---|---|
-| **Visitante** | Ver todas las denuncias sin login |
-| **Ciudadano** | + Crear denuncias, dar apoyo, agregar aportes, ver sus denuncias |
-| **Cuadrilla** | + Cambiar estado de denuncias, agregar respuestas oficiales, ver panel |
-| **Municipio** | + Todo lo anterior + acceso al dashboard completo |
+| **Visitante** | Ver denuncias, panel público (`/panel-publico`) |
+| **Ciudadano** | + Crear denuncias, apoyar, marcar progreso (Sí/No), aportes, mis denuncias |
+| **Cuadrilla** | + Cambiar estado, respuesta oficial, panel de gestión (`/panel`) |
+| **Municipio** | + Dashboard de gestión (`/panel`) |
 
 **Cómo asignar un rol a un usuario:**
 
@@ -487,10 +498,11 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
 | Método | Ruta | Auth requerida | Descripción |
 |---|---|---|---|
 | `GET` | `/denuncias` | No | Lista paginada, pública |
-| `GET` | `/denuncias/:id` | No | Detalle de una denuncia |
+| `GET` | `/denuncias/:id` | Opcional | Detalle (+ `mi_progreso` si hay sesión) |
 | `POST` | `/denuncias` | ciudadano | Crear nueva denuncia |
 | `PATCH` | `/denuncias/:id/estado` | cuadrilla o municipio | Cambiar estado + respuesta oficial |
 | `POST` | `/denuncias/:id/apoyo` | cualquier usuario logueado | Toggle de apoyo (1 por usuario) |
+| `POST` | `/denuncias/:id/progreso` | ciudadano | Marcar si progresa (`progresando: true/false`, toggle) |
 | `GET` | `/denuncias/:id/fotos` | No | Lista de fotos de una denuncia |
 | `POST` | `/denuncias/:id/foto` | cualquier usuario logueado | Subir foto (multipart, campo `foto`) |
 
@@ -535,11 +547,18 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
 ```
 Valores válidos para `tipo`: `confirmacion`, `evidencia`, `detalle`, `relacionado`
 
+**Body de `POST /denuncias/:id/progreso`:**
+```json
+{ "progresando": true }
+```
+`true` = sí progresa · `false` = no progresa. Volver a enviar el mismo valor **quita** el voto. Respuesta incluye `mi_progreso`, `total_progreso_si`, `total_progreso_no`.
+
 ### Dashboard
 
 | Método | Ruta | Auth requerida | Descripción |
 |---|---|---|---|
-| `GET` | `/dashboard` | municipio o cuadrilla | KPIs, top zonas, top categorías, tendencia 7 días |
+| `GET` | `/dashboard/public` | No | KPIs, zonas, categorías, tendencia 7 días (solo lectura) |
+| `GET` | `/dashboard` | municipio o cuadrilla | Mismas estadísticas (panel de gestión) |
 
 ---
 
@@ -555,15 +574,17 @@ Valores válidos para `tipo`: `confirmacion`, `evidencia`, `detalle`, `relaciona
 | `denuncias` | Núcleo del sistema: autor, categoría, zona, descripción, gravedad, estado |
 | `fotos_denuncia` | URLs de fotos subidas a Supabase Storage |
 | `aportes` | Confirmaciones y comentarios de ciudadanos sobre una denuncia |
-| `reacciones` | Apoyos — `UNIQUE(denuncia_id, usuario_id)` garantiza 1 apoyo por usuario |
-| `historial_estados` | Log inmutable de cada cambio de estado con respuesta oficial |
+| `reacciones` | Apoyos — `UNIQUE(denuncia_id, usuario_id)` |
+| `valoraciones_progreso` | Opinión ciudadana: ¿progresa? (`progresando` true/false, 1 voto por usuario) |
+| `historial_estados` | Log de cambios de estado con respuesta oficial |
 
 ### Vista `vista_denuncias`
 
 Usada por todos los endpoints de lectura pública. Une las tablas y:
 - Aplica anonimato: si `anonima = true`, devuelve `NULL` para `autor_id` y `'Ciudadano Anónimo'` para `autor_nombre`
-- Calcula `dias_sin_resolver` (días desde `created_at`)
-- Cuenta `total_apoyos`, `total_aportes`, `total_fotos`
+- Calcula `dias_sin_resolver`, `total_apoyos`, `total_aportes`, `total_fotos`
+- Cuenta `total_progreso_si` y `total_progreso_no` (valoraciones ciudadanas)
+- Incluye `foto_portada` (primera foto) para miniaturas en el muro
 - Excluye denuncias con `oculta = true`
 
 ### Trigger `trg_denuncias_updated_at`
@@ -597,7 +618,20 @@ El selector de foto sube la imagen al bucket público `denuncias` de Supabase St
 
 > ⚠️ Requiere haber creado el bucket `denuncias` en Supabase (lo crea `schema.sql`; si ya tenías la BD, córrelo con `database/migracion_ubicacion_fotos.sql`).
 
-**Si la foto no aparece:** verifica que sea JPG/PNG/WEBP (no HEIC), que pese menos de 5 MB, y que el bucket `denuncias` exista en Supabase → Storage.
+**Si la foto no aparece:** verifica JPG/PNG/WEBP (no HEIC), máximo 5 MB, bucket `denuncias` en Storage.
+
+### Valoraciones de progreso
+
+En el detalle, los **ciudadanos** pueden marcar si el caso **progresa** o **no progresa**. No cambia el estado oficial (eso lo hace municipio/cuadrilla en `/panel`). Los conteos se ven en detalle y en las tarjetas del muro como `↑N ↓M`.
+
+> Requiere `database/migracion_progreso_ciudadano.sql` en Supabase si la BD se creó antes de esta funcionalidad.
+
+### Panel público vs panel de gestión
+
+| Ruta | Quién | Qué hace |
+|---|---|---|
+| `/panel-publico` | Todos (visitantes incluidos) | Estadísticas + listado de denuncias **solo lectura** |
+| `/panel` | municipio, cuadrilla | KPIs + **cambiar estados** y respuesta oficial |
 
 ---
 
@@ -605,9 +639,10 @@ El selector de foto sube la imagen al bucket público `denuncias` de Supabase St
 
 ### Para conectar y entregar
 
-- [x] **Configurar Supabase** — proyecto, `schema.sql`, `.env`, usuarios de prueba ✅
-- [x] **Subida de fotos** — conectada al backend (`multer`) y Supabase Storage ✅
-- [x] **Ubicación en mapa** — Leaflet en `NuevaDenuncia` y detalle ✅
+- [x] Configurar Supabase — proyecto, schema, migraciones, `.env`, usuarios de prueba ✅
+- [x] Subida de fotos — Storage + validación de formatos ✅
+- [x] Ubicación en mapa — Leaflet ✅
+- [x] Panel público y valoraciones de progreso ✅
 
 ### Media prioridad
 
