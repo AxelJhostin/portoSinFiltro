@@ -4,12 +4,11 @@ import { requireAuth, requireRol } from '../middleware/auth.js';
 
 const router = Router();
 
-async function contarEstado(estado) {
+async function contarEstadoComunitario(estado) {
   const { count, error } = await supabase
-    .from('denuncias')
+    .from('vista_denuncias')
     .select('*', { count: 'exact', head: true })
-    .eq('estado', estado)
-    .eq('oculta', false);
+    .eq('estado', estado);
   if (error) throw error;
   return count ?? 0;
 }
@@ -28,28 +27,34 @@ function agrupar(data, clave, limite) {
 
 export async function getDashboardStats() {
   const [
-    pendiente,
-    en_proceso,
-    resuelto,
+    activa,
+    con_avance,
+    resuelta,
     { data: denZonas, error: errZonas },
     { data: denCats,  error: errCats  },
     { data: recientes, error: errRec  },
+    { count: ocultas, error: errOcultas },
+    { count: reportes, error: errReportes },
   ] = await Promise.all([
-    contarEstado('pendiente'),
-    contarEstado('en_proceso'),
-    contarEstado('resuelto'),
-    supabase.from('vista_denuncias').select('zona').eq('oculta', false),
-    supabase.from('vista_denuncias').select('categoria').eq('oculta', false),
+    contarEstadoComunitario('activa'),
+    contarEstadoComunitario('con_avance'),
+    contarEstadoComunitario('resuelta'),
+    supabase.from('vista_denuncias').select('zona'),
+    supabase.from('vista_denuncias').select('categoria'),
     supabase
       .from('denuncias')
       .select('created_at')
       .eq('oculta', false)
       .gte('created_at', new Date(Date.now() - 6 * 86_400_000).toISOString()),
+    supabase.from('denuncias').select('*', { count: 'exact', head: true }).eq('oculta', true),
+    supabase.from('reportes_denuncia').select('*', { count: 'exact', head: true }),
   ]);
 
   if (errZonas) throw errZonas;
   if (errCats)  throw errCats;
   if (errRec)   throw errRec;
+  if (errOcultas) throw errOcultas;
+  if (errReportes) throw errReportes;
 
   const zonas      = agrupar(denZonas,  'zona',      5);
   const categorias = agrupar(denCats,   'categoria', 6);
@@ -65,30 +70,34 @@ export async function getDashboardStats() {
   });
   const tendencia = Object.entries(diasObj).map(([fecha, total]) => ({ fecha, total }));
 
-  const estados = { pendiente, en_proceso, resuelto };
+  const estados = { activa, con_avance, resuelta };
 
   return {
     estados,
-    total: pendiente + en_proceso + resuelto,
+    total: activa + con_avance + resuelta,
     zonas,
     categorias,
     tendencia,
+    ocultas: ocultas ?? 0,
+    reportes: reportes ?? 0,
   };
 }
 
 // Vista pública — ciudadanos y visitantes (solo lectura)
 router.get('/public', async (_req, res, next) => {
   try {
-    res.json(await getDashboardStats());
+    const stats = await getDashboardStats();
+    const { ocultas, reportes, ...publico } = stats;
+    res.json(publico);
   } catch (err) {
     next(err);
   }
 });
 
-// Gestión — municipio y cuadrilla
+// Gestión — administradores
 router.get('/',
   requireAuth,
-  requireRol('municipio', 'cuadrilla'),
+  requireRol('administrador'),
   async (_req, res, next) => {
     try {
       res.json(await getDashboardStats());

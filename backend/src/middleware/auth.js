@@ -72,8 +72,8 @@ export function requireRol(...roles) {
       const actual = req.user?.rol ?? 'desconocido';
       const esperados = roles.join(' o ');
       return res.status(403).json({
-        error: actual === 'municipio' || actual === 'cuadrilla'
-          ? `Tu cuenta es de ${actual}. Solo ciudadanos pueden publicar denuncias. Inicia sesión con una cuenta de ciudadano.`
+        error: actual === 'administrador'
+          ? 'Tu cuenta es de administrador. Esta acción es solo para ciudadanos.'
           : `Sin permisos para esta acción (se requiere rol: ${esperados}).`,
       });
     }

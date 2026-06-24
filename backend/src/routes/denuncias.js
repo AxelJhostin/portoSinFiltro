@@ -55,7 +55,7 @@ router.get('/',
   optionalAuth,
   query('zona_id').optional().isInt(),
   query('categoria_id').optional().isInt(),
-  query('estado').optional().isIn(['pendiente', 'en_proceso', 'resuelto']),
+  query('estado').optional().isIn(['activa', 'con_avance', 'resuelta']),
   query('orden').optional().isIn(['reciente', 'apoyos', 'gravedad']),
   query('pagina').optional().isInt({ min: 1 }),
   query('autor_id').optional().isUUID(),
@@ -128,21 +128,33 @@ router.get('/:id',
     if (error) return res.status(404).json({ error: 'Denuncia no encontrada' });
 
     let mi_progreso = null;
+    let ya_reporto = false;
     if (req.user) {
-      const { data: voto } = await supabase
-        .from('valoraciones_progreso')
-        .select('progresando')
-        .eq('denuncia_id', denuncia_id)
-        .eq('usuario_id', req.user.id)
-        .maybeSingle();
+      const [{ data: voto }, { data: reporte }] = await Promise.all([
+        supabase
+          .from('valoraciones_progreso')
+          .select('progresando')
+          .eq('denuncia_id', denuncia_id)
+          .eq('usuario_id', req.user.id)
+          .maybeSingle(),
+        supabase
+          .from('reportes_denuncia')
+          .select('id')
+          .eq('denuncia_id', denuncia_id)
+          .eq('usuario_id', req.user.id)
+          .maybeSingle(),
+      ]);
       mi_progreso = voto?.progresando ?? null;
+      ya_reporto = !!reporte;
     }
 
     res.json({
       ...data,
       total_progreso_si:  data.total_progreso_si  ?? 0,
       total_progreso_no:  data.total_progreso_no  ?? 0,
+      total_reportes:     data.total_reportes     ?? 0,
       mi_progreso,
+      ya_reporto,
     });
   }
 );
@@ -186,45 +198,74 @@ router.post('/',
   }
 );
 
-// PATCH /denuncias/:id/estado — Cambiar estado (cuadrilla o municipio)
-router.patch('/:id/estado',
+// POST /denuncias/:id/reporte — Ciudadano reporta denuncia falsa
+router.post('/:id/reporte',
   requireAuth,
-  requireRol('cuadrilla', 'municipio'),
+  requireRol('ciudadano'),
   param('id').isInt(),
-  body('estado').isIn(['pendiente', 'en_proceso', 'resuelto']),
-  body('respuesta').optional().trim().isLength({ max: 500 }),
+  body('motivo').trim().isLength({ min: 10, max: 300 }),
   validate,
   async (req, res) => {
-    const { estado, respuesta } = req.body;
     const denuncia_id = Number(req.params.id);
+    const usuario_id = req.user.id;
+    const { motivo } = req.body;
 
-    // Obtener estado actual
-    const { data: actual, error: fetchErr } = await supabase
+    const { data: denuncia, error: fetchErr } = await supabase
       .from('denuncias')
-      .select('estado')
+      .select('id, autor_id, oculta')
       .eq('id', denuncia_id)
       .single();
 
-    if (fetchErr) return res.status(404).json({ error: 'Denuncia no encontrada' });
+    if (fetchErr || !denuncia) {
+      return res.status(404).json({ error: 'Denuncia no encontrada' });
+    }
+    if (denuncia.oculta) {
+      return res.status(400).json({ error: 'Esta denuncia ya no está visible.' });
+    }
+    if (denuncia.autor_id === usuario_id) {
+      return res.status(400).json({ error: 'No puedes reportar tu propia denuncia.' });
+    }
 
-    // Actualizar estado
-    const { error: updateErr } = await supabase
+    const { error: insErr } = await supabase
+      .from('reportes_denuncia')
+      .insert({ denuncia_id, usuario_id, motivo });
+
+    if (insErr) {
+      if (insErr.code === '23505') {
+        return res.status(409).json({ error: 'Ya reportaste esta denuncia.' });
+      }
+      return res.status(500).json({ error: insErr.message });
+    }
+
+    const { count } = await supabase
+      .from('reportes_denuncia')
+      .select('*', { count: 'exact', head: true })
+      .eq('denuncia_id', denuncia_id);
+
+    res.status(201).json({ ok: true, total_reportes: count ?? 1 });
+  }
+);
+
+// PATCH /denuncias/:id/ocultar — Admin oculta o restaura denuncia
+router.patch('/:id/ocultar',
+  requireAuth,
+  requireRol('administrador'),
+  param('id').isInt(),
+  body('oculta').isBoolean(),
+  validate,
+  async (req, res) => {
+    const denuncia_id = Number(req.params.id);
+    const { oculta } = req.body;
+
+    const { data, error } = await supabase
       .from('denuncias')
-      .update({ estado, cuadrilla_id: req.user.id })
-      .eq('id', denuncia_id);
+      .update({ oculta })
+      .eq('id', denuncia_id)
+      .select('id, oculta')
+      .single();
 
-    if (updateErr) return res.status(500).json({ error: updateErr.message });
-
-    // Registrar en historial
-    await supabase.from('historial_estados').insert({
-      denuncia_id,
-      estado_anterior: actual.estado,
-      estado_nuevo: estado,
-      cambiado_por: req.user.id,
-      respuesta,
-    });
-
-    res.json({ ok: true, estado });
+    if (error) return res.status(404).json({ error: 'Denuncia no encontrada' });
+    res.json({ ok: true, oculta: data.oculta });
   }
 );
 

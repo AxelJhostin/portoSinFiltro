@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import denunciasRouter from './routes/denuncias.js';
 import aportesRouter from './routes/aportes.js';
 import dashboardRouter from './routes/dashboard.js';
+import adminRouter from './routes/admin.js';
 
 // ─── Validar variables de entorno obligatorias antes de arrancar ─────────────
 const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
@@ -53,6 +54,7 @@ app.get('/health', (_, res) => res.json({ ok: true, ts: new Date().toISOString()
 app.use('/denuncias', denunciasRouter);
 app.use('/denuncias', writeLimiter, aportesRouter);   // escrituras de aportes limitadas
 app.use('/dashboard', dashboardRouter);
+app.use('/admin', adminRouter);
 
 // ─── Error handler global ────────────────────────────────────────────────────
 // Captura errores lanzados con next(err) o en middlewares síncronos
