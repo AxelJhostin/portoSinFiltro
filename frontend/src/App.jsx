@@ -5,7 +5,7 @@ import Muro from './pages/Muro';
 import Login from './pages/Login';
 import DetalleDenuncia from './pages/DetalleDenuncia';
 import NuevaDenuncia from './pages/NuevaDenuncia';
-import Panel from './pages/Panel';
+import Admin from './pages/Admin';
 import PanelPublico from './pages/PanelPublico';
 import MisDenuncias from './pages/MisDenuncias';
 import NotFound from './pages/NotFound';
@@ -47,7 +47,8 @@ function App() {
         <Route path="/"              element={<Muro {...shared} />} />
         <Route path="/denuncia/:id"  element={<DetalleDenuncia {...shared} />} />
         <Route path="/nueva"         element={<NuevaDenuncia {...shared} />} />
-        <Route path="/panel"         element={<Panel {...shared} />} />
+        <Route path="/admin"         element={<Admin {...shared} />} />
+        <Route path="/panel"         element={<Navigate to="/admin" replace />} />
         <Route path="/panel-publico" element={<PanelPublico {...shared} />} />
         <Route path="/mis-denuncias" element={<MisDenuncias {...shared} />} />
         <Route path="/login"         element={session ? <Navigate to="/" replace /> : <Login />} />

@@ -33,12 +33,12 @@ export default function Layout({ session, perfil, children, back }) {
           <nav className="flex items-center gap-3">
             {session ? (
               <>
-                {perfil && ['municipio', 'cuadrilla'].includes(perfil.rol) && (
+                {perfil?.rol === 'administrador' && (
                   <Link
-                    to="/panel"
+                    to="/admin"
                     className="text-gray-300 hover:text-white text-sm transition-colors"
                   >
-                    Panel
+                    Admin
                   </Link>
                 )}
                 {perfil?.rol === 'ciudadano' && (

@@ -44,7 +44,8 @@ export const api = {
     list:   (params = {}) => req('GET', `/denuncias?${new URLSearchParams(params)}`),
     get:    (id)          => req('GET', `/denuncias/${id}`),
     create: (body)        => req('POST', '/denuncias', body),
-    estado: (id, body)    => req('PATCH', `/denuncias/${id}/estado`, body),
+    ocultar: (id, body)   => req('PATCH', `/denuncias/${id}/ocultar`, body),
+    reporte: (id, body)   => req('POST', `/denuncias/${id}/reporte`, body),
     apoyo:  (id)          => req('POST', `/denuncias/${id}/apoyo`),
     progreso: (id, progresando) => req('POST', `/denuncias/${id}/progreso`, { progresando }),
     fotos:  (id)          => req('GET', `/denuncias/${id}/fotos`),
@@ -57,5 +58,9 @@ export const api = {
   dashboard: {
     get:    () => req('GET', '/dashboard'),
     public: () => req('GET', '/dashboard/public'),
+  },
+  admin: {
+    denuncias: (params = {}) => req('GET', `/admin/denuncias?${new URLSearchParams(params)}`),
+    reportes:  (params = {}) => req('GET', `/admin/reportes?${new URLSearchParams(params)}`),
   },
 };
