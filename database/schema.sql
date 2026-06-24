@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE perfiles (
   id            UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   nombre        TEXT NOT NULL,
-  rol           TEXT NOT NULL CHECK (rol IN ('ciudadano', 'cuadrilla', 'municipio')),
+  rol           TEXT NOT NULL CHECK (rol IN ('ciudadano', 'administrador')),
   activo        BOOLEAN NOT NULL DEFAULT true,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -71,10 +71,9 @@ CREATE TABLE denuncias (
   latitud       DOUBLE PRECISION,        -- ubicación en el mapa (opcional)
   longitud      DOUBLE PRECISION,
   titular       TEXT NOT NULL,           -- auto-generado en el backend
-  estado        TEXT NOT NULL DEFAULT 'pendiente'
-                  CHECK (estado IN ('pendiente', 'en_proceso', 'resuelto')),
-  cuadrilla_id  UUID REFERENCES perfiles(id),  -- asignada por municipio
-  oculta        BOOLEAN NOT NULL DEFAULT false, -- moderación
+  -- estado comunitario se calcula en vista_denuncias (activa / con_avance / resuelta)
+  estado_legacy TEXT NOT NULL DEFAULT 'activa',  -- columna histórica, no usar en app
+  oculta        BOOLEAN NOT NULL DEFAULT false, -- moderación admin
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -112,7 +111,7 @@ CREATE TABLE aportes (
   autor_id      UUID NOT NULL REFERENCES perfiles(id),
   anonimo       BOOLEAN NOT NULL DEFAULT false,
   tipo          TEXT NOT NULL
-                  CHECK (tipo IN ('confirmacion', 'evidencia', 'detalle', 'relacionado')),
+                  CHECK (tipo IN ('confirmacion', 'evidencia', 'detalle', 'relacionado', 'resolucion')),
   contenido     TEXT,
   foto_url      TEXT,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -143,7 +142,19 @@ CREATE TABLE valoraciones_progreso (
 );
 
 -- ─────────────────────────────────────────────
--- 8. HISTORIAL DE ESTADOS
+-- 7c. REPORTES DE DENUNCIA (ciudadanos — posible falsa)
+-- ─────────────────────────────────────────────
+CREATE TABLE reportes_denuncia (
+  id            SERIAL PRIMARY KEY,
+  denuncia_id   INTEGER NOT NULL REFERENCES denuncias(id) ON DELETE CASCADE,
+  usuario_id    UUID NOT NULL REFERENCES perfiles(id),
+  motivo        TEXT NOT NULL CHECK (char_length(trim(motivo)) >= 10),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (denuncia_id, usuario_id)
+);
+
+-- ─────────────────────────────────────────────
+-- 8. HISTORIAL DE ESTADOS (legado — ya no se usa en la app)
 -- ─────────────────────────────────────────────
 CREATE TABLE historial_estados (
   id               SERIAL PRIMARY KEY,
@@ -176,7 +187,14 @@ SELECT
   d.latitud,
   d.longitud,
   d.titular,
-  d.estado,
+  CASE
+    WHEN COUNT(DISTINCT CASE WHEN a.tipo = 'resolucion' THEN a.id END) >= 3 THEN 'resuelta'
+    WHEN COUNT(DISTINCT CASE WHEN vp.progresando = true  THEN vp.id END) >= 2
+     AND COUNT(DISTINCT CASE WHEN vp.progresando = true  THEN vp.id END)
+       > COUNT(DISTINCT CASE WHEN vp.progresando = false THEN vp.id END)
+    THEN 'con_avance'
+    ELSE 'activa'
+  END AS estado,
   d.oculta,
   d.created_at,
   d.updated_at,
@@ -186,6 +204,7 @@ SELECT
   COUNT(DISTINCT f.id)  AS total_fotos,
   COUNT(DISTINCT CASE WHEN vp.progresando = true  THEN vp.id END) AS total_progreso_si,
   COUNT(DISTINCT CASE WHEN vp.progresando = false THEN vp.id END) AS total_progreso_no,
+  COUNT(DISTINCT rep.id) AS total_reportes,
   (
     SELECT f2.url
     FROM fotos_denuncia f2
@@ -201,6 +220,7 @@ FROM denuncias d
   LEFT JOIN aportes     a ON a.denuncia_id = d.id
   LEFT JOIN fotos_denuncia f ON f.denuncia_id = d.id
   LEFT JOIN valoraciones_progreso vp ON vp.denuncia_id = d.id
+  LEFT JOIN reportes_denuncia     rep ON rep.denuncia_id = d.id
 WHERE d.oculta = false
 GROUP BY d.id, p.nombre, c.nombre, c.slug, z.nombre;
 
@@ -214,6 +234,7 @@ ALTER TABLE fotos_denuncia  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE aportes         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reacciones      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE valoraciones_progreso ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reportes_denuncia     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historial_estados ENABLE ROW LEVEL SECURITY;
 
 -- El backend usa la service_role key (bypassa RLS), así que
@@ -235,7 +256,7 @@ CREATE POLICY "usuarios_ven_su_perfil" ON perfiles
 -- REGISTRO DE CIUDADANOS (auto-perfil)
 -- Al crearse un usuario en auth.users (vía signUp desde la app),
 -- se crea automáticamente su perfil con rol 'ciudadano'.
--- Los roles 'cuadrilla' y 'municipio' se asignan manualmente.
+-- Los roles 'administrador' se asignan manualmente en Supabase.
 -- ─────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
