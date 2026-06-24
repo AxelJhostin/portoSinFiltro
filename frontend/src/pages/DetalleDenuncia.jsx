@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import Layout from '../components/layout/Layout';
+import MapaUbicacion from '../components/ui/MapaUbicacion';
 import { ESTADO_LABEL, ESTADO_COLOR, GRAVEDAD_LABEL, TIPO_APORTE_LABEL } from '../lib/constants';
 
 export default function DetalleDenuncia({ session, perfil }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const avisoFoto = searchParams.get('foto') === 'error';
 
   const [denuncia, setDenuncia] = useState(null);
   const [aportes, setAportes]   = useState([]);
+  const [fotos, setFotos]       = useState([]);
   const [cargando, setCargando] = useState(true);
   const [apoyado, setApoyado]   = useState(false);
   const [apoyos, setApoyos]     = useState(0);
@@ -29,6 +33,12 @@ export default function DetalleDenuncia({ session, perfil }) {
         setDenuncia(d);
         setApoyos(d.total_apoyos);
         setAportes(a);
+        try {
+          const f = await api.denuncias.fotos(id);
+          setFotos(f);
+        } catch {
+          setFotos([]);
+        }
       } catch {
         navigate('/', { replace: true });
       } finally {
@@ -89,6 +99,13 @@ export default function DetalleDenuncia({ session, perfil }) {
     <Layout session={session} perfil={perfil} back>
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
+        {avisoFoto && (
+          <div className="bg-amber-50 border border-brand-amber rounded-card px-4 py-3 text-sm text-ink">
+            La denuncia se publicó, pero <strong>la foto no se pudo subir</strong>.
+            Usa una imagen en formato <strong>JPG, PNG o WEBP</strong> (no HEIC) de máximo 5 MB.
+          </div>
+        )}
+
         {/* Tarjeta principal */}
         <article className="card p-6">
           <div className="flex items-center justify-between mb-3">
@@ -146,6 +163,39 @@ export default function DetalleDenuncia({ session, perfil }) {
             </button>
           </div>
         </article>
+
+        {/* Fotos */}
+        {fotos.length > 0 && (
+          <section>
+            <h3 className="font-headline text-lg mb-3">Fotos</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {fotos.map(f => (
+                <a
+                  key={f.id}
+                  href={f.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded-card overflow-hidden border border-surface-muted bg-surface-card"
+                >
+                  <img
+                    src={f.url}
+                    alt="Foto de la denuncia"
+                    loading="lazy"
+                    className="w-full h-32 object-cover hover:opacity-90 transition-opacity"
+                  />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Ubicación */}
+        {denuncia.latitud != null && denuncia.longitud != null && (
+          <section>
+            <h3 className="font-headline text-lg mb-3">Ubicación</h3>
+            <MapaUbicacion lat={denuncia.latitud} lng={denuncia.longitud} alto="h-72" />
+          </section>
+        )}
 
         {/* Aportes */}
         <section>

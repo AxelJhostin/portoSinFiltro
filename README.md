@@ -38,6 +38,8 @@ Conexión Postgres: postgresql://postgres:[DB-PASSWORD]@db.xynkalcsaubgseoiiavz.
 Esto ya crea **todo**: las 8 tablas, la vista `vista_denuncias` (con `zona_id`/`categoria_id`), la policy para que el frontend lea su propio perfil, y el **trigger de auto-registro** que crea el perfil `ciudadano` cuando alguien se registra desde la app.
 
 > Si corriste una versión **anterior** del `schema.sql` (sin estos arreglos), vuelve a ejecutar solo la parte de la vista, la policy `usuarios_ven_su_perfil` y el bloque `handle_new_user` que están al final del archivo actual.
+>
+> 🗺️📷 **Para ubicación (mapa) y fotos:** ejecuta también `database/migracion_ubicacion_fotos.sql` — agrega las columnas `latitud`/`longitud`, actualiza la vista y crea el bucket de Storage `denuncias`. (Si recreas todo desde `schema.sql`, ya viene incluido.)
 
 **A2.** En **Authentication → URL Configuration**:
 
@@ -113,9 +115,9 @@ Abrir `http://localhost:5173`.
 ```text
 [ ] 1.  Abrir el muro (/) — carga sin errores
 [ ] 2.  Registrarse como ciudadano nuevo (/login → "Regístrate") o entrar con uno existente
-[ ] 3.  Crear denuncia en /nueva
+[ ] 3.  Crear denuncia en /nueva (marca el punto en el mapa y adjunta una foto)
 [ ] 4.  La denuncia aparece en el muro
-[ ] 5.  Abrir el detalle de la denuncia
+[ ] 5.  Abrir el detalle (se ven la foto y el mapa con la ubicación)
 [ ] 6.  Dar apoyo
 [ ] 7.  Agregar un aporte (se ve el autor sin recargar)
 [ ] 8.  Ver /mis-denuncias (incluye las anónimas propias)
@@ -179,7 +181,8 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Página 404 | ✅ Completo |
 | Layout compartido sin duplicación | ✅ Completo |
 | Constantes centralizadas (`lib/constants.js`) | ✅ Completo |
-| Subida de fotos (UI lista, storage pendiente) | 🔧 Parcial |
+| Subida de fotos a Supabase Storage | ✅ Completo |
+| Ubicación en mapa interactivo (Leaflet) | ✅ Completo |
 | Conectar Supabase real (configurar `.env`) | ⏳ Pendiente |
 | Deploy en servidor | ⏳ Pendiente |
 
@@ -237,7 +240,7 @@ Después de instalar, necesitas configurar Supabase (ver sección siguiente) y l
 - **Supabase JS** (service role / secret key) — acceso a la BD con permisos de administrador
 - **jose** — verificación de tokens JWT (ES256) de Supabase Auth contra el JWKS
 - **express-validator** — validación de entradas en cada ruta
-- **multer** — preparado para subida de fotos (pendiente de conectar)
+- **multer** — recibe la foto y la sube a Supabase Storage (bucket `denuncias`)
 - **dotenv** — variables de entorno
 
 ### Base de datos
@@ -488,6 +491,8 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
 | `POST` | `/denuncias` | ciudadano | Crear nueva denuncia |
 | `PATCH` | `/denuncias/:id/estado` | cuadrilla o municipio | Cambiar estado + respuesta oficial |
 | `POST` | `/denuncias/:id/apoyo` | cualquier usuario logueado | Toggle de apoyo (1 por usuario) |
+| `GET` | `/denuncias/:id/fotos` | No | Lista de fotos de una denuncia |
+| `POST` | `/denuncias/:id/foto` | cualquier usuario logueado | Subir foto (multipart, campo `foto`) |
 
 **Parámetros opcionales de `GET /denuncias`:**
 ```
@@ -505,9 +510,13 @@ El backend corre en `http://localhost:4000`. Desde el frontend siempre usar `/ap
   "zona_id": 3,
   "descripcion": "Descripción del problema (mínimo 20, máximo 1000 caracteres)",
   "gravedad": 4,
-  "anonima": false
+  "anonima": false,
+  "latitud": -1.0546,
+  "longitud": -80.4545
 }
 ```
+
+`latitud` y `longitud` son opcionales (ubicación marcada en el mapa).
 
 ### Aportes / Confirmaciones
 
@@ -568,11 +577,27 @@ Se dispara en cada `UPDATE` de la tabla `denuncias` y actualiza automáticamente
 
 ---
 
-## Limitaciones actuales
+## Ubicación y fotos
 
-### Subida de fotos — solo UI
+### Ubicación (mapa)
 
-El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local pero no lo envía al backend. La lógica de subida a Supabase Storage y el endpoint `multer` en el backend están pendientes. El resto del formulario funciona con normalidad.
+`NuevaDenuncia.jsx` incluye un mapa interactivo (Leaflet + OpenStreetMap) centrado en Portoviejo. El ciudadano hace clic para marcar el punto exacto (o usa "Usar mi ubicación" vía GPS del navegador). Las coordenadas se guardan en `denuncias.latitud` / `denuncias.longitud` y se muestran en el detalle. El mapa **requiere internet** (descarga los tiles de OpenStreetMap).
+
+### Fotos (Supabase Storage)
+
+El selector de foto sube la imagen al bucket público `denuncias` de Supabase Storage a través del backend (`POST /denuncias/:id/foto`, con `multer` + service key). La URL pública se guarda en `fotos_denuncia` y las imágenes se muestran en la sección **Fotos** del detalle de la denuncia.
+
+| Restricción | Valor |
+|---|---|
+| Formatos permitidos | **JPG, PNG, WEBP** |
+| Tamaño máximo | 5 MB |
+| Formatos NO soportados | **HEIC/HEIF** (fotos de iPhone/Mac) — exportar como JPG antes de subir |
+
+**Flujo:** primero se crea la denuncia (`POST /denuncias`), luego se sube la foto con el `id` recibido. Si la foto falla, la denuncia igual se publica y la app muestra un aviso en el detalle.
+
+> ⚠️ Requiere haber creado el bucket `denuncias` en Supabase (lo crea `schema.sql`; si ya tenías la BD, córrelo con `database/migracion_ubicacion_fotos.sql`).
+
+**Si la foto no aparece:** verifica que sea JPG/PNG/WEBP (no HEIC), que pese menos de 5 MB, y que el bucket `denuncias` exista en Supabase → Storage.
 
 ---
 
@@ -580,8 +605,9 @@ El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local per
 
 ### Para conectar y entregar
 
-- [ ] **Configurar Supabase** — crear proyecto, ejecutar `schema.sql`, copiar claves a `.env`
-- [ ] **Subida de fotos** — conectar el selector (ya en UI) con `multer` en el backend y Supabase Storage
+- [x] **Configurar Supabase** — proyecto, `schema.sql`, `.env`, usuarios de prueba ✅
+- [x] **Subida de fotos** — conectada al backend (`multer`) y Supabase Storage ✅
+- [x] **Ubicación en mapa** — Leaflet en `NuevaDenuncia` y detalle ✅
 
 ### Media prioridad
 
@@ -591,7 +617,6 @@ El selector de foto en `NuevaDenuncia.jsx` guarda el archivo en estado local per
 
 ### Post-entrega
 
-- [ ] **Mapa interactivo** — denuncias georreferenciadas con Leaflet.js
 - [ ] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar
 - [ ] **PWA** — app instalable en móviles
 - [ ] **Deploy** — frontend en Vercel (gratis), backend en el servidor de la universidad

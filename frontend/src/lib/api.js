@@ -20,6 +20,25 @@ async function req(method, path, body) {
   return json;
 }
 
+// Subida multipart (no usa Content-Type JSON; el navegador pone el boundary)
+async function upload(path, file, campo = 'foto') {
+  const form = new FormData();
+  form.append(campo, file);
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { ...(await authHeaders()) },
+    body: form,
+  });
+  let json;
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error(`Error al subir la foto (HTTP ${res.status}).`);
+  }
+  if (!res.ok) throw new Error(json.error || 'Error al subir la foto');
+  return json;
+}
+
 export const api = {
   denuncias: {
     list:   (params = {}) => req('GET', `/denuncias?${new URLSearchParams(params)}`),
@@ -27,6 +46,8 @@ export const api = {
     create: (body)        => req('POST', '/denuncias', body),
     estado: (id, body)    => req('PATCH', `/denuncias/${id}/estado`, body),
     apoyo:  (id)          => req('POST', `/denuncias/${id}/apoyo`),
+    fotos:  (id)          => req('GET', `/denuncias/${id}/fotos`),
+    subirFoto: (id, file) => upload(`/denuncias/${id}/foto`, file),
   },
   aportes: {
     list:   (id)          => req('GET', `/denuncias/${id}/aportes`),

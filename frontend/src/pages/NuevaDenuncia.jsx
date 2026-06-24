@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import Layout from '../components/layout/Layout';
+import MapaUbicacion from '../components/ui/MapaUbicacion';
 import { CATEGORIAS, ZONAS, GRAVEDAD_LABEL } from '../lib/constants';
 
 const GRAVEDAD_LABELS = ['', ...Object.values(GRAVEDAD_LABEL)];
@@ -20,12 +21,48 @@ export default function NuevaDenuncia({ session, perfil }) {
     gravedad: 3,
     anonima: false,
   });
+  const [ubicacion, setUbicacion] = useState({ lat: null, lng: null });
   const [foto, setFoto]         = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError]       = useState('');
   const [enviando, setEnviando] = useState(false);
 
+  useEffect(() => {
+    if (!foto) { setPreviewUrl(null); return; }
+    const url = URL.createObjectURL(foto);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [foto]);
+
+  function usarMiUbicacion() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos => setUbicacion({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setError('No se pudo obtener tu ubicación. Marca el punto en el mapa.'),
+    );
+  }
+
   function set(campo, valor) {
     setForm(f => ({ ...f, [campo]: valor }));
+  }
+
+  function validarFoto(archivo) {
+    if (!archivo) return null;
+    const ext = archivo.name.split('.').pop()?.toLowerCase() ?? '';
+    if (['heic', 'heif'].includes(ext) || ['image/heic', 'image/heif'].includes(archivo.type)) {
+      return 'Formato HEIC no soportado. Exporta la foto como JPG o PNG.';
+    }
+    const tiposOk = ['image/jpeg', 'image/png', 'image/webp'];
+    const extOk = ['jpg', 'jpeg', 'png', 'webp'];
+    const mimeOk = tiposOk.includes(archivo.type)
+      || (['', 'application/octet-stream'].includes(archivo.type) && extOk.includes(ext));
+    if (!mimeOk) {
+      return 'Formato no soportado. Usa JPG, PNG o WEBP.';
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      return 'La foto supera 5 MB. Elige una imagen más pequeña.';
+    }
+    return null;
   }
 
   function validar() {
@@ -33,7 +70,19 @@ export default function NuevaDenuncia({ session, perfil }) {
     if (!form.zona_id)      return 'Selecciona una zona.';
     if (form.descripcion.trim().length < 20)
       return 'La descripción debe tener al menos 20 caracteres.';
+    if (foto) {
+      const errFoto = validarFoto(foto);
+      if (errFoto) return errFoto;
+    }
     return null;
+  }
+
+  function seleccionarFoto(archivo) {
+    setError('');
+    if (!archivo) { setFoto(null); return; }
+    const err = validarFoto(archivo);
+    if (err) { setError(err); setFoto(null); return; }
+    setFoto(archivo);
   }
 
   async function handleSubmit(e) {
@@ -49,7 +98,19 @@ export default function NuevaDenuncia({ session, perfil }) {
         descripcion:  form.descripcion.trim(),
         gravedad:     Number(form.gravedad),
         anonima:      form.anonima,
+        latitud:      ubicacion.lat,
+        longitud:     ubicacion.lng,
       });
+
+      if (foto) {
+        try {
+          await api.denuncias.subirFoto(nueva.id, foto);
+        } catch (fotoErr) {
+          navigate(`/denuncia/${nueva.id}?foto=error`, { replace: true });
+          return;
+        }
+      }
+
       navigate(`/denuncia/${nueva.id}`);
     } catch (err) {
       setError(err.message);
@@ -108,6 +169,45 @@ export default function NuevaDenuncia({ session, perfil }) {
               </select>
             </div>
 
+            {/* Ubicación en el mapa */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">
+                  Ubicación <span className="font-normal normal-case">(opcional)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={usarMiUbicacion}
+                  className="text-xs text-brand-red font-semibold hover:underline"
+                >
+                  Usar mi ubicación
+                </button>
+              </div>
+              <p className="text-xs text-ink-faint mb-2">
+                Haz clic en el mapa para marcar el punto exacto del problema.
+              </p>
+              <MapaUbicacion
+                lat={ubicacion.lat}
+                lng={ubicacion.lng}
+                editable
+                onSelect={(lat, lng) => setUbicacion({ lat, lng })}
+              />
+              {ubicacion.lat != null && (
+                <div className="flex items-center justify-between text-xs text-ink-faint mt-1">
+                  <span className="font-mono">
+                    {ubicacion.lat.toFixed(5)}, {ubicacion.lng.toFixed(5)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setUbicacion({ lat: null, lng: null })}
+                    className="text-brand-red hover:underline"
+                  >
+                    Quitar ubicación
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Descripción */}
             <div>
               <label className="block text-xs font-semibold mb-1 text-ink-soft uppercase tracking-wide">
@@ -130,44 +230,44 @@ export default function NuevaDenuncia({ session, perfil }) {
               </div>
             </div>
 
-            {/* Foto (UI lista, sin conexión al backend aún) */}
+            {/* Foto */}
             <div>
               <label className="block text-xs font-semibold mb-1 text-ink-soft uppercase tracking-wide">
                 Foto del problema <span className="font-normal normal-case">(opcional)</span>
               </label>
-              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed
-                                border-surface-muted rounded-card cursor-pointer hover:border-ink transition-colors
-                                bg-surface-base">
-                {foto ? (
-                  <div className="flex items-center gap-2 text-sm text-ink">
-                    <span>📎</span>
-                    <span className="truncate max-w-xs">{foto.name}</span>
+              {foto ? (
+                <div className="space-y-2">
+                  <img
+                    src={previewUrl}
+                    alt="Vista previa"
+                    className="w-full max-h-48 object-cover rounded-card border border-surface-muted"
+                  />
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-ink-soft truncate">{foto.name}</span>
                     <button
                       type="button"
-                      onClick={e => { e.preventDefault(); setFoto(null); }}
-                      className="text-brand-red hover:underline text-xs"
+                      onClick={() => seleccionarFoto(null)}
+                      className="text-brand-red hover:underline shrink-0 ml-2"
                     >
                       Quitar
                     </button>
                   </div>
-                ) : (
-                  <>
-                    <span className="text-ink-faint text-2xl mb-1">+</span>
-                    <span className="text-xs text-ink-faint">Haz clic para adjuntar una foto</span>
-                    <span className="text-xs text-ink-faint opacity-60">JPG, PNG — máx. 5 MB</span>
-                  </>
-                )}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={e => setFoto(e.target.files[0] ?? null)}
-                />
-              </label>
-              {foto && (
-                <p className="text-xs text-brand-amber mt-1">
-                  ⚠ La subida de fotos se habilitará próximamente.
-                </p>
+                  <p className="text-xs text-brand-green">✓ Se subirá al publicar la denuncia.</p>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed
+                                  border-surface-muted rounded-card cursor-pointer hover:border-ink transition-colors
+                                  bg-surface-base">
+                  <span className="text-ink-faint text-2xl mb-1">+</span>
+                  <span className="text-xs text-ink-faint">Haz clic para adjuntar una foto</span>
+                  <span className="text-xs text-ink-faint opacity-60">JPG, PNG o WEBP — máx. 5 MB</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                    className="hidden"
+                    onChange={e => seleccionarFoto(e.target.files[0] ?? null)}
+                  />
+                </label>
               )}
             </div>
 

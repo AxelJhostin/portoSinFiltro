@@ -1,9 +1,17 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { body, query, param, validationResult } from 'express-validator';
 import { supabase } from '../db/supabase.js';
 import { requireAuth, requireRol, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
+
+// Subida de fotos en memoria (máx. 5 MB), se reenvía a Supabase Storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+const BUCKET_FOTOS = 'denuncias';
 
 function validate(req, res, next) {
   const errors = validationResult(req);
@@ -98,9 +106,11 @@ router.post('/',
   body('descripcion').trim().isLength({ min: 20, max: 1000 }),
   body('gravedad').isInt({ min: 1, max: 5 }),
   body('anonima').optional().isBoolean(),
+  body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }),
+  body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }),
   validate,
   async (req, res) => {
-    const { categoria_id, zona_id, descripcion, gravedad, anonima = false } = req.body;
+    const { categoria_id, zona_id, descripcion, gravedad, anonima = false, latitud, longitud } = req.body;
 
     // Titular: mayúsculas urgentes, generado del contenido
     const titular = descripcion.substring(0, 80).toUpperCase();
@@ -114,6 +124,8 @@ router.post('/',
         descripcion,
         gravedad,
         anonima,
+        latitud: latitud ?? null,
+        longitud: longitud ?? null,
         titular,
       })
       .select()
@@ -190,6 +202,72 @@ router.post('/:id/apoyo',
 
     await supabase.from('reacciones').insert({ denuncia_id, usuario_id });
     res.json({ apoyo: true });
+  }
+);
+
+// GET /denuncias/:id/fotos — Fotos públicas de una denuncia
+router.get('/:id/fotos',
+  param('id').isInt(),
+  validate,
+  async (req, res) => {
+    const { data, error } = await supabase
+      .from('fotos_denuncia')
+      .select('id, url, created_at')
+      .eq('denuncia_id', req.params.id)
+      .order('created_at', { ascending: true });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  }
+);
+
+// POST /denuncias/:id/foto — Subir foto a Supabase Storage (multipart: campo "foto")
+router.post('/:id/foto',
+  requireAuth,
+  (req, res, next) => {
+    upload.single('foto')(req, res, (err) => {
+      if (err?.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'La foto supera 5 MB. Elige una imagen más pequeña.' });
+      }
+      if (err) return next(err);
+      next();
+    });
+  },
+  param('id').isInt(),
+  validate,
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna foto.' });
+
+    const ext = req.file.originalname.split('.').pop()?.toLowerCase() || 'jpg';
+    const mimePorExt = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+    const mimetype = req.file.mimetype && req.file.mimetype !== 'application/octet-stream'
+      ? req.file.mimetype
+      : (mimePorExt[ext] ?? req.file.mimetype);
+
+    const tiposOk = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!tiposOk.includes(mimetype)) {
+      return res.status(400).json({ error: 'Formato no permitido. Usa JPG, PNG o WEBP (no HEIC).' });
+    }
+
+    const denuncia_id = Number(req.params.id);
+    const path = `${denuncia_id}/${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from(BUCKET_FOTOS)
+      .upload(path, req.file.buffer, { contentType: mimetype, upsert: false });
+
+    if (upErr) return res.status(500).json({ error: upErr.message });
+
+    const { data: pub } = supabase.storage.from(BUCKET_FOTOS).getPublicUrl(path);
+
+    const { data, error } = await supabase
+      .from('fotos_denuncia')
+      .insert({ denuncia_id, url: pub.publicUrl, subida_por: req.user.id })
+      .select('id, url, created_at')
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.status(201).json(data);
   }
 );
 
