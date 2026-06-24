@@ -113,17 +113,37 @@ router.get('/',
 
 // GET /denuncias/:id — Detalle público
 router.get('/:id',
+  optionalAuth,
   param('id').isInt(),
   validate,
   async (req, res) => {
+    const denuncia_id = Number(req.params.id);
+
     const { data, error } = await supabase
       .from('vista_denuncias')
       .select('*')
-      .eq('id', req.params.id)
+      .eq('id', denuncia_id)
       .single();
 
     if (error) return res.status(404).json({ error: 'Denuncia no encontrada' });
-    res.json(data);
+
+    let mi_progreso = null;
+    if (req.user) {
+      const { data: voto } = await supabase
+        .from('valoraciones_progreso')
+        .select('progresando')
+        .eq('denuncia_id', denuncia_id)
+        .eq('usuario_id', req.user.id)
+        .maybeSingle();
+      mi_progreso = voto?.progresando ?? null;
+    }
+
+    res.json({
+      ...data,
+      total_progreso_si:  data.total_progreso_si  ?? 0,
+      total_progreso_no:  data.total_progreso_no  ?? 0,
+      mi_progreso,
+    });
   }
 );
 
@@ -205,6 +225,71 @@ router.patch('/:id/estado',
     });
 
     res.json({ ok: true, estado });
+  }
+);
+
+// POST /denuncias/:id/progreso — Ciudadano marca si la denuncia progresa
+router.post('/:id/progreso',
+  requireAuth,
+  requireRol('ciudadano'),
+  param('id').isInt(),
+  body('progresando').isBoolean(),
+  validate,
+  async (req, res) => {
+    const denuncia_id = Number(req.params.id);
+    const usuario_id = req.user.id;
+    const { progresando } = req.body;
+
+    const { data: existente, error: fetchErr } = await supabase
+      .from('valoraciones_progreso')
+      .select('id, progresando')
+      .eq('denuncia_id', denuncia_id)
+      .eq('usuario_id', usuario_id)
+      .maybeSingle();
+
+    if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+
+    if (existente) {
+      if (existente.progresando === progresando) {
+        const { error: delErr } = await supabase
+          .from('valoraciones_progreso')
+          .delete()
+          .eq('id', existente.id);
+        if (delErr) return res.status(500).json({ error: delErr.message });
+      } else {
+        const { error: updErr } = await supabase
+          .from('valoraciones_progreso')
+          .update({ progresando, updated_at: new Date().toISOString() })
+          .eq('id', existente.id);
+        if (updErr) return res.status(500).json({ error: updErr.message });
+      }
+    } else {
+      const { error: insErr } = await supabase
+        .from('valoraciones_progreso')
+        .insert({ denuncia_id, usuario_id, progresando });
+      if (insErr) return res.status(500).json({ error: insErr.message });
+    }
+
+    const { data: voto } = await supabase
+      .from('valoraciones_progreso')
+      .select('progresando')
+      .eq('denuncia_id', denuncia_id)
+      .eq('usuario_id', usuario_id)
+      .maybeSingle();
+
+    const { data: stats, error: statsErr } = await supabase
+      .from('vista_denuncias')
+      .select('total_progreso_si, total_progreso_no')
+      .eq('id', denuncia_id)
+      .single();
+
+    if (statsErr) return res.status(500).json({ error: statsErr.message });
+
+    res.json({
+      mi_progreso: voto?.progresando ?? null,
+      total_progreso_si: stats.total_progreso_si ?? 0,
+      total_progreso_no: stats.total_progreso_no ?? 0,
+    });
   }
 );
 

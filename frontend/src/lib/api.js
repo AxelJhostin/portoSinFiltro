@@ -46,6 +46,7 @@ export const api = {
     create: (body)        => req('POST', '/denuncias', body),
     estado: (id, body)    => req('PATCH', `/denuncias/${id}/estado`, body),
     apoyo:  (id)          => req('POST', `/denuncias/${id}/apoyo`),
+    progreso: (id, progresando) => req('POST', `/denuncias/${id}/progreso`, { progresando }),
     fotos:  (id)          => req('GET', `/denuncias/${id}/fotos`),
     subirFoto: (id, file) => upload(`/denuncias/${id}/foto`, file),
   },

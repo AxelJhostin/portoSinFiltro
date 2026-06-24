@@ -130,6 +130,19 @@ CREATE TABLE reacciones (
 );
 
 -- ─────────────────────────────────────────────
+-- 7b. VALORACIONES DE PROGRESO (ciudadanos)
+-- ─────────────────────────────────────────────
+CREATE TABLE valoraciones_progreso (
+  id            SERIAL PRIMARY KEY,
+  denuncia_id   INTEGER NOT NULL REFERENCES denuncias(id) ON DELETE CASCADE,
+  usuario_id    UUID NOT NULL REFERENCES perfiles(id),
+  progresando   BOOLEAN NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (denuncia_id, usuario_id)
+);
+
+-- ─────────────────────────────────────────────
 -- 8. HISTORIAL DE ESTADOS
 -- ─────────────────────────────────────────────
 CREATE TABLE historial_estados (
@@ -171,6 +184,8 @@ SELECT
   COUNT(DISTINCT r.id)  AS total_apoyos,
   COUNT(DISTINCT a.id)  AS total_aportes,
   COUNT(DISTINCT f.id)  AS total_fotos,
+  COUNT(DISTINCT CASE WHEN vp.progresando = true  THEN vp.id END) AS total_progreso_si,
+  COUNT(DISTINCT CASE WHEN vp.progresando = false THEN vp.id END) AS total_progreso_no,
   (
     SELECT f2.url
     FROM fotos_denuncia f2
@@ -185,6 +200,7 @@ FROM denuncias d
   LEFT JOIN reacciones  r ON r.denuncia_id = d.id
   LEFT JOIN aportes     a ON a.denuncia_id = d.id
   LEFT JOIN fotos_denuncia f ON f.denuncia_id = d.id
+  LEFT JOIN valoraciones_progreso vp ON vp.denuncia_id = d.id
 WHERE d.oculta = false
 GROUP BY d.id, p.nombre, c.nombre, c.slug, z.nombre;
 
@@ -197,6 +213,7 @@ ALTER TABLE denuncias       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fotos_denuncia  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE aportes         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reacciones      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE valoraciones_progreso ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historial_estados ENABLE ROW LEVEL SECURITY;
 
 -- El backend usa la service_role key (bypassa RLS), así que

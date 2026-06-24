@@ -77,8 +77,13 @@ export default function DenunciaCard({ denuncia, session, onSelect }) {
         <div className="flex items-center justify-between gap-2 text-xs text-ink-soft mt-auto">
           <div className="flex items-center gap-2 min-w-0 flex-wrap">
             <span className="chip truncate max-w-[9rem]">{denuncia.categoria}</span>
-            <span className="whitespace-nowrap">{diasLabel}</span>
-            {tieneUbicacion && (
+          <span className="whitespace-nowrap">{diasLabel}</span>
+          {(denuncia.total_progreso_si > 0 || denuncia.total_progreso_no > 0) && (
+            <span className="font-mono text-ink-soft whitespace-nowrap" title="Opinión sobre progreso">
+              ↑{denuncia.total_progreso_si ?? 0} ↓{denuncia.total_progreso_no ?? 0}
+            </span>
+          )}
+          {tieneUbicacion && (
               <span className="font-mono text-ink-soft" title="Ubicación en mapa">
                 Mapa
               </span>

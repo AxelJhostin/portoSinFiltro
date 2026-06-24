@@ -18,6 +18,10 @@ export default function DetalleDenuncia({ session, perfil }) {
   const [cargando, setCargando] = useState(true);
   const [apoyado, setApoyado]   = useState(false);
   const [apoyos, setApoyos]     = useState(0);
+  const [miProgreso, setMiProgreso] = useState(null);
+  const [progresoSi, setProgresoSi] = useState(0);
+  const [progresoNo, setProgresoNo] = useState(0);
+  const [marcandoProgreso, setMarcandoProgreso] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [form, setForm]         = useState({ tipo: 'confirmacion', contenido: '', anonimo: false });
   const [formError, setFormError] = useState('');
@@ -33,6 +37,9 @@ export default function DetalleDenuncia({ session, perfil }) {
         ]);
         setDenuncia(d);
         setApoyos(d.total_apoyos);
+        setMiProgreso(d.mi_progreso ?? null);
+        setProgresoSi(d.total_progreso_si ?? 0);
+        setProgresoNo(d.total_progreso_no ?? 0);
         setAportes(a);
         try {
           const f = await api.denuncias.fotos(id);
@@ -48,6 +55,19 @@ export default function DetalleDenuncia({ session, perfil }) {
     }
     cargar();
   }, [id, navigate]);
+
+  async function marcarProgreso(progresando) {
+    if (!session) return navigate('/login');
+    if (perfil?.rol !== 'ciudadano') return;
+    setMarcandoProgreso(true);
+    try {
+      const res = await api.denuncias.progreso(id, progresando);
+      setMiProgreso(res.mi_progreso);
+      setProgresoSi(res.total_progreso_si);
+      setProgresoNo(res.total_progreso_no);
+    } catch {/* silencioso */}
+    finally { setMarcandoProgreso(false); }
+  }
 
   async function toggleApoyo() {
     if (!session) return navigate('/login');
@@ -145,7 +165,7 @@ export default function DetalleDenuncia({ session, perfil }) {
             })}</span>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-surface-muted">
+          <div className="mt-4 pt-4 border-t border-surface-muted space-y-4">
             <button
               onClick={toggleApoyo}
               className={`w-full py-2 rounded-card font-semibold text-sm transition-all
@@ -157,6 +177,66 @@ export default function DetalleDenuncia({ session, perfil }) {
               {apoyado ? '▲ Apoyaste esta denuncia' : '△ Apoyar esta denuncia'}
               {!session && <span className="text-xs font-normal ml-1">(inicia sesión)</span>}
             </button>
+
+            <div className="bg-surface-base rounded-card p-4">
+              <p className="text-sm font-semibold text-ink mb-1">¿Está progresando?</p>
+              <p className="text-xs text-ink-soft mb-3">
+                Opinión ciudadana sobre si el municipio está avanzando con este caso.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-4 text-center">
+                <div className="rounded-card bg-surface-card border border-surface-muted p-3">
+                  <p className="font-headline text-2xl text-brand-green tabular-nums">{progresoSi}</p>
+                  <p className="text-xs text-ink-soft mt-0.5">ven progreso</p>
+                </div>
+                <div className="rounded-card bg-surface-card border border-surface-muted p-3">
+                  <p className="font-headline text-2xl text-brand-red tabular-nums">{progresoNo}</p>
+                  <p className="text-xs text-ink-soft mt-0.5">no ven progreso</p>
+                </div>
+              </div>
+
+              {session && perfil?.rol === 'ciudadano' ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={marcandoProgreso}
+                    onClick={() => marcarProgreso(true)}
+                    aria-pressed={miProgreso === true}
+                    className={`py-2 rounded-card text-sm font-semibold transition-all disabled:opacity-50
+                      ${miProgreso === true
+                        ? 'bg-brand-green text-white'
+                        : 'border border-surface-muted text-ink-soft hover:border-brand-green hover:text-brand-green'
+                      }`}
+                  >
+                    ✓ Sí progresa
+                  </button>
+                  <button
+                    type="button"
+                    disabled={marcandoProgreso}
+                    onClick={() => marcarProgreso(false)}
+                    aria-pressed={miProgreso === false}
+                    className={`py-2 rounded-card text-sm font-semibold transition-all disabled:opacity-50
+                      ${miProgreso === false
+                        ? 'bg-brand-red text-white'
+                        : 'border border-surface-muted text-ink-soft hover:border-brand-red hover:text-brand-red'
+                      }`}
+                  >
+                    ✗ No progresa
+                  </button>
+                </div>
+              ) : !session ? (
+                <p className="text-xs text-ink-faint text-center">
+                  <button type="button" onClick={() => navigate('/login')} className="text-brand-red font-semibold hover:underline">
+                    Inicia sesión
+                  </button>
+                  {' '}como ciudadano para opinar.
+                </p>
+              ) : (
+                <p className="text-xs text-ink-faint text-center">
+                  Solo los ciudadanos pueden marcar el progreso.
+                </p>
+              )}
+            </div>
           </div>
         </article>
 
