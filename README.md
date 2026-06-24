@@ -2,7 +2,7 @@
 
 Plataforma web ciudadana para reportar problemas urbanos en Portoviejo, Manabí. Los ciudadanos denuncian, confirman y dan seguimiento a problemas como baches, alumbrado, basura y más. El municipio y cuadrillas gestionan el estado de cada denuncia desde un panel de control.
 
-> Proyecto universitario — Universidad Técnica de Manabí, materia de Programación Web.
+> Proyecto universitario — PUCE Sede Manabí, Portoviejo, materia de Sistemas de Información.
 
 ---
 
@@ -695,4 +695,4 @@ Las listas de categorías, zonas y estados se usaban en 5-6 archivos distintos. 
 
 ## Autor
 
-Desarrollado por Axel Hernández — Universidad Técnica de Manabí, Portoviejo, Manabí — 2025.
+Desarrollado por Axel Hernández — PUCE Sede Manabí, Portoviejo, Manabí — 2025.
