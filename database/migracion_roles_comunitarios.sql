@@ -4,10 +4,11 @@
 -- Ver docs/PLAN-ROLES-COMUNITARIOS.md
 -- ============================================================
 
--- 1. Migrar roles institucionales → administrador
+-- 1. Ampliar CHECK de roles ANTES de migrar datos (el UPDATE falla si el CHECK viejo sigue activo)
+ALTER TABLE perfiles DROP CONSTRAINT IF EXISTS perfiles_rol_check;
+
 UPDATE perfiles SET rol = 'administrador' WHERE rol IN ('municipio', 'cuadrilla');
 
-ALTER TABLE perfiles DROP CONSTRAINT IF EXISTS perfiles_rol_check;
 ALTER TABLE perfiles ADD CONSTRAINT perfiles_rol_check
   CHECK (rol IN ('ciudadano', 'administrador'));
 
