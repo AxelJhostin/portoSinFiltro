@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import Layout from '../components/layout/Layout';
 import MapaUbicacion from '../components/ui/MapaUbicacion';
+import BarraGravedad from '../components/ui/BarraGravedad';
 import { ESTADO_LABEL, ESTADO_COLOR, GRAVEDAD_LABEL, TIPO_APORTE_LABEL } from '../lib/constants';
 
 export default function DetalleDenuncia({ session, perfil }) {
@@ -135,12 +136,7 @@ export default function DetalleDenuncia({ session, perfil }) {
             ))}
           </div>
 
-          <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden mb-4">
-            <div
-              className="h-full bg-brand-red rounded-full"
-              style={{ width: `${(denuncia.gravedad / 5) * 100}%` }}
-            />
-          </div>
+          <BarraGravedad nivel={denuncia.gravedad} size="md" className="mb-4 max-w-xs" />
 
           <div className="flex items-center justify-between text-xs text-ink-faint font-mono">
             <span>{denuncia.anonima ? 'Ciudadano Anónimo' : denuncia.autor_nombre}</span>

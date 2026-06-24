@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../../lib/api';
 import { ESTADO_LABEL, ESTADO_COLOR } from '../../lib/constants';
+import BarraGravedad from './BarraGravedad';
 
 export default function DenunciaCard({ denuncia, session, onSelect }) {
   const [apoyos, setApoyos] = useState(denuncia.total_apoyos);
@@ -103,19 +104,7 @@ export default function DenunciaCard({ denuncia, session, onSelect }) {
           </button>
         </div>
 
-        <div
-          className="mt-2.5 h-1 bg-surface-muted rounded-full overflow-hidden"
-          role="meter"
-          aria-valuenow={denuncia.gravedad}
-          aria-valuemin={1}
-          aria-valuemax={5}
-          aria-label={`Gravedad ${denuncia.gravedad} de 5`}
-        >
-          <div
-            className="h-full bg-brand-red rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none"
-            style={{ width: `${(denuncia.gravedad / 5) * 100}%` }}
-          />
-        </div>
+        <BarraGravedad nivel={denuncia.gravedad} className="mt-2.5" />
       </div>
     </article>
   );

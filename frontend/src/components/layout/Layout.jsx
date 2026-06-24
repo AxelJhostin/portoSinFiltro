@@ -6,6 +6,7 @@ export default function Layout({ session, perfil, children, back }) {
 
   async function cerrarSesion() {
     await supabase.auth.signOut();
+    navigate('/', { replace: true });
   }
 
   return (
