@@ -49,6 +49,8 @@ Esto ya crea las tablas, la vista `vista_denuncias`, la policy `usuarios_ven_su_
 >
 > ✅ **Para resolución única:** ejecuta `database/migracion_resolucion_unica.sql` — cada ciudadano solo puede confirmar resolución **una vez** por denuncia (se necesitan **3 ciudadanos distintos** para RESUELTA).
 >
+> 📡 **Para muro EN VIVO (Realtime):** ejecuta `database/migracion_realtime.sql` — publica tablas en Supabase Realtime y policies SELECT para reacciones/valoraciones/fotos.
+>
 > ⚠️ **Orden importante en la migración de roles:** primero se elimina el CHECK viejo de `perfiles.rol`, luego se hace el `UPDATE` a `administrador`, y al final se crea el CHECK nuevo. Si el script falla con error `23514`, usa la versión actual del archivo en el repo (commit `0219dbc` o posterior).
 
 **A2.** En **Authentication → URL Configuration**:
@@ -368,6 +370,7 @@ portoSinFiltro/
 │   ├── migracion_progreso_ciudadano.sql ← Valoraciones Sí/No progresa (BD existente)
 │   ├── migracion_roles_comunitarios.sql ← Roles ciudadano/admin, reportes, estado comunitario
 │   └── migracion_resolucion_unica.sql   ← 1 resolución por ciudadano por denuncia
+│   └── migracion_realtime.sql           ← Realtime muro EN VIVO + policies RLS
 │
 ├── docs/
 │   └── PLAN-ROLES-COMUNITARIOS.md      ← Plan y decisiones del modelo comunitario
@@ -825,7 +828,7 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 
 ### Post-entrega
 
-- [ ] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar
+- [x] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar (`migracion_realtime.sql` + `useMuroRealtime.js`)
 - [ ] **PWA** — app instalable en móviles
 - [ ] **Deploy** — frontend en Vercel (gratis), backend en el servidor de la universidad
 

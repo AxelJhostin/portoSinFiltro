@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useMuroRealtime } from '../lib/useMuroRealtime';
 import DenunciaCard from '../components/ui/DenunciaCard';
 import Layout from '../components/layout/Layout';
 import { CATEGORIAS, ZONAS, ESTADO_LABEL } from '../lib/constants';
@@ -54,9 +55,11 @@ export default function Muro({ session, perfil }) {
   const zonaNombre = ZONAS.find(z => String(z.id) === zonaId)?.nombre;
   const catNombre = CATEGORIAS.find(c => String(c.id) === catId)?.nombre;
 
-  const cargar = useCallback(async () => {
-    setCargando(true);
-    setError(null);
+  const cargar = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setCargando(true);
+      setError(null);
+    }
     try {
       const params = { orden, pagina };
       if (zonaId) params.zona_id = zonaId;
@@ -66,13 +69,18 @@ export default function Muro({ session, perfil }) {
       setDenuncias(res.data);
       setTotal(res.total);
     } catch {
-      setError('No se pudieron cargar las denuncias. Revisa tu conexión e intenta de nuevo.');
+      if (!silent) {
+        setError('No se pudieron cargar las denuncias. Revisa tu conexión e intenta de nuevo.');
+      }
     } finally {
-      setCargando(false);
+      if (!silent) setCargando(false);
     }
   }, [orden, zonaId, catId, filtroEstado, pagina]);
 
+  const refrescarEnVivo = useCallback(() => cargar({ silent: true }), [cargar]);
+
   useEffect(() => { cargar(); }, [cargar]);
+  useMuroRealtime(refrescarEnVivo);
 
   function cambiarFiltro(fn) {
     fn();
