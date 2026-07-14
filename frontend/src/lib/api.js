@@ -62,5 +62,7 @@ export const api = {
   admin: {
     denuncias: (params = {}) => req('GET', `/admin/denuncias?${new URLSearchParams(params)}`),
     reportes:  (params = {}) => req('GET', `/admin/reportes?${new URLSearchParams(params)}`),
+    usuarios:  (params = {}) => req('GET', `/admin/usuarios?${new URLSearchParams(params)}`),
+    setUsuarioActivo: (id, activo) => req('PATCH', `/admin/usuarios/${id}`, { activo }),
   },
 };

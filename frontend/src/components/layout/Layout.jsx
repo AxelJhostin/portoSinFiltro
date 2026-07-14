@@ -41,7 +41,7 @@ export default function Layout({ session, perfil, children, back }) {
                     Admin
                   </Link>
                 )}
-                {perfil?.rol === 'ciudadano' && (
+                {(perfil?.rol === 'ciudadano' || perfil?.rol === 'administrador') && (
                   <Link
                     to="/panel-publico"
                     className="text-gray-300 hover:text-white text-sm transition-colors"

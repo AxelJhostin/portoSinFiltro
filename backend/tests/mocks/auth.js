@@ -9,7 +9,7 @@ function usuarioDesdeHeader(req) {
   if (!rol) return null;
 
   return {
-    id: req.headers['x-test-user-id'] ?? '11111111-1111-1111-1111-111111111111',
+    id: req.headers['x-test-user-id'] ?? '11111111-1111-4111-8111-111111111111',
     nombre: req.headers['x-test-nombre'] ?? 'Usuario Test',
     rol,
     activo: req.headers['x-test-activo'] !== 'false',
@@ -50,13 +50,13 @@ export const authHeaders = {
   ciudadano: {
     Authorization: 'Bearer test-ciudadano',
     'x-test-rol': 'ciudadano',
-    'x-test-user-id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    'x-test-user-id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     'x-test-nombre': 'Adolfo',
   },
   administrador: {
     Authorization: 'Bearer test-admin',
     'x-test-rol': 'administrador',
-    'x-test-user-id': 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    'x-test-user-id': 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
     'x-test-nombre': 'Axel',
   },
 };
