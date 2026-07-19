@@ -3,7 +3,6 @@ import multer from 'multer';
 import { body, param, validationResult } from 'express-validator';
 import { supabase } from '../db/supabase.js';
 import { requireAuth } from '../middleware/auth.js';
-import { notificarCambioEstado, obtenerEstadoDenuncia } from '../lib/notificaciones.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -60,7 +59,6 @@ router.post('/:id/aportes',
   async (req, res) => {
     const { tipo, contenido, anonimo = false } = req.body;
     const denuncia_id = Number(req.params.id);
-    const estadoAnterior = await obtenerEstadoDenuncia(denuncia_id);
 
     if (tipo === 'resolucion') {
       const { data: existente, error: fetchErr } = await supabase
@@ -111,7 +109,6 @@ router.post('/:id/aportes',
       }
       return res.status(500).json({ error: error.message });
     }
-    void notificarCambioEstado(denuncia_id, estadoAnterior);
     res.status(201).json(data);
   }
 );
