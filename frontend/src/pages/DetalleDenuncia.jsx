@@ -27,6 +27,8 @@ export default function DetalleDenuncia({ session, perfil }) {
   const [form, setForm]         = useState({ tipo: 'confirmacion', contenido: '', anonimo: false });
   const [formError, setFormError] = useState('');
   const [formOk, setFormOk]     = useState(false);
+  const [fotoAporte, setFotoAporte] = useState(null);
+  const [vistaPreviaAporte, setVistaPreviaAporte] = useState('');
   const [yaReporto, setYaReporto] = useState(false);
   const [totalReportes, setTotalReportes] = useState(0);
   const [motivoReporte, setMotivoReporte] = useState('');
@@ -69,6 +71,28 @@ export default function DetalleDenuncia({ session, perfil }) {
     }
     cargar();
   }, [id, navigate]);
+
+  useEffect(() => () => {
+    if (vistaPreviaAporte) URL.revokeObjectURL(vistaPreviaAporte);
+  }, [vistaPreviaAporte]);
+
+  function cambiarFotoAporte(event) {
+    const archivo = event.target.files?.[0] ?? null;
+    if (!archivo) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(archivo.type)) {
+      setFormError('Formato no permitido. Usa JPG, PNG o WEBP (no HEIC).');
+      event.target.value = '';
+      return;
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      setFormError('La foto supera 5 MB. Elige una imagen más pequeña.');
+      event.target.value = '';
+      return;
+    }
+    setFormError('');
+    setFotoAporte(archivo);
+    setVistaPreviaAporte(URL.createObjectURL(archivo));
+  }
 
   async function refrescarDenuncia() {
     const d = await api.denuncias.get(id);
@@ -136,7 +160,7 @@ export default function DetalleDenuncia({ session, perfil }) {
     setEnviando(true);
     setFormError('');
     try {
-      const nuevo = await api.aportes.create(id, form);
+      const nuevo = await api.aportes.create(id, form, fotoAporte);
       // El backend devuelve el aporte crudo (sin nombre de autor); lo enriquecemos
       // localmente para mostrarlo igual que los aportes cargados desde el GET.
       const enriquecido = {
@@ -147,6 +171,8 @@ export default function DetalleDenuncia({ session, perfil }) {
       setAportes(prev => [...prev, enriquecido]);
       if (form.tipo === 'resolucion') setYaResolucion(true);
       setForm({ tipo: 'confirmacion', contenido: '', anonimo: false });
+      setFotoAporte(null);
+      setVistaPreviaAporte('');
       setFormOk(true);
       setTimeout(() => setFormOk(false), 3000);
       await refrescarDenuncia();
@@ -415,6 +441,9 @@ export default function DetalleDenuncia({ session, perfil }) {
                   {a.contenido && (
                     <p className="text-sm text-ink leading-relaxed">{a.contenido}</p>
                   )}
+                  {a.foto_url && (
+                    <img src={a.foto_url} alt="Evidencia adjunta al aporte" className="mt-3 max-h-72 rounded-card border border-surface-muted object-cover" />
+                  )}
                   <p className="text-xs text-ink-faint mt-2 font-mono">
                     {new Date(a.created_at).toLocaleDateString('es-EC', {
                       day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
@@ -480,6 +509,17 @@ export default function DetalleDenuncia({ session, perfil }) {
                              focus:outline-none focus:border-ink resize-none"
                 />
                 <p className="text-xs text-ink-faint text-right mt-0.5">{form.contenido.length}/500</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-ink-soft uppercase tracking-wide" htmlFor="foto-aporte">
+                  Foto de evidencia (opcional)
+                </label>
+                <input id="foto-aporte" type="file" accept="image/jpeg,image/png,image/webp" onChange={cambiarFotoAporte} className="block w-full text-sm" />
+                <p className="text-xs text-ink-faint mt-1">JPG, PNG o WEBP; máximo 5 MB. HEIC no es compatible.</p>
+                {vistaPreviaAporte && (
+                  <img src={vistaPreviaAporte} alt="Vista previa de la evidencia" className="mt-3 max-h-48 rounded-card border border-surface-muted object-cover" />
+                )}
               </div>
 
               <label className="flex items-center gap-2 cursor-pointer select-none">

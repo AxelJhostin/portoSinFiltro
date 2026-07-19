@@ -39,6 +39,21 @@ async function upload(path, file, campo = 'foto') {
   return json;
 }
 
+async function createAporte(id, body, file) {
+  if (!file) return req('POST', `/denuncias/${id}/aportes`, body);
+  const form = new FormData();
+  form.append('tipo', body.tipo);
+  form.append('contenido', body.contenido);
+  form.append('anonimo', String(body.anonimo));
+  form.append('foto', file);
+  const res = await fetch(`${BASE}/denuncias/${id}/aportes`, {
+    method: 'POST', headers: { ...(await authHeaders()) }, body: form,
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Error al enviar el aporte');
+  return json;
+}
+
 export const api = {
   denuncias: {
     list:   (params = {}) => req('GET', `/denuncias?${new URLSearchParams(params)}`),
@@ -53,7 +68,7 @@ export const api = {
   },
   aportes: {
     list:   (id)          => req('GET', `/denuncias/${id}/aportes`),
-    create: (id, body)    => req('POST', `/denuncias/${id}/aportes`, body),
+    create: (id, body, file) => createAporte(id, body, file),
   },
   dashboard: {
     get:    () => req('GET', '/dashboard'),
