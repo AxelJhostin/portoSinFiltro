@@ -822,10 +822,6 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 - [x] Panel público y valoraciones de progreso ✅
 - [x] Roles comunitarios, reportes y moderación admin ✅
 
-### Media prioridad
-
-- [ ] **Notificaciones por email** — avisar al ciudadano cuando su denuncia cambia de estado comunitario (Supabase Edge Functions)
-
 ### Post-entrega
 
 - [x] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar (`migracion_realtime.sql` + `useMuroRealtime.js`)

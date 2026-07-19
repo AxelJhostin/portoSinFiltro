@@ -130,5 +130,4 @@ Aportes: permitir `tipo: 'resolucion'` en POST.
 ## Pendiente post-MVP (no en este plan)
 
 - Banear usuarios (`activo = false`) desde admin UI
-- Notificaciones email
 - Mapa agregado de denuncias por zona
