@@ -78,6 +78,8 @@ export default function PanelPublico({ session, perfil }) {
   const [denuncias, setDenuncias] = useState([]);
   const [cargando, setCargando]   = useState(true);
   const [filtroEstado, setFiltro] = useState('activa');
+  const [pagina, setPagina]       = useState(1);
+  const [total, setTotal]         = useState(0);
   const [error, setError]         = useState(null);
 
   useEffect(() => {
@@ -97,8 +99,9 @@ export default function PanelPublico({ session, perfil }) {
     async function cargarDenuncias() {
       setCargando(true);
       try {
-        const d = await api.denuncias.list({ estado: filtroEstado, orden: 'reciente', pagina: 1 });
+        const d = await api.denuncias.list({ estado: filtroEstado, orden: 'reciente', pagina });
         setDenuncias(d.data);
+        setTotal(d.total);
       } catch {
         setDenuncias([]);
       } finally {
@@ -106,7 +109,14 @@ export default function PanelPublico({ session, perfil }) {
       }
     }
     cargarDenuncias();
-  }, [filtroEstado]);
+  }, [filtroEstado, pagina]);
+
+  const totalPaginas = Math.max(1, Math.ceil(total / 20));
+
+  function cambiarFiltro(estado) {
+    setFiltro(estado);
+    setPagina(1);
+  }
 
   return (
     <Layout session={session} perfil={perfil} back>
@@ -181,7 +191,7 @@ export default function PanelPublico({ session, perfil }) {
                   key={e}
                   type="button"
                   aria-pressed={filtroEstado === e}
-                  onClick={() => setFiltro(e)}
+                  onClick={() => cambiarFiltro(e)}
                   className={`chip cursor-pointer transition-colors
                     ${filtroEstado === e ? 'chip-active' : 'hover:bg-surface-muted'}`}
                 >
@@ -211,6 +221,14 @@ export default function PanelPublico({ session, perfil }) {
                 </li>
               ))}
             </ul>
+          )}
+
+          {totalPaginas > 1 && !cargando && (
+            <nav className="flex items-center justify-center gap-3 mt-6" aria-label="Paginación de denuncias">
+              <button className="btn-secondary" disabled={pagina === 1} onClick={() => setPagina(p => p - 1)}>← Anterior</button>
+              <span className="font-mono text-sm text-ink-soft" aria-live="polite">{pagina} / {totalPaginas}</span>
+              <button className="btn-secondary" disabled={pagina === totalPaginas} onClick={() => setPagina(p => p + 1)}>Siguiente →</button>
+            </nav>
           )}
 
           <p className="text-xs text-ink-faint text-center mt-4">

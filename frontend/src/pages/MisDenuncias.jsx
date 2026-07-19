@@ -8,16 +8,20 @@ export default function MisDenuncias({ session, perfil }) {
   const navigate = useNavigate();
   const [denuncias, setDenuncias] = useState([]);
   const [cargando, setCargando]   = useState(true);
+  const [error, setError]         = useState('');
+  const [intento, setIntento]     = useState(0);
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
 
     // Filtramos por el UUID del usuario logueado — el backend lo valida contra el JWT
+    setCargando(true);
+    setError('');
     api.denuncias.list({ autor_id: session.user.id, orden: 'reciente', pagina: 1 })
       .then(res => setDenuncias(res.data))
-      .catch(() => {})
+      .catch(() => setError('No pudimos cargar tus denuncias. Revisa tu conexión e inténtalo otra vez.'))
       .finally(() => setCargando(false));
-  }, [session, navigate]);
+  }, [session, navigate, intento]);
 
   if (!session) return null;
 
@@ -34,6 +38,11 @@ export default function MisDenuncias({ session, perfil }) {
             {[1, 2, 3].map(i => (
               <div key={i} className="card h-20 animate-pulse bg-surface-muted" />
             ))}
+          </div>
+        ) : error ? (
+          <div className="card p-8 text-center" role="alert">
+            <p className="text-brand-red mb-4">{error}</p>
+            <button onClick={() => setIntento(n => n + 1)} className="btn-primary">Reintentar</button>
           </div>
         ) : denuncias.length === 0 ? (
           <div className="card p-10 text-center">

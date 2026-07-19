@@ -3,6 +3,7 @@ import multer from 'multer';
 import { body, query, param, validationResult } from 'express-validator';
 import { supabase } from '../db/supabase.js';
 import { requireAuth, requireRol, optionalAuth } from '../middleware/auth.js';
+import { notificarCambioEstado, obtenerEstadoDenuncia } from '../lib/notificaciones.js';
 
 const router = Router();
 
@@ -324,6 +325,7 @@ router.post('/:id/progreso',
     const denuncia_id = Number(req.params.id);
     const usuario_id = req.user.id;
     const { progresando } = req.body;
+    const estadoAnterior = await obtenerEstadoDenuncia(denuncia_id);
 
     const { data: existente, error: fetchErr } = await supabase
       .from('valoraciones_progreso')
@@ -369,6 +371,8 @@ router.post('/:id/progreso',
       .single();
 
     if (statsErr) return res.status(500).json({ error: statsErr.message });
+
+    void notificarCambioEstado(denuncia_id, estadoAnterior);
 
     res.json({
       mi_progreso: voto?.progresando ?? null,
