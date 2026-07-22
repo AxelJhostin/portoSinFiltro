@@ -17,9 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - run: npm ci
+      # package-lock.json no se versiona en este repo (ver .gitignore),
+      # así que no hay lock file que cachear y "npm ci" no aplica aquí.
+      - run: npm install
       - run: npm test
 
   frontend:
@@ -37,8 +37,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npm test
       - run: npm run build
