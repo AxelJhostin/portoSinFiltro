@@ -26,6 +26,10 @@ export default function Admin({ session, perfil }) {
   const [filtroOculta, setFiltro]         = useState('false');
   const [actualizando, setAct]            = useState(null);
   const [accionError, setAccionError]     = useState('');
+  const [errorStats, setErrorStats]         = useState('');
+  const [errorDenuncias, setErrorDenuncias] = useState('');
+  const [errorReportes, setErrorReportes]   = useState('');
+  const [errorUsuarios, setErrorUsuarios]   = useState('');
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
@@ -38,9 +42,10 @@ export default function Admin({ session, perfil }) {
     if (perfil?.rol !== 'administrador') return;
     async function cargarStats() {
       setCargandoStats(true);
+      setErrorStats('');
       try {
         setStats(await api.dashboard.get());
-      } catch {/* sin credenciales */}
+      } catch (err) { setErrorStats(err.message || 'No se pudo cargar el resumen.'); }
       finally { setCargandoStats(false); }
     }
     cargarStats();
@@ -50,11 +55,12 @@ export default function Admin({ session, perfil }) {
     if (perfil?.rol !== 'administrador') return;
     async function cargarDenuncias() {
       setCargandoDenuncias(true);
+      setErrorDenuncias('');
       try {
         const res = await api.admin.denuncias({ oculta: filtroOculta, pagina: paginaDenuncias });
         setDenuncias(res.data);
         setMetaDenuncias({ total: res.total ?? 0, limite: res.limite ?? 20 });
-      } catch {/* sin credenciales */}
+      } catch (err) { setErrorDenuncias(err.message || 'No se pudieron cargar las denuncias.'); }
       finally { setCargandoDenuncias(false); }
     }
     cargarDenuncias();
@@ -64,11 +70,12 @@ export default function Admin({ session, perfil }) {
     if (perfil?.rol !== 'administrador') return;
     async function cargarReportes() {
       setCargandoReportes(true);
+      setErrorReportes('');
       try {
         const res = await api.admin.reportes({ pagina: paginaReportes });
         setReportes(res.data);
         setMetaReportes({ total: res.total ?? 0, limite: res.limite ?? 30 });
-      } catch {/* sin credenciales */}
+      } catch (err) { setErrorReportes(err.message || 'No se pudieron cargar los reportes.'); }
       finally { setCargandoReportes(false); }
     }
     cargarReportes();
@@ -78,6 +85,7 @@ export default function Admin({ session, perfil }) {
     if (perfil?.rol !== 'administrador') return;
     async function cargarUsuarios() {
       setCargandoUsuarios(true);
+      setErrorUsuarios('');
       try {
         const params = { pagina: paginaUsuarios };
         if (filtroRolUsuario) params.rol = filtroRolUsuario;
@@ -85,7 +93,7 @@ export default function Admin({ session, perfil }) {
         const res = await api.admin.usuarios(params);
         setUsuarios(res.data);
         setMetaUsuarios({ total: res.total ?? 0, limite: res.limite ?? 20 });
-      } catch {/* sin credenciales */}
+      } catch (err) { setErrorUsuarios(err.message || 'No se pudieron cargar los usuarios.'); }
       finally { setCargandoUsuarios(false); }
     }
     cargarUsuarios();
@@ -169,6 +177,10 @@ export default function Admin({ session, perfil }) {
               <div key={i} className="card h-20 animate-pulse bg-surface-muted" />
             ))}
           </div>
+        ) : errorStats ? (
+          <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
+            No se pudo cargar el resumen: {errorStats}
+          </div>
         ) : stats && (
           <section>
             <h2 className="font-headline text-lg mb-3">Resumen</h2>
@@ -203,6 +215,10 @@ export default function Admin({ session, perfil }) {
           {cargandoReportes ? (
             <div className="space-y-3">
               {[1, 2].map(i => <div key={i} className="card h-24 animate-pulse bg-surface-muted" />)}
+            </div>
+          ) : errorReportes ? (
+            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
+              No se pudieron cargar los reportes: {errorReportes}
             </div>
           ) : reportes.length === 0 ? (
             <div className="card p-6 text-center text-ink-faint text-sm">
@@ -270,6 +286,10 @@ export default function Admin({ session, perfil }) {
           {cargandoDenuncias ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => <div key={i} className="card h-20 animate-pulse bg-surface-muted" />)}
+            </div>
+          ) : errorDenuncias ? (
+            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
+              No se pudieron cargar las denuncias: {errorDenuncias}
             </div>
           ) : denuncias.length === 0 ? (
             <div className="card p-8 text-center text-ink-faint text-sm">
@@ -378,6 +398,10 @@ export default function Admin({ session, perfil }) {
           {cargandoUsuarios ? (
             <div className="space-y-3">
               {[1, 2].map(i => <div key={i} className="card h-16 animate-pulse bg-surface-muted" />)}
+            </div>
+          ) : errorUsuarios ? (
+            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
+              No se pudieron cargar los usuarios: {errorUsuarios}
             </div>
           ) : usuarios.length === 0 ? (
             <div className="card p-8 text-center text-ink-faint text-sm">

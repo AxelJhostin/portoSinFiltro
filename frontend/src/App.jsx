@@ -7,6 +7,7 @@ import DetalleDenuncia from './pages/DetalleDenuncia';
 import NuevaDenuncia from './pages/NuevaDenuncia';
 import Admin from './pages/Admin';
 import PanelPublico from './pages/PanelPublico';
+import Mapa from './pages/Mapa';
 import MisDenuncias from './pages/MisDenuncias';
 import NotFound from './pages/NotFound';
 
@@ -50,6 +51,7 @@ function App() {
         <Route path="/admin"         element={<Admin {...shared} />} />
         <Route path="/panel"         element={<Navigate to="/admin" replace />} />
         <Route path="/panel-publico" element={<PanelPublico {...shared} />} />
+        <Route path="/mapa"          element={<Mapa {...shared} />} />
         <Route path="/mis-denuncias" element={<MisDenuncias {...shared} />} />
         <Route path="/login"         element={session ? <Navigate to="/" replace /> : <Login />} />
         <Route path="*"              element={<NotFound {...shared} />} />

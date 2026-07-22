@@ -1,0 +1,9 @@
+# Solo levanta la API — la base de datos y Auth viven en Supabase Cloud.
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped

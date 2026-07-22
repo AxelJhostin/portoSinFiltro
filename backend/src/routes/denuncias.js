@@ -136,6 +136,30 @@ router.get('/',
   }
 );
 
+// GET /denuncias/mapa — Todas las denuncias con coordenadas (mapa agregado del panel público)
+// Registrada antes de /:id para que "mapa" no se intente parsear como un id.
+router.get('/mapa',
+  query('estado').optional().isIn(['activa', 'con_avance', 'resuelta']),
+  validate,
+  async (req, res) => {
+    const { estado } = req.query;
+
+    let q = supabase
+      .from('vista_denuncias')
+      .select('id, titular, categoria, categoria_slug, zona, estado, gravedad, latitud, longitud')
+      .not('latitud', 'is', null)
+      .not('longitud', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (estado) q = q.eq('estado', estado);
+
+    const { data, error } = await q;
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  }
+);
+
 // GET /denuncias/:id — Detalle público
 router.get('/:id',
   optionalAuth,

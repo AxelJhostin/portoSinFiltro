@@ -26,8 +26,21 @@ export function createApp() {
     message: { error: 'Límite de escritura alcanzado. Intenta de nuevo en 15 minutos.' },
   });
 
+  // FRONTEND_URL admite una o varias URLs separadas por coma
+  // (ej. dominio de producción + preview de Vercel + localhost en desarrollo).
+  const origenesPermitidos = (process.env.FRONTEND_URL || 'http://localhost:5173')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
   app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin(origin, callback) {
+      // Sin header Origin (health checks, curl, server-to-server) → permitir
+      if (!origin || origenesPermitidos.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`Origen no permitido por CORS: ${origin}`));
+    },
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }));

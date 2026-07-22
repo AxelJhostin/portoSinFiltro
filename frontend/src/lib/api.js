@@ -57,6 +57,7 @@ async function createAporte(id, body, file) {
 export const api = {
   denuncias: {
     list:   (params = {}) => req('GET', `/denuncias?${new URLSearchParams(params)}`),
+    mapa:   (params = {}) => req('GET', `/denuncias/mapa?${new URLSearchParams(params)}`),
     get:    (id)          => req('GET', `/denuncias/${id}`),
     create: (body)        => req('POST', '/denuncias', body),
     ocultar: (id, body)   => req('PATCH', `/denuncias/${id}/ocultar`, body),

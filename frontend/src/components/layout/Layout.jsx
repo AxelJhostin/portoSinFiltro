@@ -49,6 +49,12 @@ export default function Layout({ session, perfil, children, back }) {
                     Panel público
                   </Link>
                 )}
+                <Link
+                  to="/mapa"
+                  className="text-gray-300 hover:text-white text-sm transition-colors"
+                >
+                  Mapa
+                </Link>
                 {perfil?.rol === 'ciudadano' && (
                   <Link
                     to="/mis-denuncias"
@@ -80,6 +86,12 @@ export default function Layout({ session, perfil, children, back }) {
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Panel público
+                </Link>
+                <Link
+                  to="/mapa"
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
+                  Mapa
                 </Link>
                 <Link
                   to="/login"

@@ -235,6 +235,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 - [API — Endpoints disponibles](#api--endpoints-disponibles)
 - [Base de datos — Esquema](#base-de-datos--esquema)
 - [Lo que falta implementar](#lo-que-falta-implementar)
+- [Deploy](#deploy)
 - [Diseño y prototipo](#diseño-y-prototipo)
 - [Decisiones de diseño importantes](#decisiones-de-diseño-importantes)
 
@@ -264,8 +265,9 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Constantes centralizadas (`lib/constants.js`) | ✅ Completo |
 | Subida de fotos a Supabase Storage | ✅ Completo |
 | Ubicación en mapa interactivo (Leaflet) | ✅ Completo |
+| Mapa agregado de denuncias (`/mapa`) | ✅ Completo |
 | Conectar Supabase real (configurar `.env`) | ✅ Completo |
-| Deploy en servidor | ⏳ Pendiente |
+| Deploy en servidor | 🟡 Configurado (`vercel.json`, `Dockerfile`, CI) — falta desplegar |
 
 ---
 
@@ -528,7 +530,7 @@ Abrir el navegador en `http://localhost:5173`.
 PORT=4000
 SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 SUPABASE_SERVICE_KEY=sb_secret_...        # secret / service_role key
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173,https://portosinfiltro.vercel.app
 ```
 
 | Variable | Dónde encontrarla | Descripción |
@@ -536,7 +538,7 @@ FRONTEND_URL=http://localhost:5173
 | `PORT` | Libre | Puerto del servidor (default: 4000) |
 | `SUPABASE_URL` | Project Settings → API → Project URL | URL del proyecto |
 | `SUPABASE_SERVICE_KEY` | Project Settings → API Keys → secret | ⚠️ NUNCA exponer al frontend |
-| `FRONTEND_URL` | La URL donde corre el frontend | Configura CORS |
+| `FRONTEND_URL` | La(s) URL(s) donde corre el frontend | Configura CORS — admite varias separadas por coma (ver [Deploy](#deploy)) |
 
 > ⚠️ La secret/`service_role` key bypassa Row Level Security — tiene acceso total a la BD. **Nunca** la pongas en el frontend ni la subas a GitHub. El archivo `.env` ya está en `.gitignore`.
 >
@@ -825,8 +827,51 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 ### Post-entrega
 
 - [x] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar (`migracion_realtime.sql` + `useMuroRealtime.js`)
-- [ ] **PWA** — app instalable en móviles
-- [ ] **Deploy** — frontend en Vercel (gratis), backend en el servidor de la universidad
+- [x] **PWA** — app instalable en móviles (`manifest.json` + service worker)
+- [x] **Config de deploy** — `vercel.json` (frontend), `Dockerfile`/`docker-compose.yml` (backend), CORS multi-origen y CI (ver [sección Deploy](#deploy))
+- [ ] **Deploy real** — falta importar el proyecto en Vercel y desplegar el backend en el servidor de la universidad
+
+---
+
+## Deploy
+
+### Frontend — Vercel
+
+1. Importar el repo en [vercel.com](https://vercel.com) con **Root Directory: `frontend`**.
+2. Vercel detecta Vite automáticamente; `frontend/vercel.json` ya define `buildCommand`, `outputDirectory` y un rewrite para que rutas de React Router (ej. `/mapa`, `/denuncia/5`) no den 404 al refrescar.
+3. Variables de entorno en Vercel → Project Settings → Environment Variables:
+   ```
+   VITE_SUPABASE_URL=<tu-project-url>
+   VITE_SUPABASE_ANON_KEY=<tu-anon-key>
+   ```
+4. Copia la URL que te da Vercel (ej. `https://portosinfiltro.vercel.app`) y agrégala a `FRONTEND_URL` en el backend.
+
+### Backend — servidor de la universidad (Docker)
+
+`backend/Dockerfile` + `docker-compose.yml` (raíz) containerizan solo la API — la base de datos y Auth siguen en Supabase Cloud, no hay nada más que levantar.
+
+En el servidor (con Docker instalado):
+
+```bash
+git clone https://github.com/AxelJhostin/portoSinFiltro.git
+cd portoSinFiltro
+cp backend/.env.example backend/.env   # completar con las claves reales de Supabase
+docker compose up -d --build
+```
+
+Esto deja la API corriendo en el puerto `4000`. Si necesitas HTTPS/dominio propio, pon un reverse proxy (Nginx, Caddy, etc.) delante del contenedor.
+
+### CORS multi-origen
+
+`backend/src/app.js` valida el header `Origin` de cada request contra `FRONTEND_URL`, que ahora admite **varias URLs separadas por coma** (útil para tener a la vez producción y `localhost`):
+
+```
+FRONTEND_URL=http://localhost:5173,https://portosinfiltro.vercel.app
+```
+
+### CI
+
+`.github/workflows/ci.yml` corre en cada push/PR a `main`: instala dependencias y ejecuta los tests de `backend/` y `frontend/`, y además hace `npm run build` del frontend para detectar errores de compilación antes de desplegar.
 
 ---
 

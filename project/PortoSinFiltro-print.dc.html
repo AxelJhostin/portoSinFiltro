@@ -38,9 +38,9 @@
       <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;color:#6b6862;text-transform:uppercase;">Prototipo interactivo · La ciudad expuesta, sin censura · {{ cityName }}</div>
     </div>
     <div style="margin-top:14px;display:flex;gap:18px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#7a776f;text-transform:uppercase;">
-      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E11900;display:inline-block;"></span>Pendiente</span>
-      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E8A300;display:inline-block;"></span>En proceso</span>
-      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#0E7A45;display:inline-block;"></span>Resuelto</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E11900;display:inline-block;"></span>Activa</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#E8A300;display:inline-block;"></span>Con avance</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;background:#0E7A45;display:inline-block;"></span>Resuelta</span>
       <span style="color:#9b988f;">Tocá APOYAR, votá si mejora o empeora, abrí una denuncia y comentá anónimo.</span>
     </div>
   </div>
@@ -198,21 +198,21 @@
 
                 <!-- estado timeline -->
                 <div style="margin-top:18px;">
-                  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#8a8780;margin-bottom:10px;">SEGUIMIENTO OFICIAL · GAD PORTOVIEJO</div>
+                  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#8a8780;margin-bottom:10px;">SEGUIMIENTO COMUNITARIO</div>
                   <div style="display:flex;align-items:center;">
                     <div style="flex:1;text-align:center;">
                       <div style="width:18px;height:18px;border-radius:50%;background:{{ selected.step1 }};margin:0 auto 5px;"></div>
-                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">PENDIENTE</div>
+                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">ACTIVA</div>
                     </div>
                     <div style="height:3px;flex:0 0 30px;background:{{ selected.line1 }};"></div>
                     <div style="flex:1;text-align:center;">
                       <div style="width:18px;height:18px;border-radius:50%;background:{{ selected.step2 }};margin:0 auto 5px;"></div>
-                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">EN PROCESO</div>
+                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">CON AVANCE</div>
                     </div>
                     <div style="height:3px;flex:0 0 30px;background:{{ selected.line2 }};"></div>
                     <div style="flex:1;text-align:center;">
                       <div style="width:18px;height:18px;border-radius:50%;background:{{ selected.step3 }};margin:0 auto 5px;"></div>
-                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">RESUELTO</div>
+                      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:9.5px;letter-spacing:.3px;color:#0a0a0a;">RESUELTA</div>
                     </div>
                   </div>
                 </div>
@@ -290,7 +290,7 @@
 
     <!-- ============ DASHBOARD ============ -->
     <div style="flex:1 1 620px;min-width:560px;max-width:760px;">
-      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:#6b6862;text-transform:uppercase;margin:0 0 14px 6px;display:flex;align-items:center;gap:8px;"><span style="width:4px;height:16px;background:#0a0a0a;display:inline-block;"></span>02 · Municipio — Panel de control (serio por dentro)</div>
+      <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:#6b6862;text-transform:uppercase;margin:0 0 14px 6px;display:flex;align-items:center;gap:8px;"><span style="width:4px;height:16px;background:#0a0a0a;display:inline-block;"></span>02 · Administrador — Panel de moderación (serio por dentro)</div>
 
       <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.4);border:1px solid #d4d2c9;">
         <!-- window bar -->
@@ -298,7 +298,7 @@
           <span style="width:11px;height:11px;border-radius:50%;background:#E11900;"></span>
           <span style="width:11px;height:11px;border-radius:50%;background:#E8A300;"></span>
           <span style="width:11px;height:11px;border-radius:50%;background:#0E7A45;"></span>
-          <span style="margin-left:10px;font-family:'Space Mono',monospace;font-size:11px;color:#9b988f;letter-spacing:.5px;">gad-portoviejo · portosinfiltro.gob.ec/panel</span>
+          <span style="margin-left:10px;font-family:'Space Mono',monospace;font-size:11px;color:#9b988f;letter-spacing:.5px;">admin · portosinfiltro.ec/admin</span>
         </div>
 
         <div style="background:#f4f3ef;padding:22px;">
@@ -306,9 +306,9 @@
           <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
             <div>
               <div style="font-family:'Anton',sans-serif;font-size:34px;line-height:.95;letter-spacing:.3px;">PANEL DE CONTROL</div>
-              <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#8a8780;margin-top:4px;">GAD MUNICIPAL DE {{ cityName }} · ACTUALIZADO 16 JUN 2026, 09:10</div>
+              <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:#8a8780;margin-top:4px;">PANEL DE MODERACIÓN · ACTUALIZADO 16 JUN 2026, 09:10</div>
             </div>
-            <div style="background:#0a0a0a;color:#fff;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 12px;border-radius:7px;">VISTA: MUNICIPIO (COMPLETA)</div>
+            <div style="background:#0a0a0a;color:#fff;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 12px;border-radius:7px;">VISTA: ADMINISTRADOR (COMPLETA)</div>
           </div>
 
           <!-- insight banner -->
@@ -395,7 +395,7 @@
                   <div style="width:49%;background:#E11900;"></div><div style="width:31%;background:#E8A300;"></div><div style="width:20%;background:#0E7A45;"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:9.5px;">
-                  <span style="color:#E11900;font-weight:700;">● 612 pend.</span><span style="color:#B26A00;font-weight:700;">● 388 proc.</span><span style="color:#0E7A45;font-weight:700;">● 247 resu.</span>
+                  <span style="color:#E11900;font-weight:700;">● 612 activ.</span><span style="color:#B26A00;font-weight:700;">● 388 avance</span><span style="color:#0E7A45;font-weight:700;">● 247 resu.</span>
                 </div>
               </div>
               <div style="background:#fff;border:1px solid #e3e1d9;border-radius:11px;padding:16px;flex:1;">
@@ -417,7 +417,7 @@
             </div>
           </div>
 
-          <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:9px;color:#b3b0a7;letter-spacing:.5px;">Versión pública resumida visible para todos · La identidad de autores anónimos solo es accesible para el municipio, con fines de moderación.</div>
+          <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:9px;color:#b3b0a7;letter-spacing:.5px;">Versión pública resumida visible para todos · La identidad de autores anónimos solo es accesible para los administradores, con fines de moderación.</div>
         </div>
       </div>
     </div>
@@ -455,44 +455,44 @@ class Component extends DCLogic {
       {id:101, cat:'Baches y vías', zona:'Andrés de Vera', badge:'¡INDIGNANTE!',
        headline:'¡MONSTRUOSO! El cráter de la Av. Manabí cumple 64 días y NO PARA DE CRECER',
        desc:'Lo que empezó como un bache hoy se traga media calzada. Los vecinos aseguran que crece cada semana con la lluvia y ya provocó varias caídas de motociclistas.',
-       severity:'¡CATÁSTROFE URBANA!', status:'pendiente', days:64, apoyos:1284, confirmaciones:212, aportes:38,
+       severity:'¡CATÁSTROFE URBANA!', status:'activa', days:64, apoyos:1284, confirmaciones:212, aportes:38,
        img:'foto · cráter Av. Manabí', sent:{empeora:892, igual:140, mejora:12}},
       {id:105, cat:'Semáforos y señalética', zona:'Colón', badge:'¡PELIGRO!',
        headline:'¡RULETA RUSA! Semáforo muerto en Colón ya provocó 3 choques en una semana',
        desc:'El cruce más transitado de Colón lleva el semáforo apagado y nadie dirige el tránsito. Tres choques registrados en siete días.',
-       severity:'GRAVE', status:'pendiente', days:12, apoyos:689, confirmaciones:97, aportes:14,
+       severity:'GRAVE', status:'activa', days:12, apoyos:689, confirmaciones:97, aportes:14,
        img:'foto · semáforo Colón', sent:{empeora:410, igual:120, mejora:30}},
       {id:102, cat:'Alumbrado público', zona:'El Florón', badge:'¡VERGÜENZA!',
        headline:'¡A OSCURAS! El Florón suma 23 noches sin un solo foco encendido',
        desc:'Familias enteras caminan a tientas. La inseguridad disparó los asaltos según los moradores del sector.',
-       severity:'GRAVE', status:'proceso', days:23, apoyos:547, confirmaciones:88, aportes:11,
+       severity:'GRAVE', status:'con_avance', days:23, apoyos:547, confirmaciones:88, aportes:11,
        img:'foto · calle El Florón', sent:{empeora:210, igual:180, mejora:62}},
       {id:103, cat:'Basura y aseo', zona:'Picoazá', badge:'¡INDIGNANTE!',
        headline:'¡PESTILENTE! Una montaña de basura sepulta la esquina de Picoazá',
        desc:'El carro recolector no pasa hace dos semanas. El olor es insoportable y ya aparecieron roedores entre los desechos.',
-       severity:'MODERADA', status:'pendiente', days:18, apoyos:432, confirmaciones:65, aportes:9,
+       severity:'MODERADA', status:'activa', days:18, apoyos:432, confirmaciones:65, aportes:9,
        img:'foto · basural Picoazá', sent:{empeora:300, igual:90, mejora:20}},
       {id:104, cat:'Agua y alcantarillado', zona:'San Pablo', badge:'¡ALARMA!',
        headline:'¡RÍO EN PLENA CALLE! Tubería reventada inunda San Pablo hace 9 días',
        desc:'El agua potable corre por la calzada las 24 horas mientras el barrio sufre cortes. Un desperdicio que indigna.',
-       severity:'GRAVE', status:'proceso', days:9, apoyos:318, confirmaciones:51, aportes:7,
+       severity:'GRAVE', status:'con_avance', days:9, apoyos:318, confirmaciones:51, aportes:7,
        img:'foto · fuga San Pablo', sent:{empeora:120, igual:90, mejora:108}},
       {id:106, cat:'Parques y espacios', zona:'4 de Noviembre', badge:'¡ABANDONO!',
        headline:'¡SELVA URBANA! El parque de la 4 de Noviembre es ahora un matorral',
        desc:'Los juegos infantiles están oxidados y la maleza llega a la cintura. Los niños ya no tienen dónde jugar.',
-       severity:'MODERADA', status:'pendiente', days:31, apoyos:156, confirmaciones:33, aportes:5,
+       severity:'MODERADA', status:'activa', days:31, apoyos:156, confirmaciones:33, aportes:5,
        img:'foto · parque 4 de Nov.', sent:{empeora:90, igual:50, mejora:16}},
       {id:107, cat:'Baches y vías', zona:'Colón', badge:'¡POR FIN!',
        headline:'¡VICTORIA CIUDADANA! Tras 80 días repavimentan la vía de la Colón',
-       desc:'La presión del Muro de la Vergüenza funcionó: la cuadrilla cerró el cráter que partía la avenida en dos.',
-       severity:'RESUELTA', status:'resuelto', days:80, apoyos:921, confirmaciones:140, aportes:22,
+       desc:'La presión del Muro de la Vergüenza funcionó: los vecinos confirmaron que el cráter que partía la avenida en dos quedó resuelto.',
+       severity:'RESUELTA', status:'resuelta', days:80, apoyos:921, confirmaciones:140, aportes:22,
        img:'foto · vía reparada Colón', sent:{empeora:20, igual:40, mejora:380}},
     ],
   };
 
   fmt(n){ return Math.round(n).toLocaleString('es-EC'); }
-  statusMeta(s){ return ({pendiente:{label:'PENDIENTE',color:'#E11900'},proceso:{label:'EN PROCESO',color:'#E8A300'},resuelto:{label:'RESUELTO',color:'#0E7A45'}})[s]; }
-  badgeStyle(s){ return s==='resuelto' ? {bg:'#0E7A45',fg:'#fff'} : {bg:'#FFD400',fg:'#0a0a0a'}; }
+  statusMeta(s){ return ({activa:{label:'ACTIVA',color:'#E11900'},con_avance:{label:'CON AVANCE',color:'#E8A300'},resuelta:{label:'RESUELTA',color:'#0E7A45'}})[s]; }
+  badgeStyle(s){ return s==='resuelta' ? {bg:'#0E7A45',fg:'#fff'} : {bg:'#FFD400',fg:'#0a0a0a'}; }
 
   clearFlash(){ clearTimeout(this._ft); this._ft=setTimeout(()=>this.setState({flash:''}),2400); }
 
@@ -513,16 +513,16 @@ class Component extends DCLogic {
     const st=this.state; const sm=this.statusMeta(d.status); const bs=this.badgeStyle(d.status);
     const t=d.sent.empeora+d.sent.igual+d.sent.mejora||1;
     const on=!!st.apoyadas[d.id]; const conf=!!st.confirmedByMe[d.id]; const mv=st.myVote[d.id]||'';
-    const order=['pendiente','proceso','resuelto']; const si=order.indexOf(d.status);
-    const reached=(i)=> d.status==='resuelto'?true:(i<=si);
+    const order=['activa','con_avance','resuelta']; const si=order.indexOf(d.status);
+    const reached=(i)=> d.status==='resuelta'?true:(i<=si);
     const dot=(i)=> reached(i)? (i===2?'#0E7A45':(i===1?'#E8A300':'#E11900')) : '#d8d6cd';
     const vbtn=(k,col)=>{ const a=mv===k; return a?{bg:col,fg:'#fff',bd:col}:{bg:'#fff',fg:'#0a0a0a',bd:'#d8d6cd'}; };
     const ve=vbtn('empeora','#E11900'), vi=vbtn('igual','#7a776f'), vmj=vbtn('mejora','#0E7A45');
     return { ...d,
       statusLabel:sm.label, statusColor:sm.color,
       badgeBg:bs.bg, badgeFg:bs.fg,
-      daysLabel: d.status==='resuelto' ? ('RESUELTO EN '+d.days+' DÍAS') : (d.days+' DÍAS SIN RESOLVER'),
-      daysColor: d.status==='resuelto' ? '#0E7A45' : '#E11900',
+      daysLabel: d.status==='resuelta' ? ('RESUELTA EN '+d.days+' DÍAS') : (d.days+' DÍAS SIN RESOLVER'),
+      daysColor: d.status==='resuelta' ? '#0E7A45' : '#E11900',
       apoyado:on,
       apoyoVerb: on?'APOYAS':'APOYAR',
       apoyoBg: on?'#FFD400':'#FFD400', apoyoFg:'#0a0a0a',
@@ -565,8 +565,8 @@ class Component extends DCLogic {
     const catBars=catRaw.map(c=>({n:c[0],v:c[1],pct:Math.round(c[1]/512*100),color:c[2]}));
     const zonaRaw=[['Andrés de Vera',287],['Picoazá',241],['4 de Noviembre',198],['San Pablo',176],['El Florón',154],['Colón',121],['La Pradera',70]];
     const zonaBars=zonaRaw.map((z,i)=>({n:z[0],v:z[1],rank:i+1,pct:Math.round(z[1]/287*100),color:i===0?'#E11900':'#0a0a0a',rankColor:i===0?'#E11900':'#bcb9b0',tag:i===0?'PEOR':'',tagBg:i===0?'#E11900':'transparent',tagFg:i===0?'#fff':'transparent'}));
-    const kpis=[{l:'TOTAL DENUNCIAS',v:'1.247',c:'#0a0a0a',s:'+184 este mes'},{l:'PENDIENTES',v:'612',c:'#E11900',s:'49% del total'},{l:'EN PROCESO',v:'388',c:'#B26A00',s:'31% del total'},{l:'RESUELTAS',v:'247',c:'#0E7A45',s:'20% del total'},{l:'TIEMPO PROM.',v:'38 d',c:'#0a0a0a',s:'meta: 15 días'}];
-    const t5=[['Cráter de la Av. Manabí','Andrés de Vera',1284,'pendiente'],['Semáforo muerto en Colón','Colón',689,'pendiente'],['El Florón a oscuras','El Florón',547,'proceso'],['Basural de Picoazá','Picoazá',432,'pendiente'],['Río en San Pablo','San Pablo',318,'proceso']];
+    const kpis=[{l:'TOTAL DENUNCIAS',v:'1.247',c:'#0a0a0a',s:'+184 este mes'},{l:'ACTIVAS',v:'612',c:'#E11900',s:'49% del total'},{l:'CON AVANCE',v:'388',c:'#B26A00',s:'31% del total'},{l:'RESUELTAS',v:'247',c:'#0E7A45',s:'20% del total'},{l:'TIEMPO PROM.',v:'38 d',c:'#0a0a0a',s:'meta: 15 días'}];
+    const t5=[['Cráter de la Av. Manabí','Andrés de Vera',1284,'activa'],['Semáforo muerto en Colón','Colón',689,'activa'],['El Florón a oscuras','El Florón',547,'con_avance'],['Basural de Picoazá','Picoazá',432,'activa'],['Río en San Pablo','San Pablo',318,'con_avance']];
     const top5=t5.map((t,i)=>({rank:i+1,h:t[0],z:t[1],a:this.fmt(t[2]),statusColor:this.statusMeta(t[3]).color}));
     const meses=['ENE','FEB','MAR','ABR','MAY','JUN'];
     const nuevas=[180,165,210,240,268,184], resueltas=[90,110,120,130,140,95];
