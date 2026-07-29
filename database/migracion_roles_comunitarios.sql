@@ -86,6 +86,8 @@ WHERE d.oculta = false
 GROUP BY d.id, p.nombre, c.nombre, c.slug, z.nombre;
 
 -- 5. Vista admin (incluye denuncias ocultas para moderación)
+DROP VIEW IF EXISTS vista_denuncias_admin;
+
 CREATE VIEW vista_denuncias_admin AS
 SELECT
   d.id,
