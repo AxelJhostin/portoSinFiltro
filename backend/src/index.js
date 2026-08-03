@@ -12,6 +12,12 @@ if (missing.length) {
 const PORT = process.env.PORT || 4000;
 const app = createApp();
 
-app.listen(PORT, () => {
-  console.log(`✅ PortoSinFiltro API corriendo en http://localhost:${PORT}`);
-});
+// Vercel imports the Express app as a serverless handler. Locally, keep the
+// traditional HTTP server behavior used by `npm start` and `npm run dev`.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`✅ PortoSinFiltro API corriendo en http://localhost:${PORT}`);
+  });
+}
+
+export default app;
