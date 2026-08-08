@@ -1,7 +1,8 @@
 -- ============================================================
--- PortoSinFiltro — Schema PostgreSQL (Supabase)
--- Ejecutar en Supabase > SQL Editor
--- Entregable de rúbrica equivalente: database/BDD.sql
+-- PortoSinFiltro — BDD.sql (entregable de rúbrica)
+-- Script de creación de base de datos. Contenido alineado con
+-- database/schema.sql. Ejecutar en Supabase → SQL Editor.
+-- Si modificas el esquema, actualiza schema.sql y BDD.sql juntos.
 -- ============================================================
 
 -- Habilitar extensión para UUIDs
