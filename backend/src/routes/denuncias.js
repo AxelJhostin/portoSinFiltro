@@ -146,7 +146,7 @@ router.get('/mapa',
 
     let q = supabase
       .from('vista_denuncias')
-      .select('id, titular, categoria, categoria_slug, zona, estado, gravedad, latitud, longitud')
+      .select('id, titular, categoria, categoria_slug, zona, estado, gravedad, latitud, longitud, anonima')
       .not('latitud', 'is', null)
       .not('longitud', 'is', null)
       .order('created_at', { ascending: false })
@@ -156,7 +156,16 @@ router.get('/mapa',
 
     const { data, error } = await q;
     if (error) return res.status(500).json({ error: error.message });
-    res.json(data);
+
+    // Denuncias anónimas: redondear coordenadas (~111 m) para no señalar
+    // la ubicación exacta de quien reportó sin dar su nombre.
+    const conPrivacidad = data.map(({ anonima, ...d }) => (
+      anonima
+        ? { ...d, latitud: Math.round(d.latitud * 1000) / 1000, longitud: Math.round(d.longitud * 1000) / 1000 }
+        : d
+    ));
+
+    res.json(conPrivacidad);
   }
 );
 
