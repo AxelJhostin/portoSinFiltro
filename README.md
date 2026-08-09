@@ -267,7 +267,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Ubicación en mapa interactivo (Leaflet) | ✅ Completo |
 | Mapa agregado de denuncias (`/mapa`) | ✅ Completo |
 | Conectar Supabase real (configurar `.env`) | ✅ Completo |
-| Deploy en servidor | 🟡 Configurado (`vercel.json` multi-service, CI en verde) — falta desplegar de verdad |
+| Deploy en producción | ✅ Live en https://porto-sin-filtro.vercel.app (Vercel, frontend + backend) |
 
 ---
 
@@ -829,11 +829,13 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 - [x] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar (`migracion_realtime.sql` + `useMuroRealtime.js`)
 - [x] **PWA** — app instalable en móviles (`manifest.json` + service worker)
 - [x] **Config de deploy** — `vercel.json` multi-service (frontend + backend), CORS multi-origen y CI en Node 22 (ver [sección Deploy](#deploy))
-- [ ] **Deploy real** — falta importar el proyecto en Vercel y confirmar que quede arriba con dominio real
+- [x] **Deploy real** — live en https://porto-sin-filtro.vercel.app (frontend + backend en Vercel, multi-service)
 
 ---
 
 ## Deploy
+
+🔗 **En producción**: https://porto-sin-filtro.vercel.app
 
 Plan actual: **todo en Vercel** (frontend + backend), usando el modo *multi-service* de Vercel definido en el `vercel.json` de la raíz del repo. (Se evaluó desplegar el backend en el servidor de la universidad vía Docker — ver más abajo — pero se descartó a favor de tener todo en un solo proveedor.)
 
