@@ -619,7 +619,7 @@ Ejecutar en orden según lo que falte:
 | `migracion_resolucion_unica.sql` | 1 aporte resolución por ciudadano y denuncia |
 | `migracion_realtime.sql` | Publicación Realtime + policies SELECT |
 
-> En el proyecto académico activo (`xynkalcsaubgseoiiavz`), **todas las migraciones ya están aplicadas**, incluida `migracion_roles_comunitarios.sql`.
+> En el proyecto académico activo (`xynkalcsaubgseoiiavz`), **todas las migraciones ya están aplicadas**, incluida `migracion_roles_comunitarios.sql`. Verificado con `cd backend && npm run verificar:db` — corre `backend/scripts/verificar-migraciones.mjs` contra el proyecto real (columnas, vistas, tablas, bucket y un par de pruebas negativas de RLS), sin modificar datos.
 
 **Paso 2 — Seed** (opcional, para datos de prueba):
 1. Ir a **Supabase → Authentication → Users → Add user**
