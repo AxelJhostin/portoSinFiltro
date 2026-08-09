@@ -219,11 +219,14 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 ## Tabla de contenidos
 
 - [Vista general del proyecto](#vista-general-del-proyecto)
+- [Metodología y gestión del proyecto](#metodología-y-gestión-del-proyecto)
 - [Prerrequisitos](#prerrequisitos)
 - [Quick Start — desde cero](#quick-start--desde-cero)
 - [Tecnologías](#tecnologías)
 - [Arquitectura](#arquitectura)
+- [Modelado de datos (DER / BD)](#modelado-de-datos-der--bd)
 - [Estructura de carpetas](#estructura-de-carpetas)
+- [Pruebas y CI](#pruebas-y-ci)
 - [Configuración detallada](#configuración-detallada)
   - [1. Supabase](#1-supabase)
   - [2. Base de datos](#2-base-de-datos)
@@ -238,6 +241,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 - [Deploy](#deploy)
 - [Diseño y prototipo](#diseño-y-prototipo)
 - [Decisiones de diseño importantes](#decisiones-de-diseño-importantes)
+- [Autores](#autores)
 
 ---
 
@@ -268,6 +272,31 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Mapa agregado de denuncias (`/mapa`) | ✅ Completo |
 | Conectar Supabase real (configurar `.env`) | ✅ Completo |
 | Deploy en producción | ✅ Live en https://porto-sin-filtro.vercel.app (Vercel, frontend + backend) |
+| Suite de pruebas (Vitest) + CI | ✅ Completo |
+
+---
+
+## Metodología y gestión del proyecto
+
+El equipo trabaja con **Scrum** (adaptado a un sprint corto académico) sobre el tablero Jira del proyecto **portosinfiltro** (`SCRUM`).
+
+| Artefacto | Cómo lo usamos |
+|---|---|
+| **Épicas / temas** | Agrupan módulos grandes (BD, API, experiencia ciudadana, entrega) |
+| **Tasks / Stories** | Trabajo entregable con criterios de aceptación |
+| **Subtareas** | Pasos verificables dentro de una Task |
+| **Estados** | Por hacer → En progreso / En revisión → Finalizado |
+| **Asignación** | Un responsable principal por ticket; dependencias entre módulos |
+
+**Flujo de trabajo (resumen):**
+1. Planificar el sprint en Jira (qué entra / qué queda fuera).
+2. Tomar una Task, moverla a *En progreso* y trabajar en un branch.
+3. Validar (manual y/o `npm test`) y pasar a *En revisión* / *Finalizado*.
+4. Integrar en `main`; el CI (GitHub Actions) corre tests + build del frontend.
+
+**Tablero:** [Jira — portosinfiltro (SCRUM)](https://codificandote.atlassian.net/jira/software/projects/SCRUM/boards)
+
+**Reparto de módulos (referencia):** ver `docs/DIVISION-EQUIPO-JIRA.md` y `docs/JIRA-DIVISION-TRABAJO.md`.
 
 ---
 
@@ -334,23 +363,101 @@ Después de instalar, necesitas configurar Supabase (ver sección siguiente) y l
 
 ## Arquitectura
 
-```
-Navegador (React)
-    │
-    │── Supabase Auth (email + contraseña) ─► Supabase Auth Service
-    │
-    │── fetch /api/* ─────────────────► Express API (puerto 4000)
-    │                                         │
-    │                                   JWT verify (middleware/auth.js)
-    │                                         │
-    │                                   Supabase service_role client
-    │                                         │
-    └─────────────────────────────── PostgreSQL (Supabase)
-                                           │
-                                      RLS (segunda capa)
+```mermaid
+flowchart TD
+    U[Ciudadano / Visitante / Admin] -->|SPA React| FE[Frontend Vite + React]
+    FE -->|Auth email + password| AUTH[Supabase Auth]
+    FE -->|fetch /api/* + JWT| BE[Backend Express]
+    BE -->|Verifica JWT ES256 via JWKS| AUTH
+    BE -->|service_role client| DB[(PostgreSQL Supabase)]
+    BE -->|Storage fotos| ST[(Bucket denuncias)]
+    DB -->|vista_denuncias estado comunitario| BE
+    BE -->|JSON| FE
+    FE -->|Realtime opcional| RT[Supabase Realtime]
+    RT --> DB
 ```
 
+**Flujo principal (denuncia):**
+1. El ciudadano inicia sesión (Supabase Auth) y obtiene un JWT.
+2. El frontend llama a `POST /api/denuncias` con el JWT (wrapper `lib/api.js`).
+3. `middleware/auth.js` valida el token y el rol.
+4. El backend inserta en PostgreSQL (service role) y, si hay foto, la sube a Storage.
+5. El muro lee la vista `vista_denuncias`, donde el **estado comunitario** (`activa` / `con_avance` / `resuelta`) se calcula con votos de progreso y aportes `resolucion`.
+
 **Regla clave:** el frontend **nunca** escribe directamente en la base de datos. Toda mutación pasa por el backend, que verifica el JWT y el rol antes de actuar.
+
+---
+
+## Modelado de datos (DER / BD)
+
+Script de creación (rúbrica): **`database/BDD.sql`** (alineado con `database/schema.sql`).
+
+### Diagrama relacional (MR)
+
+```mermaid
+erDiagram
+    perfiles ||--o{ denuncias : autor
+    perfiles ||--o{ aportes : autor
+    perfiles ||--o{ reacciones : autor
+    perfiles ||--o{ valoraciones_progreso : autor
+    perfiles ||--o{ reportes_denuncia : reportante
+    categorias ||--o{ denuncias : categoriza
+    zonas ||--o{ denuncias : ubica
+    denuncias ||--o{ fotos_denuncia : tiene
+    denuncias ||--o{ aportes : recibe
+    denuncias ||--o{ reacciones : recibe
+    denuncias ||--o{ valoraciones_progreso : recibe
+    denuncias ||--o{ reportes_denuncia : reportada
+    denuncias ||--o{ historial_estados : historial
+
+    perfiles {
+        uuid id PK
+        text nombre
+        text rol
+        boolean activo
+    }
+    denuncias {
+        int id PK
+        uuid autor_id FK
+        boolean anonima
+        int categoria_id FK
+        int zona_id FK
+        text descripcion
+        smallint gravedad
+        float latitud
+        float longitud
+        boolean oculta
+    }
+    aportes {
+        int id PK
+        int denuncia_id FK
+        uuid autor_id FK
+        text tipo
+        text contenido
+        text foto_url
+    }
+    valoraciones_progreso {
+        int id PK
+        int denuncia_id FK
+        uuid autor_id FK
+        boolean progresa
+    }
+```
+
+### Tablas y vistas principales
+
+| Objeto | Rol |
+|---|---|
+| `perfiles` | Extiende `auth.users`; roles `ciudadano` / `administrador` |
+| `categorias`, `zonas` | Catálogos de Portoviejo |
+| `denuncias` | Caso reportado (ubicación, gravedad, ocultamiento) |
+| `fotos_denuncia`, `aportes`, `reacciones` | Evidencia e interacción ciudadana |
+| `valoraciones_progreso` | Votos Sí/No progresa → estado `con_avance` |
+| `reportes_denuncia` | Señales de denuncia falsa (cola admin) |
+| `vista_denuncias` | Lectura pública + **estado comunitario calculado** |
+| `vista_denuncias_admin` | Vista de moderación |
+
+Para reiniciar un proyecto nuevo: ejecutar `database/BDD.sql` (o `schema.sql`) en el SQL Editor. Migraciones incrementales: `database/migracion_*.sql`.
 
 ---
 
@@ -360,28 +467,37 @@ Navegador (React)
 portoSinFiltro/
 ├── index.html                   ← Prototipo standalone (funciona sin backend ni BD)
 ├── .gitignore                   ← Excluye node_modules/, dist/, .env, package-lock.json
+├── vercel.json                  ← Deploy integrado frontend + backend en Vercel
+├── docker-compose.yml           ← Opción Docker solo para la API
+├── .github/workflows/ci.yml     ← CI: tests backend/frontend + build
 ├── project/                     ← Archivos originales del diseño (Claude Design)
 │   ├── PortoSinFiltro.dc.html   ← Prototipo dc-runtime original
 │   └── PortoSinFiltro-print.dc.html
 │
 ├── database/
-│   ├── schema.sql                      ← Schema completo: tablas, trigger, vista, RLS
+│   ├── BDD.sql                         ← Entregable rúbrica (script de creación BD)
+│   ├── schema.sql                      ← Misma fuente de verdad del esquema
 │   ├── seed.sql                        ← Datos de prueba (leer comentarios del archivo)
 │   ├── migracion_ubicacion_fotos.sql   ← Mapa + Storage (BD existente)
 │   ├── migracion_foto_portada.sql      ← Miniatura en listados (BD existente)
 │   ├── migracion_progreso_ciudadano.sql ← Valoraciones Sí/No progresa (BD existente)
 │   ├── migracion_roles_comunitarios.sql ← Roles ciudadano/admin, reportes, estado comunitario
-│   └── migracion_resolucion_unica.sql   ← 1 resolución por ciudadano por denuncia
+│   ├── migracion_resolucion_unica.sql   ← 1 resolución por ciudadano por denuncia
 │   └── migracion_realtime.sql           ← Realtime muro EN VIVO + policies RLS
 │
 ├── docs/
-│   └── PLAN-ROLES-COMUNITARIOS.md      ← Plan y decisiones del modelo comunitario
+│   ├── PLAN-ROLES-COMUNITARIOS.md      ← Plan y decisiones del modelo comunitario
+│   ├── DIVISION-EQUIPO-JIRA.md         ← Reparto de módulos del equipo
+│   └── JIRA-DIVISION-TRABAJO.md        ← Foto ordenada del tablero SCRUM
 │
 ├── backend/
 │   ├── .env.example             ← Plantilla de variables (copiar a .env y rellenar)
 │   ├── package.json             ← "type": "module" — necesario para ES imports
+│   ├── vitest.config.js         ← Suite unitaria/integración (supertest)
+│   ├── tests/                   ← health, auth, denuncias, admin, dashboard, rate-limit
 │   └── src/
-│       ├── index.js             ← Servidor Express: CORS, rutas, error handler global
+│       ├── index.js             ← Entry local; en Vercel se importa el app
+│       ├── app.js               ← Express: CORS, helmet, rate limit, rutas
 │       ├── db/
 │       │   └── supabase.js      ← Cliente Supabase con service_role (bypassa RLS)
 │       ├── middleware/
@@ -399,19 +515,23 @@ portoSinFiltro/
     ├── vite.config.js           ← Proxy: /api/* → http://localhost:4000
     ├── tailwind.config.js       ← Paleta personalizada: brand.*, surface.*, ink.*
     ├── postcss.config.js
+    ├── public/                  ← PWA: manifest.json + service worker + iconos
     └── src/
         ├── main.jsx             ← Punto de entrada React
-        ├── index.css            ← Directivas Tailwind + clases utilitarias: .card, .btn-primary, .chip, .estado-*
-        ├── App.jsx              ← BrowserRouter + carga de sesión Supabase + carga de perfil (rol)
+        ├── index.css            ← Directivas Tailwind + clases utilitarias
+        ├── App.jsx              ← BrowserRouter + sesión Supabase + perfil (rol)
+        ├── test/setup.js        ← Setup Vitest + Testing Library
         ├── lib/
         │   ├── supabase.js      ← Cliente frontend (anon key — segura para exponer)
-        │   ├── api.js           ← fetch wrapper: inyecta JWT automáticamente en cada petición
-        │   └── constants.js     ← Fuente única: CATEGORIAS, ZONAS, ESTADO_*, GRAVEDAD_LABEL, TIPO_APORTE_LABEL
+        │   ├── api.js           ← fetch wrapper: inyecta JWT automáticamente
+        │   ├── constants.js     ← CATEGORIAS, ZONAS, ESTADO_*, GRAVEDAD_LABEL…
+        │   ├── estadoComunitario.js ← Mensajes / lógica UI de estados
+        │   └── useMuroRealtime.js   ← Suscripción Realtime del muro
         ├── pages/
         │   ├── Muro.jsx              ← Feed vertical, filtros, DenunciaCard
         │   ├── DetalleDenuncia.jsx   ← Detalle + apoyo + progreso + aportes
         │   ├── NuevaDenuncia.jsx     ← Crear denuncia (solo ciudadano)
-        │   ├── Admin.jsx               ← Moderación administrador
+        │   ├── Admin.jsx             ← Moderación administrador
         │   ├── PanelPublico.jsx      ← Estadísticas públicas (solo lectura)
         │   ├── MisDenuncias.jsx      ← Denuncias del usuario logueado
         │   ├── Login.jsx             ← Login + registro ciudadano
@@ -424,6 +544,39 @@ portoSinFiltro/
                 ├── BarraGravedad.jsx ← Indicador tipo pila (verde → rojo)
                 └── MapaUbicacion.jsx ← Mapa Leaflet
 ```
+
+### Responsabilidad por módulo
+
+| Módulo | Responsabilidad |
+|---|---|
+| `backend/src/routes/*` | Endpoints REST por dominio (denuncias, aportes, admin, dashboard) |
+| `backend/src/middleware/auth.js` | Autenticación JWT + autorización por rol |
+| `backend/src/db/supabase.js` | Acceso a BD/Storage con service role |
+| `frontend/src/pages/*` | Pantallas / flujos de usuario |
+| `frontend/src/lib/*` | Cliente API, constantes, realtime, helpers de estado |
+| `frontend/src/components/*` | UI reutilizable (layout + tarjetas + mapa) |
+| `database/*` | Esquema, migraciones y seed |
+
+---
+
+## Pruebas y CI
+
+Stack de pruebas: **Vitest** (backend con Supertest; frontend con Testing Library / jsdom).
+
+```bash
+# Backend — unitarias + integración de rutas
+cd backend && npm test
+
+# Frontend — helpers y lógica compartida
+cd frontend && npm test
+```
+
+| Área | Archivos (ejemplos) | Qué cubren |
+|---|---|---|
+| Backend | `tests/health.test.js`, `denuncias.test.js`, `admin.test.js`, `dashboard.test.js`, `middleware/auth.test.js`, `rate-limit.test.js` | Health, CRUD/permisos, moderación, stats, JWT/roles, rate limit |
+| Frontend | `src/lib/constants.test.js`, `estadoComunitario.test.js`, `useMuroRealtime.test.js` | Constantes, mensajes de estado comunitario, hook realtime |
+
+**CI:** en cada push/PR a `main`, `.github/workflows/ci.yml` instala dependencias, corre `npm test` en backend y frontend, y hace `npm run build` del frontend.
 
 ---
 
@@ -452,7 +605,7 @@ portoSinFiltro/
 En **Supabase → SQL Editor**, ejecutar en este orden:
 
 **Paso 1 — Schema** (obligatorio en proyecto nuevo):
-Copiar y pegar todo el contenido de `database/schema.sql` y ejecutar.
+Copiar y pegar todo el contenido de `database/BDD.sql` (o `database/schema.sql`) y ejecutar.
 
 **Paso 1b — Migraciones** (si la BD ya existía antes de una feature):
 Ejecutar en orden según lo que falte:
@@ -464,6 +617,7 @@ Ejecutar en orden según lo que falte:
 | `migracion_progreso_ciudadano.sql` | Valoraciones Sí/No progresa |
 | `migracion_roles_comunitarios.sql` | Roles comunitarios, reportes, estado calculado, vista admin |
 | `migracion_resolucion_unica.sql` | 1 aporte resolución por ciudadano y denuncia |
+| `migracion_realtime.sql` | Publicación Realtime + policies SELECT |
 
 > En el proyecto académico activo (`xynkalcsaubgseoiiavz`), **todas las migraciones ya están aplicadas**, incluida `migracion_roles_comunitarios.sql`.
 
@@ -828,8 +982,9 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 
 - [x] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar (`migracion_realtime.sql` + `useMuroRealtime.js`)
 - [x] **PWA** — app instalable en móviles (`manifest.json` + service worker)
-- [x] **Config de deploy** — `vercel.json` multi-service (frontend + backend), CORS multi-origen y CI en Node 22 (ver [sección Deploy](#deploy))
-- [x] **Deploy real** — live en https://porto-sin-filtro.vercel.app (frontend + backend en Vercel, multi-service)
+- [x] **Config de deploy** — `vercel.json` (frontend + API), `Dockerfile`/`docker-compose.yml` (backend), CORS multi-origen y CI (ver [sección Deploy](#deploy))
+- [x] **Deploy en Vercel** — live en https://porto-sin-filtro.vercel.app
+- [x] **Pruebas automatizadas** — Vitest (backend + frontend) + GitHub Actions
 
 ---
 
@@ -837,29 +992,21 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 
 🔗 **En producción**: https://porto-sin-filtro.vercel.app
 
-Plan actual: **todo en Vercel** (frontend + backend), usando el modo *multi-service* de Vercel definido en el `vercel.json` de la raíz del repo. (Se evaluó desplegar el backend en el servidor de la universidad vía Docker — ver más abajo — pero se descartó a favor de tener todo en un solo proveedor.)
+### Aplicación en Vercel
 
-### Frontend + Backend — Vercel (multi-service)
+El proyecto se despliega en **Vercel** (frontend + backend vía `vercel.json` en la raíz). Variables tipicas:
 
-1. Importar el repo en [vercel.com](https://vercel.com) con **Root Directory: la raíz del repo** (no `frontend/`) — el `vercel.json` de la raíz define ambos servicios (`frontend` y `backend`) y el ruteo entre ellos.
-2. El servicio `backend` corre `backend/src/index.js` como función serverless de Express (`export default app`, sin `app.listen()` cuando `process.env.VERCEL` está definido — ver `backend/src/index.js`).
-3. El `vercel.json` ya define los rewrites: `/api/*` → servicio `backend` (con el prefijo `/api` recortado para que coincida con las rutas de Express), todo lo demás → servicio `frontend`.
-4. Variables de entorno en Vercel → Project Settings → Environment Variables:
-   ```
-   # Para el servicio frontend
-   VITE_SUPABASE_URL=<tu-project-url>
-   VITE_SUPABASE_ANON_KEY=<tu-anon-key>
+```
+VITE_SUPABASE_URL=<tu-project-url>
+VITE_SUPABASE_ANON_KEY=<tu-anon-key>
+SUPABASE_URL=<tu-project-url>
+SUPABASE_SERVICE_KEY=<secret key — solo backend>
+FRONTEND_URL=https://porto-sin-filtro.vercel.app,http://localhost:5173
+```
 
-   # Para el servicio backend
-   SUPABASE_URL=<tu-project-url>
-   SUPABASE_SERVICE_KEY=<tu-secret-key>
-   FRONTEND_URL=http://localhost:5173,https://<tu-proyecto>.vercel.app
-   ```
-5. Como frontend y backend quedan bajo el **mismo dominio** en producción, las llamadas a `/api/*` son same-origin y no dependen de CORS ahí — CORS (`FRONTEND_URL`) sigue siendo necesario solo para desarrollo local (`localhost:5173` → `localhost:4000`).
+### Alternativa local / servidor universitario (Docker)
 
-### Alternativa descartada — backend en servidor propio (Docker)
-
-Si en algún momento se necesita sacar el backend de Vercel (por costos, límites de function duration, etc.), `backend/Dockerfile` + `docker-compose.yml` (raíz) siguen disponibles como respaldo — containerizan solo la API, la base de datos y Auth siguen en Supabase Cloud:
+`backend/Dockerfile` + `docker-compose.yml` (raíz) containerizan solo la API — la base de datos y Auth siguen en Supabase Cloud.
 
 ```bash
 git clone https://github.com/castro-bot/portoSinFiltro.git
@@ -868,11 +1015,19 @@ cp backend/.env.example backend/.env   # completar con las claves reales de Supa
 docker compose up -d --build
 ```
 
-Esto deja la API corriendo en el puerto `4000`. Si se usa esta vía, hay que actualizar `FRONTEND_URL` con el dominio real y volver a poner CORS entre orígenes distintos.
+Esto deja la API corriendo en el puerto `4000`. Si necesitas HTTPS/dominio propio, pon un reverse proxy (Nginx, Caddy, etc.) delante del contenedor.
+
+### CORS multi-origen
+
+`backend/src/app.js` valida el header `Origin` de cada request contra `FRONTEND_URL`, que admite **varias URLs separadas por coma**:
+
+```
+FRONTEND_URL=http://localhost:5173,https://porto-sin-filtro.vercel.app
+```
 
 ### CI
 
-`.github/workflows/ci.yml` corre en cada push/PR a `main` con **Node 22**: instala dependencias y ejecuta los tests de `backend/` y `frontend/`, y además hace `npm run build` del frontend para detectar errores de compilación antes de desplegar. (Node 20 falla porque `supabase-js` Realtime necesita WebSocket, por eso el backend usa el paquete `ws` como transporte explícito — ver `backend/src/db/supabase.js`.)
+`.github/workflows/ci.yml` corre en cada push/PR a `main`: instala dependencias y ejecuta los tests de `backend/` y `frontend/`, y además hace `npm run build` del frontend. Detalle en [Pruebas y CI](#pruebas-y-ci).
 
 ---
 
@@ -936,6 +1091,16 @@ Las listas de categorías, zonas y estados se usaban en 5-6 archivos distintos. 
 
 ---
 
-## Autor
+## Autores
 
-Desarrollado por Axel Hernández — PUCE Sede Manabí, Portoviejo, Manabí — 2025.
+Proyecto universitario — **PUCE Sede Manabí**, Portoviejo — asignatura *Desarrollo de Sistemas de Información* (2026-1).
+
+| Integrante | Enfoque principal |
+|---|---|
+| Adolfo Castro | Backend / panel público / deploy |
+| Axel Hernández | Frontend muro / features / tests |
+| Elkin Saltos | Base de datos / Supabase / infra |
+| Marcelo Morales | Docs / demo / QA de presentación |
+| Johan Medranda | Docs / QA manual / guion |
+
+Repositorio: [https://github.com/castro-bot/portoSinFiltro](https://github.com/castro-bot/portoSinFiltro)
