@@ -267,7 +267,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Ubicación en mapa interactivo (Leaflet) | ✅ Completo |
 | Mapa agregado de denuncias (`/mapa`) | ✅ Completo |
 | Conectar Supabase real (configurar `.env`) | ✅ Completo |
-| Deploy en servidor | 🟡 Configurado (`vercel.json`, `Dockerfile`, CI) — falta desplegar |
+| Deploy en servidor | 🟡 Configurado (`vercel.json` multi-service, CI en verde) — falta desplegar de verdad |
 
 ---
 
@@ -289,7 +289,7 @@ Cuenta gratuita en [supabase.com](https://supabase.com) (se crea en 2 minutos co
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/AxelJhostin/portoSinFiltro.git
+git clone https://github.com/castro-bot/portoSinFiltro.git
 cd portoSinFiltro
 
 # 2. Ver el prototipo sin necesitar nada más (opcional)
@@ -828,50 +828,49 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 
 - [x] **Tiempo real** — Supabase Realtime para actualizar el muro sin recargar (`migracion_realtime.sql` + `useMuroRealtime.js`)
 - [x] **PWA** — app instalable en móviles (`manifest.json` + service worker)
-- [x] **Config de deploy** — `vercel.json` (frontend), `Dockerfile`/`docker-compose.yml` (backend), CORS multi-origen y CI (ver [sección Deploy](#deploy))
-- [ ] **Deploy real** — falta importar el proyecto en Vercel y desplegar el backend en el servidor de la universidad
+- [x] **Config de deploy** — `vercel.json` multi-service (frontend + backend), CORS multi-origen y CI en Node 22 (ver [sección Deploy](#deploy))
+- [ ] **Deploy real** — falta importar el proyecto en Vercel y confirmar que quede arriba con dominio real
 
 ---
 
 ## Deploy
 
-### Frontend — Vercel
+Plan actual: **todo en Vercel** (frontend + backend), usando el modo *multi-service* de Vercel definido en el `vercel.json` de la raíz del repo. (Se evaluó desplegar el backend en el servidor de la universidad vía Docker — ver más abajo — pero se descartó a favor de tener todo en un solo proveedor.)
 
-1. Importar el repo en [vercel.com](https://vercel.com) con **Root Directory: `frontend`**.
-2. Vercel detecta Vite automáticamente; `frontend/vercel.json` ya define `buildCommand`, `outputDirectory` y un rewrite para que rutas de React Router (ej. `/mapa`, `/denuncia/5`) no den 404 al refrescar.
-3. Variables de entorno en Vercel → Project Settings → Environment Variables:
+### Frontend + Backend — Vercel (multi-service)
+
+1. Importar el repo en [vercel.com](https://vercel.com) con **Root Directory: la raíz del repo** (no `frontend/`) — el `vercel.json` de la raíz define ambos servicios (`frontend` y `backend`) y el ruteo entre ellos.
+2. El servicio `backend` corre `backend/src/index.js` como función serverless de Express (`export default app`, sin `app.listen()` cuando `process.env.VERCEL` está definido — ver `backend/src/index.js`).
+3. El `vercel.json` ya define los rewrites: `/api/*` → servicio `backend` (con el prefijo `/api` recortado para que coincida con las rutas de Express), todo lo demás → servicio `frontend`.
+4. Variables de entorno en Vercel → Project Settings → Environment Variables:
    ```
+   # Para el servicio frontend
    VITE_SUPABASE_URL=<tu-project-url>
    VITE_SUPABASE_ANON_KEY=<tu-anon-key>
+
+   # Para el servicio backend
+   SUPABASE_URL=<tu-project-url>
+   SUPABASE_SERVICE_KEY=<tu-secret-key>
+   FRONTEND_URL=http://localhost:5173,https://<tu-proyecto>.vercel.app
    ```
-4. Copia la URL que te da Vercel (ej. `https://portosinfiltro.vercel.app`) y agrégala a `FRONTEND_URL` en el backend.
+5. Como frontend y backend quedan bajo el **mismo dominio** en producción, las llamadas a `/api/*` son same-origin y no dependen de CORS ahí — CORS (`FRONTEND_URL`) sigue siendo necesario solo para desarrollo local (`localhost:5173` → `localhost:4000`).
 
-### Backend — servidor de la universidad (Docker)
+### Alternativa descartada — backend en servidor propio (Docker)
 
-`backend/Dockerfile` + `docker-compose.yml` (raíz) containerizan solo la API — la base de datos y Auth siguen en Supabase Cloud, no hay nada más que levantar.
-
-En el servidor (con Docker instalado):
+Si en algún momento se necesita sacar el backend de Vercel (por costos, límites de function duration, etc.), `backend/Dockerfile` + `docker-compose.yml` (raíz) siguen disponibles como respaldo — containerizan solo la API, la base de datos y Auth siguen en Supabase Cloud:
 
 ```bash
-git clone https://github.com/AxelJhostin/portoSinFiltro.git
+git clone https://github.com/castro-bot/portoSinFiltro.git
 cd portoSinFiltro
 cp backend/.env.example backend/.env   # completar con las claves reales de Supabase
 docker compose up -d --build
 ```
 
-Esto deja la API corriendo en el puerto `4000`. Si necesitas HTTPS/dominio propio, pon un reverse proxy (Nginx, Caddy, etc.) delante del contenedor.
-
-### CORS multi-origen
-
-`backend/src/app.js` valida el header `Origin` de cada request contra `FRONTEND_URL`, que ahora admite **varias URLs separadas por coma** (útil para tener a la vez producción y `localhost`):
-
-```
-FRONTEND_URL=http://localhost:5173,https://portosinfiltro.vercel.app
-```
+Esto deja la API corriendo en el puerto `4000`. Si se usa esta vía, hay que actualizar `FRONTEND_URL` con el dominio real y volver a poner CORS entre orígenes distintos.
 
 ### CI
 
-`.github/workflows/ci.yml` corre en cada push/PR a `main`: instala dependencias y ejecuta los tests de `backend/` y `frontend/`, y además hace `npm run build` del frontend para detectar errores de compilación antes de desplegar.
+`.github/workflows/ci.yml` corre en cada push/PR a `main` con **Node 22**: instala dependencias y ejecuta los tests de `backend/` y `frontend/`, y además hace `npm run build` del frontend para detectar errores de compilación antes de desplegar. (Node 20 falla porque `supabase-js` Realtime necesita WebSocket, por eso el backend usa el paquete `ws` como transporte explícito — ver `backend/src/db/supabase.js`.)
 
 ---
 
