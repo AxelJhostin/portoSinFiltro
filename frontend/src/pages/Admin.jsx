@@ -30,10 +30,17 @@ export default function Admin({ session, perfil }) {
   const [errorDenuncias, setErrorDenuncias] = useState('');
   const [errorReportes, setErrorReportes]   = useState('');
   const [errorUsuarios, setErrorUsuarios]   = useState('');
+  const [reintentoStats, setReintentoStats]         = useState(0);
+  const [reintentoDenuncias, setReintentoDenuncias] = useState(0);
+  const [reintentoReportes, setReintentoReportes]   = useState(0);
+  const [reintentoUsuarios, setReintentoUsuarios]   = useState(0);
 
   useEffect(() => {
     if (!session) { navigate('/login', { replace: true }); return; }
-    if (perfil?.rol !== 'administrador') {
+    // perfil llega en null mientras carga (ver App.jsx) — esperar a que
+    // resuelva antes de decidir, si no un refresh en /admin saca al
+    // administrador aunque su rol sí sea el correcto.
+    if (perfil && perfil.rol !== 'administrador') {
       navigate('/', { replace: true });
     }
   }, [session, perfil, navigate]);
@@ -49,7 +56,7 @@ export default function Admin({ session, perfil }) {
       finally { setCargandoStats(false); }
     }
     cargarStats();
-  }, [perfil?.rol]);
+  }, [perfil?.rol, reintentoStats]);
 
   useEffect(() => {
     if (perfil?.rol !== 'administrador') return;
@@ -64,7 +71,7 @@ export default function Admin({ session, perfil }) {
       finally { setCargandoDenuncias(false); }
     }
     cargarDenuncias();
-  }, [filtroOculta, paginaDenuncias, perfil?.rol]);
+  }, [filtroOculta, paginaDenuncias, perfil?.rol, reintentoDenuncias]);
 
   useEffect(() => {
     if (perfil?.rol !== 'administrador') return;
@@ -79,7 +86,7 @@ export default function Admin({ session, perfil }) {
       finally { setCargandoReportes(false); }
     }
     cargarReportes();
-  }, [paginaReportes, perfil?.rol]);
+  }, [paginaReportes, perfil?.rol, reintentoReportes]);
 
   useEffect(() => {
     if (perfil?.rol !== 'administrador') return;
@@ -97,7 +104,7 @@ export default function Admin({ session, perfil }) {
       finally { setCargandoUsuarios(false); }
     }
     cargarUsuarios();
-  }, [paginaUsuarios, filtroRolUsuario, filtroActivoUsuario, perfil?.rol]);
+  }, [paginaUsuarios, filtroRolUsuario, filtroActivoUsuario, perfil?.rol, reintentoUsuarios]);
 
   function cambiarFiltroOculta(val) {
     setFiltro(val);
@@ -178,8 +185,9 @@ export default function Admin({ session, perfil }) {
             ))}
           </div>
         ) : errorStats ? (
-          <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
-            No se pudo cargar el resumen: {errorStats}
+          <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red flex items-center justify-between gap-3 flex-wrap" role="alert">
+            <span>No se pudo cargar el resumen: {errorStats}</span>
+            <button onClick={() => setReintentoStats(n => n + 1)} className="btn-ghost shrink-0">Reintentar</button>
           </div>
         ) : stats && (
           <section>
@@ -217,8 +225,9 @@ export default function Admin({ session, perfil }) {
               {[1, 2].map(i => <div key={i} className="card h-24 animate-pulse bg-surface-muted" />)}
             </div>
           ) : errorReportes ? (
-            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
-              No se pudieron cargar los reportes: {errorReportes}
+            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red flex items-center justify-between gap-3 flex-wrap" role="alert">
+              <span>No se pudieron cargar los reportes: {errorReportes}</span>
+              <button onClick={() => setReintentoReportes(n => n + 1)} className="btn-ghost shrink-0">Reintentar</button>
             </div>
           ) : reportes.length === 0 ? (
             <div className="card p-6 text-center text-ink-faint text-sm">
@@ -288,8 +297,9 @@ export default function Admin({ session, perfil }) {
               {[1, 2, 3].map(i => <div key={i} className="card h-20 animate-pulse bg-surface-muted" />)}
             </div>
           ) : errorDenuncias ? (
-            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
-              No se pudieron cargar las denuncias: {errorDenuncias}
+            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red flex items-center justify-between gap-3 flex-wrap" role="alert">
+              <span>No se pudieron cargar las denuncias: {errorDenuncias}</span>
+              <button onClick={() => setReintentoDenuncias(n => n + 1)} className="btn-ghost shrink-0">Reintentar</button>
             </div>
           ) : denuncias.length === 0 ? (
             <div className="card p-8 text-center text-ink-faint text-sm">
@@ -400,8 +410,9 @@ export default function Admin({ session, perfil }) {
               {[1, 2].map(i => <div key={i} className="card h-16 animate-pulse bg-surface-muted" />)}
             </div>
           ) : errorUsuarios ? (
-            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red" role="alert">
-              No se pudieron cargar los usuarios: {errorUsuarios}
+            <div className="rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-brand-red flex items-center justify-between gap-3 flex-wrap" role="alert">
+              <span>No se pudieron cargar los usuarios: {errorUsuarios}</span>
+              <button onClick={() => setReintentoUsuarios(n => n + 1)} className="btn-ghost shrink-0">Reintentar</button>
             </div>
           ) : usuarios.length === 0 ? (
             <div className="card p-8 text-center text-ink-faint text-sm">
