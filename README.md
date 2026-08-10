@@ -1037,7 +1037,7 @@ El archivo `index.html` en la raíz es un prototipo interactivo **standalone** �
 
 Incluye:
 - Panel izquierdo: mockup de app móvil con feed de denuncias, vista de detalle, votación de sentimiento, comentarios anónimos
-- Panel derecho: dashboard del municipio con KPIs, gráficas de categorías, ranking de zonas y evolución temporal
+- Panel derecho: panel de administrador con KPIs, gráficas de categorías, ranking de zonas y evolución temporal
 
 ```bash
 # Opción 1 — abrir directo (Mac)
@@ -1047,6 +1047,27 @@ open index.html
 npx serve -p 3771 .
 # luego abrir http://localhost:3771
 ```
+
+### Divergencias conocidas entre Plan B y la app real (SCRUM-67)
+
+El Plan B es una **simulación** para tener algo que mostrar si Supabase falla en vivo — no es un clon funcional de la app real. Terminología de estados (`ACTIVA`/`CON AVANCE`/`RESUELTA`) y copy de roles (administrador, no "municipio") ya están alineados con la app real. Lo que **sigue siendo distinto a propósito**:
+
+| Plan B | App real | Por qué la diferencia se mantiene |
+|---|---|---|
+| Voto de sentimiento de 3 vías (Empeora / Igual / Mejora) | Valoración binaria (Sí progresa / No progresa) | El Plan B es más vistoso para pitch; cambiar el modelo de datos del prototipo no aporta a la demo |
+| `GRAVEDAD: ¡CATÁSTROFE URBANA!` (texto dramático libre) | Escala numérica 1–5 (Baja/Moderada/Media/Alta/Crítica) | El copy dramático es intencional para el tono "sin censura" del pitch |
+| Un solo contador "confirmaciones" | Contadores separados: progreso Sí/No, reportes, resoluciones | Simplificación necesaria para que el prototipo no dependa de un backend |
+| Todo en `localStorage`/memoria del navegador, se pierde al recargar | Persistencia real en Supabase | Es exactamente lo que permite que funcione sin conexión |
+
+### Prueba offline y limitaciones (SCRUM-67)
+
+Probado abriendo `index.html` directo (`file://`) con la red completamente desconectada: el feed, apoyar, votar, abrir detalle y comentar funcionan sin ningún error. Lo único que falla sin red es la fuente de Google Fonts (cae a la fuente del sistema, no rompe nada).
+
+**Limitaciones conocidas** (por diseño, no son bugs):
+- No hay persistencia: cerrar la pestaña borra los apoyos/votos/comentarios agregados en la sesión.
+- No hay autenticación real ni roles — cualquiera puede "actuar" como cualquier usuario.
+- Los datos (denuncias, KPIs, comentarios) son fijos/hardcodeados, no reflejan la base de datos real.
+- Pensado para verse en una laptop/proyector durante una presentación, no para uso móvil real de un ciudadano.
 
 ### Paleta de colores
 

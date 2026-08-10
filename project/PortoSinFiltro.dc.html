@@ -467,7 +467,7 @@ class Component extends DCLogic {
        desc:'El agua potable corre por la calzada las 24 horas mientras el barrio sufre cortes. Un desperdicio que indigna.',
        severity:'GRAVE', status:'con_avance', days:9, apoyos:318, confirmaciones:51, aportes:7,
        img:'foto · fuga San Pablo', sent:{empeora:120, igual:90, mejora:108}},
-      {id:106, cat:'Parques y espacios', zona:'4 de Noviembre', badge:'¡ABANDONO!',
+      {id:106, cat:'Parques y espacios públicos', zona:'4 de Noviembre', badge:'¡ABANDONO!',
        headline:'¡SELVA URBANA! El parque de la 4 de Noviembre es ahora un matorral',
        desc:'Los juegos infantiles están oxidados y la maleza llega a la cintura. Los niños ya no tienen dónde jugar.',
        severity:'MODERADA', status:'activa', days:31, apoyos:156, confirmaciones:33, aportes:5,
@@ -551,7 +551,7 @@ class Component extends DCLogic {
     const de=dchip('empeora','#E11900'), di=dchip('igual','#7a776f'), dm=dchip('mejora','#0E7A45');
 
     // dashboard data
-    const catRaw=[['Baches y vías',512,'#E11900'],['Alumbrado público',224,'#0a0a0a'],['Basura y aseo',187,'#0a0a0a'],['Agua y alcantarillado',137,'#0a0a0a'],['Semáforos y señalética',87,'#0a0a0a'],['Parques y espacios',62,'#0a0a0a'],['Seguridad',24,'#0a0a0a'],['Otros',14,'#0a0a0a']];
+    const catRaw=[['Baches y vías',512,'#E11900'],['Alumbrado público',224,'#0a0a0a'],['Basura y aseo',187,'#0a0a0a'],['Agua y alcantarillado',137,'#0a0a0a'],['Semáforos y señalética',87,'#0a0a0a'],['Parques y espacios públicos',62,'#0a0a0a'],['Seguridad',24,'#0a0a0a'],['Otros',14,'#0a0a0a']];
     const catBars=catRaw.map(c=>({n:c[0],v:c[1],pct:Math.round(c[1]/512*100),color:c[2]}));
     const zonaRaw=[['Andrés de Vera',287],['Picoazá',241],['4 de Noviembre',198],['San Pablo',176],['El Florón',154],['Colón',121],['La Pradera',70]];
     const zonaBars=zonaRaw.map((z,i)=>({n:z[0],v:z[1],rank:i+1,pct:Math.round(z[1]/287*100),color:i===0?'#E11900':'#0a0a0a',rankColor:i===0?'#E11900':'#bcb9b0',tag:i===0?'PEOR':'',tagBg:i===0?'#E11900':'transparent',tagFg:i===0?'#fff':'transparent'}));
