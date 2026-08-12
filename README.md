@@ -218,6 +218,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 
 ## Tabla de contenidos
 
+- [Documentación del proyecto](#documentación-del-proyecto)
 - [Vista general del proyecto](#vista-general-del-proyecto)
 - [Metodología y gestión del proyecto](#metodología-y-gestión-del-proyecto)
 - [Prerrequisitos](#prerrequisitos)
@@ -242,6 +243,26 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 - [Diseño y prototipo](#diseño-y-prototipo)
 - [Decisiones de diseño importantes](#decisiones-de-diseño-importantes)
 - [Autores](#autores)
+
+---
+
+## Documentación del proyecto
+
+Índice de entregables para evaluación y para cualquiera que llegue nuevo al repositorio.
+
+| Documento | Qué contiene |
+|---|---|
+| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Justificación de la metodología y **diagramas UML**: casos de uso, componentes y despliegue, clases, secuencia, estados y el **DER completo** |
+| [`database/BDD.sql`](database/BDD.sql) | Script estructurado de creación de la base de datos |
+| [`docs/presentacion/index.html`](docs/presentacion/index.html) | **Diapositivas de sustentación** — se abren en cualquier navegador; `Ctrl/Cmd + P` las exporta a PDF |
+| [`docs/EQUIPO-Y-MODULOS.md`](docs/EQUIPO-Y-MODULOS.md) | Reparto de módulos, épicas del tablero, Definition of Done y guion de la demo |
+| [`docs/PLAN-ROLES-COMUNITARIOS.md`](docs/PLAN-ROLES-COMUNITARIOS.md) | Decisiones del modelo de roles y estados comunitarios |
+| [`PRODUCT.md`](PRODUCT.md) | Usuarios, propósito, personalidad de marca y principios de diseño |
+| Sección [Deploy](#deploy) de este README | Guía de despliegue en producción |
+| Sección [Pruebas y CI](#pruebas-y-ci) de este README | Cómo correr la suite de pruebas y qué hace el pipeline |
+
+**Aplicación en producción:** <https://porto-sin-filtro.vercel.app>
+· **Tablero:** [Jira `SCRUM`](https://codificandote.atlassian.net/jira/software/projects/SCRUM/boards)
 
 ---
 
@@ -272,7 +293,7 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Mapa agregado de denuncias (`/mapa`) | ✅ Completo |
 | Conectar Supabase real (configurar `.env`) | ✅ Completo |
 | Deploy en producción | ✅ Live en https://porto-sin-filtro.vercel.app (Vercel, frontend + backend) |
-| Suite de pruebas (Vitest) + CI | ✅ Completo |
+| Suite de pruebas (Vitest) + CI | ✅ Completo — 450 pruebas, cobertura 100% backend / 99.96% frontend |
 
 ---
 
@@ -294,9 +315,12 @@ El equipo trabaja con **Scrum** (adaptado a un sprint corto académico) sobre el
 3. Validar (manual y/o `npm test`) y pasar a *En revisión* / *Finalizado*.
 4. Integrar en `main`; el CI (GitHub Actions) corre tests + build del frontend.
 
+**Por qué Scrum y no Kanban, cascada o XP:** la justificación completa está en
+[`docs/ARQUITECTURA.md` § 1](docs/ARQUITECTURA.md#1-metodología-elección-y-justificación).
+
 **Tablero:** [Jira — portosinfiltro (SCRUM)](https://codificandote.atlassian.net/jira/software/projects/SCRUM/boards)
 
-**Reparto de módulos (referencia):** ver `docs/DIVISION-EQUIPO-JIRA.md` y `docs/JIRA-DIVISION-TRABAJO.md`.
+**Reparto de módulos, épicas y guion de la demo:** [`docs/EQUIPO-Y-MODULOS.md`](docs/EQUIPO-Y-MODULOS.md).
 
 ---
 
@@ -386,13 +410,20 @@ flowchart TD
 
 **Regla clave:** el frontend **nunca** escribe directamente en la base de datos. Toda mutación pasa por el backend, que verifica el JWT y el rol antes de actuar.
 
+> 📐 **Diagramas UML completos** — casos de uso, componentes y despliegue, clases, secuencia y estados: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
+
 ---
 
 ## Modelado de datos (DER / BD)
 
 Script de creación (rúbrica): **`database/BDD.sql`** (alineado con `database/schema.sql`).
 
-### Diagrama relacional (MR)
+> 📐 El **DER completo** — las 9 tablas con todos sus atributos, claves, cardinalidades y las
+> restricciones que sostienen cada regla de negocio — está en
+> [`docs/ARQUITECTURA.md` § 7](docs/ARQUITECTURA.md#7-modelo-relacional-completo-der--mr).
+> Abajo va la versión resumida.
+
+### Diagrama relacional (MR) — resumen
 
 ```mermaid
 erDiagram
@@ -466,10 +497,12 @@ Para reiniciar un proyecto nuevo: ejecutar `database/BDD.sql` (o `schema.sql`) e
 ```
 portoSinFiltro/
 ├── index.html                   ← Prototipo standalone (funciona sin backend ni BD)
-├── .gitignore                   ← Excluye node_modules/, dist/, .env, package-lock.json
+├── .gitignore                   ← Excluye node_modules/, dist/, .env, coverage/
 ├── vercel.json                  ← Deploy integrado frontend + backend en Vercel
 ├── docker-compose.yml           ← Opción Docker solo para la API
-├── .github/workflows/ci.yml     ← CI: tests backend/frontend + build
+├── .github/workflows/ci.yml     ← CI: tests con cobertura + artefactos + build
+├── scripts/
+│   └── resumen-cobertura.mjs    ← Imprime el resumen de cobertura en Markdown (lo usa el CI)
 ├── project/                     ← Archivos originales del diseño (Claude Design)
 │   ├── PortoSinFiltro.dc.html   ← Prototipo dc-runtime original
 │   └── PortoSinFiltro-print.dc.html
@@ -486,15 +519,18 @@ portoSinFiltro/
 │   └── migracion_realtime.sql           ← Realtime muro EN VIVO + policies RLS
 │
 ├── docs/
+│   ├── ARQUITECTURA.md                 ← Diagramas UML, DER completo y metodología justificada
+│   ├── EQUIPO-Y-MODULOS.md             ← Reparto de módulos, épicas y guion de la demo
 │   ├── PLAN-ROLES-COMUNITARIOS.md      ← Plan y decisiones del modelo comunitario
-│   ├── DIVISION-EQUIPO-JIRA.md         ← Reparto de módulos del equipo
-│   └── JIRA-DIVISION-TRABAJO.md        ← Foto ordenada del tablero SCRUM
+│   └── presentacion/
+│       └── index.html                  ← Diapositivas de sustentación (abrir en el navegador)
 │
 ├── backend/
 │   ├── .env.example             ← Plantilla de variables (copiar a .env y rellenar)
 │   ├── package.json             ← "type": "module" — necesario para ES imports
-│   ├── vitest.config.js         ← Suite unitaria/integración (supertest)
-│   ├── tests/                   ← health, auth, denuncias, admin, dashboard, rate-limit
+│   ├── package-lock.json        ← Versionado: el CI instala con `npm ci`
+│   ├── vitest.config.js         ← Suite unitaria/integración (supertest) + cobertura
+│   ├── tests/                   ← 132 pruebas: rutas, JWT/roles, CORS, rate limit, errores
 │   └── src/
 │       ├── index.js             ← Entry local; en Vercel se importa el app
 │       ├── app.js               ← Express: CORS, helmet, rate limit, rutas
@@ -542,6 +578,8 @@ portoSinFiltro/
             └── ui/
                 ├── DenunciaCard.jsx  ← Tarjeta horizontal (foto + info + apoyo)
                 ├── BarraGravedad.jsx ← Indicador tipo pila (verde → rojo)
+                ├── SkeletonCard.jsx  ← Placeholder de carga compartido (muro + panel)
+                ├── MapaDenuncias.jsx ← Mapa agregado con clustering
                 └── MapaUbicacion.jsx ← Mapa Leaflet
 ```
 
@@ -567,16 +605,51 @@ Stack de pruebas: **Vitest** (backend con Supertest; frontend con Testing Librar
 # Backend — unitarias + integración de rutas
 cd backend && npm test
 
-# Frontend — helpers y lógica compartida
+# Frontend — componentes, páginas y lógica compartida
 cd frontend && npm test
+
+# Con reporte de cobertura (deja el HTML navegable en coverage/index.html)
+cd backend  && npm run test:coverage
+cd frontend && npm run test:coverage
 ```
 
-| Área | Archivos (ejemplos) | Qué cubren |
-|---|---|---|
-| Backend | `tests/health.test.js`, `denuncias.test.js`, `admin.test.js`, `dashboard.test.js`, `middleware/auth.test.js`, `rate-limit.test.js` | Health, CRUD/permisos, moderación, stats, JWT/roles, rate limit |
-| Frontend | `src/lib/constants.test.js`, `estadoComunitario.test.js`, `useMuroRealtime.test.js` | Constantes, mensajes de estado comunitario, hook realtime |
+### Cobertura
 
-**CI:** en cada push/PR a `main`, `.github/workflows/ci.yml` instala dependencias, corre `npm test` en backend y frontend, y hace `npm run build` del frontend.
+**450 pruebas** en total, todas en verde. Medido con `@vitest/coverage-v8`:
+
+| Área | Pruebas | Sentencias | Ramas | Funciones |
+|---|---:|---:|---:|---:|
+| Backend | 132 | **100%** | 86.9% | **100%** |
+| Frontend | 318 | **99.96%** | 95.0% | 97.7% |
+
+Quedan fuera de la medición, a propósito, dos módulos sin lógica que solo arrancan procesos o
+instancian clientes a partir de variables de entorno: `backend/src/index.js` y
+`frontend/src/lib/supabase.js`.
+
+**Duplicación de código: 0%.** Verificable con `npx jscpd frontend/src backend/src --min-lines 8
+--min-tokens 60 --format javascript,jsx` (0 clones sobre 4.138 líneas analizadas).
+
+### Qué cubren
+
+| Área | Archivos | Qué cubren |
+|---|---|---|
+| Backend — rutas | `denuncias.test.js`, `denuncias-detalle.test.js`, `aportes.test.js`, `admin.test.js`, `admin-usuarios.test.js`, `dashboard.test.js` | CRUD y permisos, apoyo/progreso/reportes, aportes por tipo (incl. `resolucion`), moderación, gestión de usuarios, estadísticas |
+| Backend — plataforma | `middleware/auth.test.js`, `middleware/auth-jwt.test.js`, `rate-limit.test.js`, `cors.test.js`, `errores.test.js`, `health.test.js` | Verificación real de JWT ES256 contra un JWKS local, autorización por rol, límites de peticiones, CORS por lista blanca, manejador de errores |
+| Frontend — páginas | `Muro`, `DetalleDenuncia`, `NuevaDenuncia`, `Admin`, `PanelPublico`, `MisDenuncias`, `Login`, `Mapa`, `NotFound` | Cada flujo de usuario: listar y filtrar, crear con mapa y foto, apoyar, votar progreso, aportar, reportar, moderar, y los estados de carga, vacío y error |
+| Frontend — componentes y librería | `DenunciaCard`, `BarraGravedad`, `Paginacion`, `MapaDenuncias`, `MapaUbicacion`, `Layout`, `App`, `api`, `constants`, `estadoComunitario`, `useMuroRealtime` | UI reutilizable, enrutado y sesión, wrapper de fetch con inyección de JWT, constantes y lógica de estado comunitario |
+
+Las pruebas no tocan la red ni la base de datos: Supabase va mockeado y la verificación de JWT usa
+un JWKS generado en el propio test.
+
+### CI
+
+En cada push/PR a `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+1. Instala con **`npm ci`** desde el `package-lock.json` versionado (build reproducible, con caché).
+2. Corre las pruebas **con cobertura** en backend y frontend.
+3. Escribe una **tabla de cobertura en el resumen del job**, visible sin descargar nada.
+4. Publica el reporte completo (HTML + `lcov.info`) como **artefacto descargable** de la ejecución.
+5. Hace `npm run build` del frontend.
 
 ---
 
@@ -684,7 +757,7 @@ Abrir el navegador en `http://localhost:5173`.
 PORT=4000
 SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 SUPABASE_SERVICE_KEY=sb_secret_...        # secret / service_role key
-FRONTEND_URL=http://localhost:5173,https://portosinfiltro.vercel.app
+FRONTEND_URL=http://localhost:5173,https://porto-sin-filtro.vercel.app
 ```
 
 | Variable | Dónde encontrarla | Descripción |
@@ -984,7 +1057,7 @@ Los conteos de progreso se ven en detalle y en las tarjetas del muro como `↑N 
 - [x] **PWA** — app instalable en móviles (`manifest.json` + service worker)
 - [x] **Config de deploy** — `vercel.json` (frontend + API), `Dockerfile`/`docker-compose.yml` (backend), CORS multi-origen y CI (ver [sección Deploy](#deploy))
 - [x] **Deploy en Vercel** — live en https://porto-sin-filtro.vercel.app
-- [x] **Pruebas automatizadas** — Vitest (backend + frontend) + GitHub Actions
+- [x] **Pruebas automatizadas** — Vitest (backend + frontend) + GitHub Actions, con reporte de cobertura publicado como artefacto del CI
 
 ---
 

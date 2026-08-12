@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PortoSinFiltro — Sustentación · PUCE Sede Manabí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --yellow: #D4A017;
+    --red: #B83232;
+    --green: #0E7A45;
+    --amber: #C87D00;
+    --base: #F7F6F2;
+    --card: #FFFFFF;
+    --muted: #EBEBEB;
+    --ink: #1A1A1A;
+    --soft: #555555;
+    --faint: #999999;
+
+    --headline: 'Anton', 'Arial Narrow', Impact, sans-serif;
+    --body: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'Space Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #111;
+    font-family: var(--body);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  /* ── Escenario: la diapositiva mide 1280x720 y se escala al viewport ── */
+  #stage {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  #deck {
+    width: 1280px;
+    height: 720px;
+    transform-origin: center center;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    background: var(--base);
+    padding: 54px 68px 60px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .slide.is-active { display: flex; }
+
+  /* ── Cabecera tipo periódico ── */
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--ink);
+    flex: 0 0 auto;
+  }
+  .kicker .dot { width: 9px; height: 9px; background: var(--red); border-radius: 50%; flex: 0 0 auto; }
+  .kicker .spacer { margin-left: auto; color: var(--faint); letter-spacing: .1em; }
+
+  h1 {
+    font-family: var(--headline);
+    text-transform: uppercase;
+    line-height: .94;
+    letter-spacing: -.005em;
+    font-weight: 400;
+  }
+  h2 {
+    font-family: var(--headline);
+    font-size: 54px;
+    text-transform: uppercase;
+    line-height: .98;
+    letter-spacing: -.005em;
+    font-weight: 400;
+    margin-top: 26px;
+  }
+  h2 .accent { color: var(--red); }
+
+  .lede {
+    font-size: 20px;
+    line-height: 1.45;
+    color: var(--soft);
+    max-width: 60ch;
+    margin-top: 16px;
+  }
+
+  .mono { font-family: var(--mono); font-size: .92em; letter-spacing: -.01em; }
+
+  .body-main { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+
+  /* ── Numeración ── */
+  .folio {
+    position: absolute;
+    right: 68px;
+    bottom: 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--faint);
+    letter-spacing: .1em;
+  }
+  .folio b { color: var(--ink); }
+
+  /* ── Portada ── */
+  .cover { justify-content: space-between; background: var(--ink); color: var(--base); padding: 58px 68px; }
+  .cover .kicker { color: rgba(247,246,242,.66); border-bottom-color: var(--yellow); }
+  .cover .kicker .spacer { color: rgba(247,246,242,.45); }
+  .cover h1 { font-size: 118px; color: var(--base); }
+  .cover h1 em { font-style: normal; color: var(--yellow); }
+  .cover .sub {
+    font-family: var(--mono);
+    font-size: 17px;
+    letter-spacing: .04em;
+    color: var(--yellow);
+    margin-top: 20px;
+    text-transform: uppercase;
+  }
+  .cover .desc { font-size: 19px; color: rgba(247,246,242,.78); margin-top: 18px; max-width: 56ch; line-height: 1.45; }
+  .cover-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; border-top: 1px solid rgba(247,246,242,.22); padding-top: 20px; }
+  .cover-foot .who { font-size: 15px; color: rgba(247,246,242,.82); line-height: 1.7; }
+  .cover-foot .who b { color: var(--base); font-weight: 600; }
+  .cover-foot .live { text-align: right; font-family: var(--mono); font-size: 13px; color: rgba(247,246,242,.6); line-height: 1.9; }
+  .cover-foot .live a { color: var(--yellow); text-decoration: none; font-weight: 700; }
+
+  /* ── Rejillas ── */
+  .grid { display: grid; gap: 20px; margin-top: 30px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--muted);
+    border-top: 4px solid var(--ink);
+    padding: 22px 22px 24px;
+  }
+  .card.red { border-top-color: var(--red); }
+  .card.amber { border-top-color: var(--amber); }
+  .card.green { border-top-color: var(--green); }
+  .card.yellow { border-top-color: var(--yellow); }
+  .card .lbl {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .card .big { font-family: var(--headline); font-size: 46px; line-height: 1; margin-top: 10px; text-transform: uppercase; }
+  .card .big.sm { font-size: 30px; }
+  .card p { font-size: 15px; line-height: 1.5; color: var(--soft); margin-top: 10px; }
+  .card strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Cifras ── */
+  .stat { font-family: var(--headline); font-size: 76px; line-height: .9; color: var(--ink); }
+  .stat.red { color: var(--red); }
+  .stat.green { color: var(--green); }
+  .stat.amber { color: var(--amber); }
+  .stat-cap { font-size: 15px; color: var(--soft); margin-top: 10px; line-height: 1.45; }
+
+  /* ── Listas ── */
+  ul.plain { list-style: none; }
+  ul.plain li {
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--soft);
+    padding-left: 26px;
+    position: relative;
+    margin-bottom: 13px;
+  }
+  ul.plain li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 9px;
+    width: 11px; height: 3px;
+    background: var(--red);
+  }
+  ul.plain li b { color: var(--ink); font-weight: 600; }
+
+  /* ── Flujo horizontal (pasos) ── */
+  .flow { display: flex; align-items: stretch; gap: 0; margin-top: 32px; }
+  .flow .step {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--muted);
+    padding: 20px 18px;
+    position: relative;
+  }
+  .flow .step + .step { border-left: none; }
+  .flow .step .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: .14em;
+  }
+  .flow .step h4 {
+    font-family: var(--headline);
+    font-size: 25px;
+    text-transform: uppercase;
+    margin: 8px 0 8px;
+    font-weight: 400;
+    line-height: 1.05;
+  }
+  .flow .step p { font-size: 13.5px; color: var(--soft); line-height: 1.45; }
+
+  /* ── Diagramas (HTML puro, imprimibles) ── */
+  .diagram { margin-top: 26px; display: flex; flex-direction: column; gap: 14px; }
+  .layer { display: flex; align-items: center; gap: 14px; }
+  .layer .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    width: 92px;
+    flex: 0 0 92px;
+    text-align: right;
+  }
+  .node {
+    background: var(--card);
+    border: 2px solid var(--ink);
+    padding: 13px 16px;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    flex: 1;
+  }
+  .node .meta { font-family: var(--mono); font-size: 10.5px; color: var(--soft); font-weight: 400; margin-top: 4px; letter-spacing: .04em; }
+  .node.accent { border-color: var(--red); }
+  .node.store { border-style: dashed; background: #FBFAF7; }
+  .node.ghost { border-width: 1px; border-color: var(--muted); color: var(--soft); font-weight: 500; }
+  .arrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--soft);
+    text-align: center;
+    letter-spacing: .1em;
+    padding-left: 106px;
+  }
+  .arrow b { color: var(--red); }
+
+  /* ── Código ── */
+  pre {
+    background: var(--ink);
+    color: #F0EFEA;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.55;
+    padding: 22px 24px;
+    margin-top: 26px;
+    overflow: hidden;
+    border-left: 5px solid var(--yellow);
+  }
+  pre .kw { color: var(--yellow); }
+  pre .st { color: #7FD1A6; }
+  pre .cm { color: #8A8A80; }
+
+  /* ── Chips de estado ── */
+  .chips { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 7px 13px;
+    border: 2px solid var(--ink);
+    background: var(--card);
+  }
+  .chip.activa { border-color: var(--red); color: var(--red); }
+  .chip.avance { border-color: var(--amber); color: var(--amber); }
+  .chip.resuelta { border-color: var(--green); color: var(--green); }
+
+  /* ── Tabla mínima ── */
+  table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  th, td { text-align: left; padding: 12px 14px; font-size: 15px; border-bottom: 1px solid var(--muted); }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--faint);
+    border-bottom: 2px solid var(--ink);
+  }
+  td b { font-weight: 600; }
+  td .mono { font-family: var(--mono); font-size: 13.5px; }
+
+  /* ── Cierre ── */
+  .closing { background: var(--ink); color: var(--base); justify-content: center; align-items: flex-start; }
+  .closing .kicker { color: rgba(247,246,242,.6); border-bottom-color: var(--yellow); align-self: stretch; }
+  .closing h1 { font-size: 96px; color: var(--base); margin-top: 40px; }
+  .closing h1 em { font-style: normal; color: var(--yellow); }
+  .closing .desc { font-size: 20px; color: rgba(247,246,242,.75); margin-top: 22px; max-width: 54ch; line-height: 1.5; }
+  .closing .live { font-family: var(--mono); font-size: 15px; color: var(--yellow); margin-top: 30px; letter-spacing: .04em; }
+
+  /* ── Barra de progreso + ayuda ── */
+  #progress {
+    position: fixed;
+    left: 0; bottom: 0;
+    height: 4px;
+    background: var(--red);
+    width: 0;
+    transition: width .25s ease;
+    z-index: 40;
+  }
+  #hint {
+    position: fixed;
+    left: 14px; bottom: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,.4);
+    letter-spacing: .08em;
+    z-index: 40;
+    transition: opacity .4s ease;
+  }
+  #hint.hide { opacity: 0; }
+
+  /* ── Impresión / PDF: una diapositiva por página ── */
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    html, body { overflow: visible; background: #fff; height: auto; }
+    #stage { position: static; display: block; }
+    #deck { width: 1280px; height: auto; transform: none !important; }
+    .slide {
+      display: flex !important;
+      position: relative;
+      inset: auto;
+      width: 1280px;
+      height: 720px;
+      page-break-after: always;
+      break-after: page;
+    }
+    #progress, #hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="deck">
+
+    <!-- 1 ─ PORTADA -->
+    <section class="slide cover is-active">
+      <div class="kicker">
+        <span class="dot"></span>
+        <span>PUCE Sede Manabí · Ingeniería de Software</span>
+        <span class="spacer">Desarrollo de Sistemas de Información · 2026-1</span>
+      </div>
+      <div>
+        <h1>Porto<em>Sin</em>Filtro</h1>
+        <div class="sub">El muro de la vergüenza · Portoviejo</div>
+        <p class="desc">
+          Plataforma web ciudadana para denunciar problemas urbanos, respaldarlos
+          en público y verificar su resolución sin depender de que una autoridad
+          lo declare.
+        </p>
+      </div>
+      <div class="cover-foot">
+        <div class="who">
+          <b>Equipo:</b> Adolfo Castro · Axel Hernández · Elkin Saltos<br />
+          Marcelo Morales · Johan Medranda
+        </div>
+        <div class="live">
+          En producción<br />
+          <a href="https://porto-sin-filtro.vercel.app">porto-sin-filtro.vercel.app</a>
+        </div>
+      </div>
+      <div class="folio" style="color:rgba(247,246,242,.4)">01</div>
+    </section>
+
+    <!-- 2 ─ EL PROBLEMA -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>El problema</span><span class="spacer">02 · Contexto</span></div>
+      <div class="body-main">
+        <h2>Denunciar no sirve<br />si nadie <span class="accent">lo ve</span></h2>
+        <p class="lede">
+          El ciudadano de Portoviejo reporta un bache o un poste apagado y el
+          reclamo desaparece: no hay número de caso, no hay quién más lo respalde,
+          no hay forma de saber si avanzó.
+        </p>
+        <div class="grid g3">
+          <div class="card red">
+            <div class="lbl">Sin visibilidad</div>
+            <p>El reclamo muere en una llamada o un mensaje privado. Nadie más se entera de que el problema existe.</p>
+          </div>
+          <div class="card amber">
+            <div class="lbl">Sin presión</div>
+            <p>Un vecino solo es fácil de ignorar. Treinta vecinos respaldando el mismo caso, no.</p>
+          </div>
+          <div class="card">
+            <div class="lbl">Sin cierre</div>
+            <p>Nadie confirma si de verdad se arregló. El "resuelto" oficial no siempre coincide con la calle.</p>
+          </div>
+        </div>
+      </div>
+      <div class="folio"><b>02</b> / 13</div>
+    </section>
+
+    <!-- 3 ─ LA PROPUESTA -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>La propuesta</span><span class="spacer">03 · Solución</span></div>
+      <div class="body-main">
+        <h2>Un muro público donde<br />manda <span class="accent">la comunidad</span></h2>
+        <p class="lede">
+          La decisión de producto que define todo el sistema: el estado de una
+          denuncia no lo cambia un funcionario, lo calcula la evidencia ciudadana.
+        </p>
+        <div class="grid g3">
+          <div class="card yellow">
+            <div class="lbl">Visibilidad</div>
+            <div class="big sm">Muro público</div>
+            <p>Cualquiera lee las denuncias <strong>sin iniciar sesión</strong>, con foto, mapa, zona y gravedad.</p>
+          </div>
+          <div class="card red">
+            <div class="lbl">Respaldo</div>
+            <div class="big sm">Apoyo ciudadano</div>
+            <p>Apoyos, aportes y reportes de denuncias falsas: <strong>un voto por persona</strong>, verificado.</p>
+          </div>
+          <div class="card green">
+            <div class="lbl">Cierre verificado</div>
+            <div class="big sm">3 vecinos</div>
+            <p>Una denuncia solo pasa a <strong>RESUELTA</strong> cuando tres ciudadanos distintos lo confirman.</p>
+          </div>
+        </div>
+      </div>
+      <div class="folio"><b>03</b> / 13</div>
+    </section>
+
+    <!-- 4 ─ FLUJO / DEMO -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Demo en vivo</span><span class="spacer">04 · Flujo principal</span></div>
+      <div class="body-main">
+        <h2>Ver → Denunciar → Apoyar → Resolver</h2>
+        <div class="flow">
+          <div class="step">
+            <div class="n">01 · VISITANTE</div>
+            <h4>Lee el muro</h4>
+            <p>Sin cuenta. Filtra por estado, zona y categoría; ordena por reciente, apoyos o gravedad.</p>
+          </div>
+          <div class="step">
+            <div class="n">02 · CIUDADANO</div>
+            <h4>Publica</h4>
+            <p>Categoría, zona, gravedad 1–5, punto exacto en el mapa y foto. Puede firmar o ir anónimo.</p>
+          </div>
+          <div class="step">
+            <div class="n">03 · COMUNIDAD</div>
+            <h4>Respalda</h4>
+            <p>Apoya, aporta evidencia, vota si el caso progresa o lo reporta como falso.</p>
+          </div>
+          <div class="step">
+            <div class="n">04 · COMUNIDAD</div>
+            <h4>Cierra</h4>
+            <p>Tres confirmaciones independientes y el estado cambia solo, en vivo, sin recargar.</p>
+          </div>
+          <div class="step">
+            <div class="n">05 · ADMIN</div>
+            <h4>Modera</h4>
+            <p>Solo oculta o restaura lo abusivo. Nunca decide si un problema está resuelto.</p>
+          </div>
+        </div>
+        <div class="chips">
+          <span class="chip activa">Activa</span>
+          <span class="chip avance">Con avance</span>
+          <span class="chip resuelta">Resuelta</span>
+          <span class="chip">Oculta · solo moderación</span>
+        </div>
+      </div>
+      <div class="folio"><b>04</b> / 13</div>
+    </section>
+
+    <!-- 5 ─ METODOLOGÍA -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Metodología</span><span class="spacer">05 · Gestión del proyecto</span></div>
+      <div class="body-main">
+        <h2>Scrum adaptado a<br />un semestre corto</h2>
+        <div class="grid g2" style="margin-top:24px">
+          <div>
+            <ul class="plain">
+              <li><b>Por qué Scrum y no Kanban:</b> el alcance estaba fijo por la rúbrica y la fecha de examen era inamovible, así que necesitábamos iteraciones cerradas con una meta demostrable, no un flujo continuo.</li>
+              <li><b>Épicas por módulo:</b> base de datos, API, experiencia ciudadana, moderación y entrega.</li>
+              <li><b>Un dueño por ticket</b> y dependencias explícitas entre módulos con <span class="mono">is blocked by</span>.</li>
+              <li><b>Definition of done:</b> mergeado en <span class="mono">main</span>, CI en verde y validado en la app.</li>
+            </ul>
+          </div>
+          <div>
+            <div class="card">
+              <div class="lbl">Flujo de estados en el tablero</div>
+              <div style="font-family:var(--mono);font-size:14px;line-height:2.1;color:var(--soft);margin-top:12px">
+                Por hacer<br />
+                → En progreso<br />
+                → En revisión <span style="color:var(--faint)">(PR + CI)</span><br />
+                → <b style="color:var(--green)">Finalizado</b>
+              </div>
+            </div>
+            <div class="card yellow" style="margin-top:20px">
+              <div class="lbl">Tablero</div>
+              <p style="margin-top:8px">
+                Jira Software · proyecto <span class="mono">SCRUM</span> "portosinfiltro".
+                Cada ticket finalizado corresponde a commits verificables en el
+                repositorio único del equipo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="folio"><b>05</b> / 13</div>
+    </section>
+
+    <!-- 6 ─ ARQUITECTURA -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Arquitectura</span><span class="spacer">06 · Vista de despliegue</span></div>
+      <div class="body-main">
+        <h2>Tres capas, una regla</h2>
+        <div class="diagram">
+          <div class="layer">
+            <span class="tag">Cliente</span>
+            <div class="node">Frontend SPA — React 18 + Vite + Tailwind<div class="meta">Muro · Detalle · Nueva denuncia · Panel público · Admin · PWA</div></div>
+          </div>
+          <div class="arrow">▼ &nbsp; <b>fetch /api/*</b> con JWT en el header &nbsp;·&nbsp; login contra Supabase Auth</div>
+          <div class="layer">
+            <span class="tag">Servidor</span>
+            <div class="node accent">Backend API REST — Node.js + Express<div class="meta">requireAuth() valida JWT ES256 vía JWKS · requireRol() autoriza · helmet · rate limit · express-validator</div></div>
+          </div>
+          <div class="arrow">▼ &nbsp; cliente <b>service_role</b> (única vía de escritura)</div>
+          <div class="layer">
+            <span class="tag">Datos</span>
+            <div class="node store">PostgreSQL — Supabase<div class="meta">Tablas + vista_denuncias (estado calculado) + RLS + trigger</div></div>
+            <div class="node store">Storage — bucket <span style="font-family:var(--mono)">denuncias</span><div class="meta">Fotos JPG/PNG/WEBP · máx. 5 MB</div></div>
+            <div class="node store">Realtime<div class="meta">El muro se actualiza sin recargar</div></div>
+          </div>
+        </div>
+        <div class="card red" style="margin-top:24px;border-top-width:4px">
+          <div class="lbl">Regla que no se rompe</div>
+          <p style="font-size:16.5px;margin-top:6px">
+            El frontend <strong>nunca</strong> escribe en la base de datos. Toda mutación pasa
+            por el backend, que verifica token y rol antes de actuar. RLS queda como segunda capa.
+          </p>
+        </div>
+      </div>
+      <div class="folio"><b>06</b> / 13</div>
+    </section>
+
+    <!-- 7 ─ MODELO DE DATOS -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Modelo de datos</span><span class="spacer">07 · DER · BDD.sql</span></div>
+      <div class="body-main">
+        <h2>9 tablas, 2 vistas,<br />0 estados escritos a mano</h2>
+        <div class="grid g4" style="margin-top:26px">
+          <div class="card">
+            <div class="lbl">Identidad</div>
+            <p style="margin-top:8px"><strong>perfiles</strong> extiende <span class="mono">auth.users</span>; rol <span class="mono">ciudadano</span> o <span class="mono">administrador</span>, creado por trigger al registrarse.</p>
+          </div>
+          <div class="card red">
+            <div class="lbl">Núcleo</div>
+            <p style="margin-top:8px"><strong>denuncias</strong> con categoría, zona, gravedad, lat/lng, anonimato y bandera de moderación.</p>
+          </div>
+          <div class="card amber">
+            <div class="lbl">Evidencia e interacción</div>
+            <p style="margin-top:8px"><strong>fotos_denuncia</strong>, <strong>aportes</strong>, <strong>reacciones</strong>, <strong>valoraciones_progreso</strong>, <strong>reportes_denuncia</strong>.</p>
+          </div>
+          <div class="card green">
+            <div class="lbl">Lectura</div>
+            <p style="margin-top:8px"><strong>vista_denuncias</strong> para el público y <strong>vista_denuncias_admin</strong> para moderación.</p>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Decisión de diseño</th><th>Cómo se garantiza en el esquema</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><b>Un apoyo y un voto por persona</b></td><td class="mono">UNIQUE (denuncia_id, usuario_id) en reacciones y valoraciones_progreso</td></tr>
+            <tr><td><b>Una sola confirmación de resolución</b></td><td class="mono">índice único parcial WHERE tipo = 'resolucion'</td></tr>
+            <tr><td><b>Anonimato hacia afuera, trazable adentro</b></td><td class="mono">la vista devuelve 'Ciudadano Anónimo'; autor_id se conserva</td></tr>
+          </tbody>
+        </table>
+        <p style="font-family:var(--mono);font-size:12.5px;color:var(--faint);margin-top:18px;letter-spacing:.04em">
+          SCRIPT DE CREACIÓN COMPLETO → database/BDD.sql &nbsp;·&nbsp; DER Y MIGRACIONES → docs/ARQUITECTURA.md
+        </p>
+      </div>
+      <div class="folio"><b>07</b> / 13</div>
+    </section>
+
+    <!-- 8 ─ EL CORAZÓN TÉCNICO -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Decisión técnica clave</span><span class="spacer">08 · Estado comunitario</span></div>
+      <div class="body-main">
+        <h2>El estado <span class="accent">no se guarda</span>:<br />se calcula</h2>
+        <p class="lede">
+          No existe una columna <span class="mono">estado</span> editable: la vista SQL la deriva de la
+          evidencia en cada consulta, así que nadie puede falsear un "resuelto".
+        </p>
+        <pre><span class="cm">-- vista_denuncias · se evalúa en cada lectura del muro</span>
+<span class="kw">CASE</span>
+  <span class="kw">WHEN</span> resoluciones &gt;= 3                              <span class="kw">THEN</span> <span class="st">'resuelta'</span>
+  <span class="kw">WHEN</span> progreso_si &gt;= 2 <span class="kw">AND</span> progreso_si &gt; progreso_no <span class="kw">THEN</span> <span class="st">'con_avance'</span>
+  <span class="kw">ELSE</span>                                                  <span class="st">'activa'</span>
+<span class="kw">END</span> <span class="kw">AS</span> estado</pre>
+        <div class="grid g3" style="margin-top:22px">
+          <div class="card"><div class="lbl">Ventaja</div><p style="margin-top:6px">Cero desincronización: no hay estado que actualizar.</p></div>
+          <div class="card"><div class="lbl">Costo asumido</div><p style="margin-top:6px">Se recalcula al leer; con volumen, vista materializada.</p></div>
+          <div class="card"><div class="lbl">Efecto</div><p style="margin-top:6px">Ni el administrador puede declarar algo resuelto.</p></div>
+        </div>
+      </div>
+      <div class="folio"><b>08</b> / 13</div>
+    </section>
+
+    <!-- 9 ─ SEGURIDAD -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Seguridad</span><span class="spacer">09 · Autenticación y autorización</span></div>
+      <div class="body-main">
+        <h2>Defensa en capas</h2>
+        <div class="grid g2" style="margin-top:26px">
+          <div class="card red">
+            <div class="lbl">1 · Identidad</div>
+            <div class="big sm">JWT ES256</div>
+            <p>Login por email y contraseña en Supabase Auth. El backend verifica cada token contra el <strong>JWKS</strong> público con la librería <span class="mono">jose</span>: no hay secreto compartido que filtrar.</p>
+          </div>
+          <div class="card amber">
+            <div class="lbl">2 · Autorización</div>
+            <div class="big sm">RBAC por ruta</div>
+            <p><span class="mono">requireRol('ciudadano')</span> y <span class="mono">requireRol('administrador')</span> protegen cada endpoint. Crear denuncias es exclusivo de ciudadanos; ocultar, de administradores.</p>
+          </div>
+          <div class="card">
+            <div class="lbl">3 · Entrada</div>
+            <div class="big sm">Validación</div>
+            <p><span class="mono">express-validator</span> en cada ruta, <span class="mono">helmet</span>, CORS por lista blanca de orígenes y <strong>rate limit</strong> más estricto en escrituras.</p>
+          </div>
+          <div class="card green">
+            <div class="lbl">4 · Base de datos</div>
+            <div class="big sm">RLS</div>
+            <p>Row Level Security activo en todas las tablas como red de seguridad ante accesos directos. La <span class="mono">secret key</span> vive solo en el servidor.</p>
+          </div>
+        </div>
+      </div>
+      <div class="folio"><b>09</b> / 13</div>
+    </section>
+
+    <!-- 10 ─ CALIDAD -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Calidad</span><span class="spacer">10 · Modularidad y pruebas</span></div>
+      <div class="body-main">
+        <h2>Código modular,<br />probado en cada push</h2>
+        <div class="grid g4" style="margin-top:28px">
+          <div class="card red"><div class="lbl">Pruebas automatizadas</div><div class="stat red">450</div><div class="stat-cap">casos en 33 archivos: 132 de backend con Supertest, 318 de frontend con Testing Library.</div></div>
+          <div class="card"><div class="lbl">Cobertura de sentencias</div><div class="stat">100%</div><div class="stat-cap">en backend y 99.96% en frontend, medido con <span class="mono">@vitest/coverage-v8</span>.</div></div>
+          <div class="card amber"><div class="lbl">Backend</div><div class="stat amber">4</div><div class="stat-cap">módulos de rutas por dominio, más <span class="mono">middleware/</span> y <span class="mono">db/</span> aislados.</div></div>
+          <div class="card green"><div class="lbl">Frontend</div><div class="stat green">3</div><div class="stat-cap">capas separadas: <span class="mono">pages/</span>, <span class="mono">components/</span> y <span class="mono">lib/</span> (API, constantes, realtime).</div></div>
+        </div>
+        <div class="grid g2" style="margin-top:24px">
+          <div class="card">
+            <div class="lbl">Qué cubren las pruebas</div>
+            <p style="margin-top:8px">Verificación real de JWT ES256, permisos por rol (401/403), CRUD de denuncias, aportes, moderación, límite de peticiones y CORS. En frontend, cada página con sus estados de carga, vacío y error.</p>
+          </div>
+          <div class="card">
+            <div class="lbl">Integración continua</div>
+            <p style="margin-top:8px">GitHub Actions instala con <span class="mono">npm ci</span>, corre las dos suites con cobertura y publica el reporte como artefacto descargable en cada push y PR a <span class="mono">main</span>. Duplicación de código medida con jscpd: <b>0%</b>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="folio"><b>10</b> / 13</div>
+    </section>
+
+    <!-- 11 ─ DESPLIEGUE -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Despliegue</span><span class="spacer">11 · Producción</span></div>
+      <div class="body-main">
+        <h2>En vivo, no en localhost</h2>
+        <div class="diagram" style="margin-top:24px">
+          <div class="layer">
+            <span class="tag">Público</span>
+            <div class="node accent">porto-sin-filtro.vercel.app<div class="meta">Dominio público con HTTPS · frontend y API en el mismo despliegue vía vercel.json</div></div>
+          </div>
+          <div class="arrow">▼</div>
+          <div class="layer">
+            <span class="tag">Plataforma</span>
+            <div class="node">Vercel<div class="meta">Build del frontend + funciones serverless para /api/*</div></div>
+            <div class="node">Supabase Cloud<div class="meta">PostgreSQL gestionado + Auth + Storage + Realtime</div></div>
+          </div>
+          <div class="arrow">▼</div>
+          <div class="layer">
+            <span class="tag">Alternativa</span>
+            <div class="node ghost">Docker — backend/Dockerfile + docker-compose.yml para servidor propio con proxy inverso</div>
+          </div>
+        </div>
+        <div class="grid g3" style="margin-top:26px">
+          <div class="card"><div class="lbl">Secretos</div><p style="margin-top:6px">Variables de entorno en la plataforma. La <span class="mono">service key</span> nunca se versiona ni llega al navegador.</p></div>
+          <div class="card"><div class="lbl">CORS</div><p style="margin-top:6px"><span class="mono">FRONTEND_URL</span> admite varios orígenes separados por coma: producción y desarrollo local.</p></div>
+          <div class="card"><div class="lbl">Plan B</div><p style="margin-top:6px">Prototipo autónomo en <span class="mono">index.html</span>: corre sin red ni backend si falla la conexión en la sustentación.</p></div>
+        </div>
+      </div>
+      <div class="folio"><b>11</b> / 13</div>
+    </section>
+
+    <!-- 12 ─ QUÉ SIGUE -->
+    <section class="slide">
+      <div class="kicker"><span class="dot"></span><span>Qué sigue</span><span class="spacer">12 · Roadmap</span></div>
+      <div class="body-main">
+        <h2>Lo entregado y<br />lo siguiente</h2>
+        <div class="grid g2" style="margin-top:26px">
+          <div>
+            <div class="card green">
+              <div class="lbl">Entregado y en producción</div>
+              <ul class="plain" style="margin-top:14px">
+                <li>Muro público, detalle, creación con mapa y foto</li>
+                <li>Registro y login de ciudadanos con roles</li>
+                <li>Estado comunitario calculado y actualizado en vivo</li>
+                <li>Moderación de administrador y gestión de usuarios</li>
+                <li>Panel público de estadísticas y mapa agregado</li>
+                <li>PWA instalable, pruebas automatizadas y CI</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="card amber">
+              <div class="lbl">Siguiente iteración</div>
+              <ul class="plain" style="margin-top:14px">
+                <li><b>Notificaciones</b> al autor cuando su caso cambia de estado</li>
+                <li><b>Errores asíncronos</b> centralizados en las rutas de Express</li>
+                <li><b>Capa de servicios</b> en el backend para separar SQL de HTTP</li>
+                <li><b>Vista materializada</b> del estado si crece el volumen</li>
+                <li><b>Verificación por geocerca</b> para confirmar solo desde la zona</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="folio"><b>12</b> / 13</div>
+    </section>
+
+    <!-- 13 ─ CIERRE -->
+    <section class="slide closing">
+      <div class="kicker"><span class="dot"></span><span>Gracias</span><span class="spacer">Preguntas</span></div>
+      <h1>Porto<em>Sin</em>Filtro</h1>
+      <p class="desc">
+        Construimos un sistema donde la verdad sobre un problema urbano no la
+        declara la autoridad: la sostiene la evidencia de los vecinos.
+      </p>
+      <div class="live">
+        porto-sin-filtro.vercel.app &nbsp;·&nbsp; github.com/castro-bot/portoSinFiltro
+      </div>
+      <div class="folio" style="color:rgba(247,246,242,.4)"><b style="color:var(--yellow)">13</b> / 13</div>
+    </section>
+
+  </div>
+</div>
+
+<div id="progress"></div>
+<div id="hint">← → NAVEGAR · F PANTALLA COMPLETA · CTRL+P EXPORTAR PDF</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const deck = document.getElementById('deck');
+  const progress = document.getElementById('progress');
+  const hint = document.getElementById('hint');
+  let index = 0;
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('is-active', i === index));
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    if (location.hash !== '#' + (index + 1)) {
+      history.replaceState(null, '', '#' + (index + 1));
+    }
+  }
+
+  function go(delta) {
+    const next = index + delta;
+    if (next < 0 || next >= slides.length) return;
+    index = next;
+    render();
+  }
+
+  // Escala la diapositiva de 1280x720 para que quepa en cualquier pantalla
+  function fit() {
+    const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    deck.style.transform = 'scale(' + scale + ')';
+  }
+
+  window.addEventListener('resize', fit);
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); go(1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); go(-1); break;
+      case 'Home': index = 0; render(); break;
+      case 'End': index = slides.length - 1; render(); break;
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+    hint.classList.add('hide');
+  });
+
+  // Avance por clic: mitad derecha adelante, mitad izquierda atrás
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    go(e.clientX > window.innerWidth / 2 ? 1 : -1);
+    hint.classList.add('hide');
+  });
+
+  const fromHash = parseInt(location.hash.slice(1), 10);
+  if (fromHash >= 1 && fromHash <= slides.length) index = fromHash - 1;
+
+  fit();
+  render();
+  setTimeout(() => hint.classList.add('hide'), 6000);
+</script>
+
+</body>
+</html>
