@@ -6,6 +6,17 @@ PUCE Sede Manabí · Ingeniería de Software · *Desarrollo de Sistemas de Infor
 Todos los diagramas están en **Mermaid**, que GitHub renderiza directamente en esta
 página. El script de creación de la base de datos es [`database/BDD.sql`](../database/BDD.sql).
 
+> 🖼️ **Para verlos fuera de GitHub** (imprimir, exportar a PDF o abrir en un editor sin
+> soporte de Mermaid), generar los diagramas como imágenes vectoriales:
+>
+> ```bash
+> npm run diagramas
+> ```
+>
+> Deja en `docs/diagramas/` un `ARQUITECTURA.md` con los ocho diagramas como archivos
+> `.svg` enlazados. Requiere Node y descarga `@mermaid-js/mermaid-cli` con `npx` la
+> primera vez.
+
 ## Índice
 
 1. [Metodología: elección y justificación](#1-metodología-elección-y-justificación)
@@ -45,6 +56,12 @@ El equipo trabajó con **Scrum adaptado a sprints cortos de dos semanas**.
 **Roles.** Sin Scrum Master dedicado por el tamaño del equipo: la facilitación fue rotativa
 y la propiedad del backlog compartida. Cada integrante es dueño de un módulo y responsable
 de los tickets de su épica.
+
+**El registro de las iteraciones está en [`SPRINTS.md`](SPRINTS.md):** product backlog con
+los requisitos `RF`/`RNF` por épica, y para cada una de las cuatro iteraciones su objetivo,
+lo entregado, el sprint review y la retrospectiva. Incluye también el alcance planificado
+que **no** se entregó y por qué, y las consultas JQL para verificar cada cifra contra el
+tablero.
 
 **Tablero:** [Jira — portosinfiltro (`SCRUM`)](https://codificandote.atlassian.net/jira/software/projects/SCRUM/boards)
 · reparto vigente de módulos en [`EQUIPO-Y-MODULOS.md`](EQUIPO-Y-MODULOS.md).
@@ -125,7 +142,7 @@ flowchart TB
 
     subgraph SUPA["《nodo》 Supabase Cloud"]
         AUTH["《componente》 Auth<br/>emisor JWT ES256 + JWKS"]
-        PG[("《almacén》 PostgreSQL<br/>9 tablas · 2 vistas · RLS")]
+        PG[("《almacén》 PostgreSQL<br/>10 tablas · 2 vistas · RLS")]
         STORE[("《almacén》 Storage<br/>bucket denuncias")]
         RT["《componente》 Realtime<br/>canal de cambios"]
     end
@@ -506,7 +523,10 @@ una vista materializada refrescada por trigger.
 
 ## 7. Modelo relacional completo (DER / MR)
 
-Nueve tablas y dos vistas. Notación pie de cuervo: `||` uno obligatorio, `o{` cero o muchos.
+Diez tablas y dos vistas. Nueve tablas están en uso; `historial_estados` es una tabla de
+legado que quedó del modelo anterior, en el que el municipio cambiaba el estado a mano, y
+que el `BDD.sql` sigue creando para que el esquema sea reproducible tal como está
+desplegado. Notación pie de cuervo: `||` uno obligatorio, `o{` cero o muchos.
 
 ```mermaid
 erDiagram
@@ -642,11 +662,23 @@ erDiagram
 
 ### Seguridad a nivel de fila
 
-RLS está activo en las nueve tablas. El backend usa la `service_role` key y la
-bypassa por diseño, así que RLS funciona como **segunda capa** ante un acceso directo
-a la base con la `anon` key. Políticas vigentes: lectura pública de denuncias no
-ocultas, lectura pública de aportes, y `usuarios_ven_su_perfil` para que el frontend
-pueda leer el nombre y rol del usuario autenticado.
+RLS está activo en ocho de las diez tablas. Quedan fuera `categorias` y `zonas`, que son
+catálogos públicos de solo lectura sin datos de usuario. El backend usa la `service_role`
+key y bypassa RLS por diseño, así que RLS funciona como **segunda capa** ante un acceso
+directo a la base con la `anon` key.
+
+| Política | Tabla | Para qué existe |
+|---|---|---|
+| `lectura_publica_denuncias` | `denuncias` | Lectura pública de las no ocultas (`oculta = false`) |
+| `lectura_publica_aportes` | `aportes` | Lectura pública de los aportes |
+| `usuarios_ven_su_perfil` | `perfiles` | Que el frontend lea el nombre y rol del usuario autenticado, y solo el suyo |
+| `lectura_publica_reacciones` | `reacciones` | Realtime respeta RLS: sin `SELECT` público el muro en vivo no recibe eventos |
+| `lectura_publica_valoraciones` | `valoraciones_progreso` | Ídem, para los votos de progreso |
+| `lectura_publica_fotos` | `fotos_denuncia` | Ídem, para las fotos |
+
+Las tres últimas existen porque **Realtime evalúa RLS antes de emitir un evento**: una
+tabla sin `SELECT` público no notifica cambios aunque esté en la publicación. Es la razón
+por la que el muro en vivo depende de policies y no solo de la suscripción.
 
 ---
 
@@ -664,6 +696,7 @@ pueda leer el nombre y rol del usuario autenticado.
 | Diagrama de estados (UML) | Sección 6 |
 | Diagrama entidad-relación (DER / MR) | Sección 7 |
 | Justificación de la metodología | Sección 1 |
+| Artefactos ágiles: backlog, sprint review y retrospectiva | [`docs/SPRINTS.md`](SPRINTS.md) |
 | Diapositivas de sustentación | [`docs/presentacion/index.html`](presentacion/index.html) |
 | Suite de pruebas | `backend/tests/` y `frontend/src/**/*.test.{js,jsx}` |
 | Integración continua | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |

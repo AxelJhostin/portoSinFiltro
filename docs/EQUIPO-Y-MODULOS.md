@@ -30,6 +30,15 @@ tickets de una épica se asignan a su dueño. Cambios en archivos compartidos
 
 ## 2. Épicas del tablero y quién responde por cada una
 
+> **Por qué esta tabla no coincide con la de arriba.** Son dos ejes distintos y ambos son
+> correctos. La sección 1 reparte la **superficie de código**: quién mantiene qué archivos.
+> Esta sección reparte la **responsabilidad de la épica en Jira**: quién responde por que
+> el alcance se cierre. Se cruzan a propósito, para que nadie sea a la vez único autor y
+> único revisor de un módulo. Ejemplo: Axel mantiene `Muro.jsx`, pero la épica
+> `SCRUM-20` (Muro Público) responde Adolfo, que es dueño de los endpoints que la
+> alimentan. Los responsables de abajo son los asignados reales de cada épica en el
+> tablero.
+
 | Épica | Alcance | Responsable |
 |---|---|---|
 | `SCRUM-18` Gestión de Usuarios y Autenticación | Registro, login, roles, RLS, perfiles | Axel |
@@ -48,6 +57,10 @@ tickets de una épica se asignan a su dueño. Cambios en archivos compartidos
 Scrum adaptado a sprints cortos. La justificación completa de por qué se eligió Scrum
 frente a Kanban, cascada o XP está en
 [`ARQUITECTURA.md` § 1](ARQUITECTURA.md#1-metodología-elección-y-justificación).
+
+El **registro de las cuatro iteraciones** —objetivo, alcance entregado, sprint review y
+retrospectiva de cada una, más el alcance que no se entregó— está en
+[`SPRINTS.md`](SPRINTS.md).
 
 ### Flujo de estados
 
@@ -125,6 +138,7 @@ prototipo autónomo y funciona sin backend ni conexión.
 |---|---|
 | Script de creación de base de datos | [`database/BDD.sql`](../database/BDD.sql) |
 | Diagramas UML y DER | [`docs/ARQUITECTURA.md`](ARQUITECTURA.md) |
+| Artefactos ágiles: backlog, review y retrospectiva | [`docs/SPRINTS.md`](SPRINTS.md) |
 | Diapositivas de sustentación | [`docs/presentacion/index.html`](presentacion/index.html) |
 | Guía de despliegue y arquitectura | [`README.md`](../README.md) |
 | Suite de pruebas | `backend/tests/`, `frontend/src/**/*.test.{js,jsx}` |

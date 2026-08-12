@@ -34,22 +34,22 @@ Conexión Postgres: postgresql://postgres:[DB-PASSWORD]@db.xynkalcsaubgseoiiavz.
 
 ### Paso A — Tareas del encargado de Supabase
 
-**A1.** En **Supabase → SQL Editor**, ejecutar todo el contenido de `database/schema.sql`.
-Esto ya crea las tablas, la vista `vista_denuncias`, la policy `usuarios_ven_su_perfil`, el trigger `handle_new_user` y el bucket de fotos.
+**A1.** En **Supabase → SQL Editor**, ejecutar todo el contenido de `database/BDD.sql`
+(o su equivalente `database/schema.sql`). **Con eso basta en un proyecto nuevo.**
 
-> Si corriste una versión **anterior** del `schema.sql` (sin estos arreglos), vuelve a ejecutar solo la parte de la vista, la policy `usuarios_ven_su_perfil` y el bloque `handle_new_user` que están al final del archivo actual.
+Ese único script crea las 10 tablas y los catálogos, las vistas `vista_denuncias` y
+`vista_denuncias_admin` con el estado comunitario calculado, RLS con todas sus policies,
+los triggers `trg_denuncias_updated_at` y `handle_new_user`, la publicación de Realtime y
+el bucket de fotos.
+
+> 📡 **Realtime ya viene incluido.** Las policies de lectura de `reacciones`,
+> `valoraciones_progreso` y `fotos_denuncia` y la publicación en `supabase_realtime` son
+> parte del script. Realtime respeta RLS: sin esas policies el muro en vivo no recibiría
+> eventos.
 >
-> 🗺️📷 **Para ubicación (mapa) y fotos:** ejecuta `database/migracion_ubicacion_fotos.sql` — agrega `latitud`/`longitud`, actualiza la vista y crea el bucket `denuncias`.
->
-> 🖼️ **Para miniaturas en el muro:** ejecuta `database/migracion_foto_portada.sql` — agrega `foto_portada` a la vista.
->
-> 📊 **Para valoraciones de progreso:** ejecuta `database/migracion_progreso_ciudadano.sql` — tabla `valoraciones_progreso` y conteos en la vista. (Si recreas todo desde `schema.sql` actual, ya viene incluido.)
->
-> 👥 **Para roles comunitarios:** ejecuta `database/migracion_roles_comunitarios.sql` — roles `ciudadano`/`administrador`, reportes de denuncias falsas, estado comunitario en la vista y tipo de aporte `resolucion`. Ver `docs/PLAN-ROLES-COMUNITARIOS.md`.
->
-> ✅ **Para resolución única:** ejecuta `database/migracion_resolucion_unica.sql` — cada ciudadano solo puede confirmar resolución **una vez** por denuncia (se necesitan **3 ciudadanos distintos** para RESUELTA).
->
-> 📡 **Para muro EN VIVO (Realtime):** ejecuta `database/migracion_realtime.sql` — publica tablas en Supabase Realtime y policies SELECT para reacciones/valoraciones/fotos.
+> 🔁 **¿Tu base ya existía?** Entonces sí necesitas los `database/migracion_*.sql`, que
+> actualizan una base creada con una versión anterior del esquema. La tabla de la sección
+> [Base de datos](#2-base-de-datos) dice qué agrega cada uno.
 >
 > ⚠️ **Orden importante en la migración de roles:** primero se elimina el CHECK viejo de `perfiles.rol`, luego se hace el `UPDATE` a `administrador`, y al final se crea el CHECK nuevo. Si el script falla con error `23514`, usa la versión actual del archivo en el repo (commit `0219dbc` o posterior).
 
@@ -253,7 +253,8 @@ npx serve -p 3771 .        # luego abrir http://localhost:3771
 | Documento | Qué contiene |
 |---|---|
 | [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Justificación de la metodología y **diagramas UML**: casos de uso, componentes y despliegue, clases, secuencia, estados y el **DER completo** |
-| [`database/BDD.sql`](database/BDD.sql) | Script estructurado de creación de la base de datos |
+| [`docs/SPRINTS.md`](docs/SPRINTS.md) | **Artefactos ágiles**: product backlog con requisitos `RF`/`RNF`, y por cada iteración su objetivo, sprint review y retrospectiva. Incluye el alcance que no se entregó y cómo verificar cada cifra en Jira |
+| [`database/BDD.sql`](database/BDD.sql) | Script estructurado de creación de la base de datos (autosuficiente) |
 | [`docs/presentacion/index.html`](docs/presentacion/index.html) | **Diapositivas de sustentación** — se abren en cualquier navegador; `Ctrl/Cmd + P` las exporta a PDF |
 | [`docs/EQUIPO-Y-MODULOS.md`](docs/EQUIPO-Y-MODULOS.md) | Reparto de módulos, épicas del tablero, Definition of Done y guion de la demo |
 | [`docs/PLAN-ROLES-COMUNITARIOS.md`](docs/PLAN-ROLES-COMUNITARIOS.md) | Decisiones del modelo de roles y estados comunitarios |
@@ -418,7 +419,7 @@ flowchart TD
 
 Script de creación (rúbrica): **`database/BDD.sql`** (alineado con `database/schema.sql`).
 
-> 📐 El **DER completo** — las 9 tablas con todos sus atributos, claves, cardinalidades y las
+> 📐 El **DER completo** — las 10 tablas con todos sus atributos, claves, cardinalidades y las
 > restricciones que sostienen cada regla de negocio — está en
 > [`docs/ARQUITECTURA.md` § 7](docs/ARQUITECTURA.md#7-modelo-relacional-completo-der--mr).
 > Abajo va la versión resumida.
@@ -508,7 +509,7 @@ portoSinFiltro/
 │   └── PortoSinFiltro-print.dc.html
 │
 ├── database/
-│   ├── BDD.sql                         ← Entregable rúbrica (script de creación BD)
+│   ├── BDD.sql                         ← Entregable rúbrica — script de creación autosuficiente
 │   ├── schema.sql                      ← Misma fuente de verdad del esquema
 │   ├── seed.sql                        ← Datos de prueba (leer comentarios del archivo)
 │   ├── migracion_ubicacion_fotos.sql   ← Mapa + Storage (BD existente)
@@ -520,6 +521,7 @@ portoSinFiltro/
 │
 ├── docs/
 │   ├── ARQUITECTURA.md                 ← Diagramas UML, DER completo y metodología justificada
+│   ├── SPRINTS.md                      ← Backlog, sprint review y retrospectiva por iteración
 │   ├── EQUIPO-Y-MODULOS.md             ← Reparto de módulos, épicas y guion de la demo
 │   ├── PLAN-ROLES-COMUNITARIOS.md      ← Plan y decisiones del modelo comunitario
 │   └── presentacion/
@@ -677,11 +679,17 @@ En cada push/PR a `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
 En **Supabase → SQL Editor**, ejecutar en este orden:
 
-**Paso 1 — Schema** (obligatorio en proyecto nuevo):
+**Paso 1 — Schema** (lo único obligatorio en un proyecto nuevo):
 Copiar y pegar todo el contenido de `database/BDD.sql` (o `database/schema.sql`) y ejecutar.
 
-**Paso 1b — Migraciones** (si la BD ya existía antes de una feature):
-Ejecutar en orden según lo que falte:
+> ✅ **En un proyecto nuevo esto es suficiente.** `BDD.sql` es autosuficiente: crea las
+> tablas y catálogos, las dos vistas con el estado comunitario, RLS con todas sus policies,
+> los triggers, la publicación de Realtime y el bucket de Storage. **No** hace falta
+> ejecutar ningún `migracion_*.sql`.
+
+**Paso 1b — Migraciones** (solo si la BD ya existía antes de una feature):
+Los archivos `migracion_*.sql` sirven para actualizar una base creada con una versión
+anterior del esquema. Ejecutar en orden según lo que falte:
 
 | Archivo | Qué agrega |
 |---|---|
